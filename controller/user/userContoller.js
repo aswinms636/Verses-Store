@@ -25,6 +25,16 @@ const loadSingnup=async (req,res)=>{
     }
 }
 
+const logout=async (req,res)=>{
+    try {
+        req.session.user=null
+        console.log('logout successfully')
+        res.redirect('/')
+    } catch (error) {
+        return res.status(500).send('Server error');
+    }
+}
+
 
 
 const loadsignin= async (req, res) => {
@@ -201,6 +211,7 @@ module.exports={
     loadOtpPage,
     verifyOtp,
     signin,
+    logout
 }
 
 

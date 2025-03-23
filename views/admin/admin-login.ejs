@@ -1,0 +1,188 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login</title>
+  <style>
+
+    * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f4f4f9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-box {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 400px;
+  max-width: 100%;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  font-size: 14px;
+  color: #666;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+.input-group input:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+.error-message {
+  color: red;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #3498db;
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.submit-btn:hover {
+  background-color: #2980b9;
+}
+
+.forgot-password {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.forgot-password a {
+  color: #3498db;
+  text-decoration: none;
+}
+
+.forgot-password a:hover {
+  text-decoration: underline;
+}
+
+.signup-link {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.signup-link a {
+  color: #3498db;
+  text-decoration: none;
+}
+
+.signup-link a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .login-box {
+    padding: 20px;
+  }
+}
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="login-box">
+      <h2> Admin Login</h2>
+      <form id="login-form" action="/admin/adminLogin" method="post">
+        <div class="input-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="Enter your email" required>
+        </div>
+      
+        <div class="input-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="Enter your password" required>
+        </div>
+      
+        <button type="submit" class="submit-btn">Login</button>
+      </form>
+      
+
+      
+    </div>
+  </div>
+
+  <script>
+//     document.getElementById('login-form').addEventListener('submit', function(event) {
+//   event.preventDefault();
+
+//   // Clear previous error messages
+//   clearErrors();
+
+//   // Get form values
+//   const email = document.getElementById('email').value;
+//   const password = document.getElementById('password').value;
+
+//   let isValid = true;
+
+//   // Validate email
+//   const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+//   if (!emailPattern.test(email)) {
+//     displayError('email', 'Please enter a valid email');
+//     isValid = false;
+//   }
+
+//   // Validate password
+//   if (password === '') {
+//     displayError('password', 'Password is required');
+//     isValid = false;
+//   }
+
+//   // If everything is valid, you can submit the form or send data to the server
+//   if (isValid) {
+//     alert('Login successful!');
+//     // Here you can submit the form data or redirect to another page
+//   }
+// });
+
+// // Function to display error messages
+// function displayError(field, message) {
+//   const errorElement = document.getElementById(`${field}-error`);
+//   errorElement.textContent = message;
+//}
+  </script>
+</body>
+</html>

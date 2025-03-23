@@ -3,7 +3,7 @@ const session=require('express-session')
 const path=require('path')
 const env=require('dotenv').config();
 const userRouter=require('./routes/userRoute')
-// const adminRouter=require('./routes/adminRoute')
+const adminRouter=require('./routes/adminRoute')
 const connectdb=require('./config/connectDB')
 const nocache=require('nocache');
 const app=express()
@@ -26,7 +26,7 @@ app.use(express.static(path.join(__dirname,'public')))
 app.use(nocache())
 
 app.use('/',userRouter)
-// app.use('/admin',adminRouter)
+app.use('/admin',adminRouter)
 
 
 app.set('view engine','ejs')

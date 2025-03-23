@@ -8,6 +8,16 @@ const isLogin=async (req,res,next)=>{
 }
 
 
+const checkSession=async (req,res,next)=>{
+    if(req.session.user){
+        next()
+    }else{
+        res.redirect('/signin')
+    }
+}
+
+
 module.exports={
-    isLogin
+    isLogin,
+    checkSession
 }
