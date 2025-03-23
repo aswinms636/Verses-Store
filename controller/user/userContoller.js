@@ -5,7 +5,9 @@ const bcrypt = require('bcrypt');
 
 const loadHome = async (req, res) => {
     try {
-        res.render("home")
+        const user=req.session.userData.name;
+        console.log("home",user)
+        res.render("home",{user})
 
     } catch (error) {
         console.error('Home page not found:', error);
@@ -68,7 +70,6 @@ async function otpSend(email, otp) {
             text: `Your OTP is ${otp}`,
         });
 
-        console.log('hii')
         console.log(`Your otp is ${otp}`)
         return info.accepted.length > 0;
         
@@ -82,11 +83,7 @@ async function otpSend(email, otp) {
 const signup = async (req, res) => {
     try {
 
-        console.log("---------------------------------------",req.body)
         const { name, email, password, confirmPassword } = req.body;
-
-        console.log(req.body)
-        
 
         if (password !== confirmPassword) {
            res.json({message:'Password and confirm password do not match.'})
@@ -134,13 +131,10 @@ const verifyOtp = async (req, res) => {
         if ( req.session.otp === otp) {
 
             const { name, email, password } = req.session.userData;
-            console.log(name)
-
+    
             const saltRounds = 10;
             const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-            console.log('11111')
-            
             const newUser = new User({ name, email,password: hashedPassword });
             console.log(newUser)
             await newUser.save();
@@ -163,6 +157,40 @@ const verifyOtp = async (req, res) => {
 
 
 
+const signin = async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      console.log("Sign in request:", req.body);
+  
+      
+      const user = await User.findOne({ email });
+      if (!user) {
+        res.json({message:'User not found'})
+        return res.redirect('/signup');
+      }
+  
+      
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        res.json({message:'Invalid credentials'})
+        return res.redirect('/login');
+      }
+  
+      req.session.user = user;
+      return res.redirect('/')
+  
+    } catch (error) {
+      console.error('Error in sign in:', error);
+      return res.status(500).send('Server error');
+    }
+  };
+
+
+
+
+
+
+
 
 
 module.exports={
@@ -171,7 +199,8 @@ module.exports={
     loadsignin,
     signup,
     loadOtpPage,
-    verifyOtp
+    verifyOtp,
+    signin,
 }
 
 
