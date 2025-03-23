@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+
+    <!-- Bootstrap CSS (Optional) -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    
+    <!-- Font Awesome for Eye Icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- SweetAlert2 CSS (Optional, for custom styling) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <style>
+        .password-container {
+            position: relative;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Include Header -->
+    <%- include('../../views/partials/user/header') %>
+    
+    <!-- Start Banner Area -->
+    <section class="banner-area organic-breadcrumb">
+        <div class="container">
+            <div class="breadcrumb-banner d-flex flex-wrap align-items-center justify-content-end">
+                <div class="col-first">
+                    <h1>Register</h1>
+                    <nav class="d-flex align-items-center">
+                        <a href="index.html">Login<span class="lnr lnr-arrow-right"></span></a>
+                        <a href="category.html">Register</a>
+                    </nav>  
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- End Banner Area -->
+
+    <!--================Register Box Area =================-->
+    <section class="login_box_area section_gap">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="login_box_img">
+                        <img class="img-fluid" src="img/login.jpg" alt="Register">
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="login_form_inner">
+                        <h3>Register</h3>
+                        <form class="row login_form" action="/signup" method="post" id="registerForm" novalidate="novalidate">
+                            <div class="col-md-12 form-group">
+                                <input type="text" class="form-control" id="name" name="name" placeholder="Name">
+                                <span class="error-message" id="nameError" style="color: red;"></span>
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <input type="email" class="form-control" id="email" name="email" placeholder="Email">
+                                <span class="error-message" id="emailError" style="color: red;"></span>
+                            </div>
+                            <div class="col-md-12 form-group password-container">
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+                                <button type="button" id="togglePassword" class="toggle-password"><i class="fa-solid fa-eye"></i></button>
+                                <span class="error-message" id="passwordError" style="color: red;"></span>
+                            </div>
+                            <div class="col-md-12 form-group password-container">
+                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password">
+                                <button type="button" id="toggleConfirmPassword" class="toggle-password"><i class="fa-solid fa-eye"></i></button>
+                                <span class="error-message" id="confirmPasswordError" style="color: red;"></span>
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <div class="creat_account">
+                                    <input type="checkbox" id="keepLoggedIn" name="selector">
+                                    <label for="keepLoggedIn">Keep me logged in</label>
+                                </div>
+                            </div>
+                            <div class="col-md-12 form-group">
+                                <button type="submit" value="submit" class="primary-btn">Register</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!--================End Register Box Area =================-->
+
+    <!-- JS Scripts -->
+    <script src="js/vendor/jquery-2.2.4.min.js"></script>
+    <script src="js/vendor/bootstrap.min.js"></script>
+    
+    <!-- Include SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+         document.addEventListener("DOMContentLoaded", function() {
+        const form = document.getElementById("registerForm");
+        
+        form.addEventListener("submit", function(event) {
+            // Clear previous error messages
+            document.getElementById("nameError").textContent = "";
+            document.getElementById("emailError").textContent = "";
+            document.getElementById("passwordError").textContent = "";
+            document.getElementById("confirmPasswordError").textContent = "";
+            
+            let hasErrors = false;
+            let name = document.getElementById("name").value.trim();
+            let email = document.getElementById("email").value.trim();
+            let password = document.getElementById("password").value;
+            let confirmPassword = document.getElementById("confirmPassword").value;
+    
+            if (!name) {
+                document.getElementById("nameError").textContent = "Name is required.";
+                hasErrors = true;
+            }
+            if (!email) {
+                document.getElementById("emailError").textContent = "Email is required.";
+                hasErrors = true;
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                document.getElementById("emailError").textContent = "Invalid email format.";
+                hasErrors = true;
+            }
+            if (!password) {
+                document.getElementById("passwordError").textContent = "Password is required.";
+                hasErrors = true;
+            } else if (password.length < 6) {
+                document.getElementById("passwordError").textContent = "Password must be at least 6 characters long.";
+                hasErrors = true;
+            }
+            if (password !== confirmPassword) {
+                document.getElementById("confirmPasswordError").textContent = "Passwords do not match.";
+                hasErrors = true;
+            }
+            
+            if (hasErrors) {
+                event.preventDefault();
+            }
+        });
+    
+        // Function to toggle password visibility
+        function togglePasswordVisibility(inputId, button) {
+            let passwordField = document.getElementById(inputId);
+            let icon = button.querySelector("i");
+    
+            if (passwordField.type === "password") {
+                passwordField.type = "text";
+                icon.classList.replace("fa-eye", "fa-eye-slash");
+            } else {
+                passwordField.type = "password";
+                icon.classList.replace("fa-eye-slash", "fa-eye");
+            }
+        }
+    
+        // Attach event listeners to the eye buttons
+        document.getElementById("togglePassword").addEventListener("click", function() {
+            togglePasswordVisibility("password", this);
+        });
+    
+        document.getElementById("toggleConfirmPassword").addEventListener("click", function() {
+            togglePasswordVisibility("confirmPassword", this);
+        });
+    });
+    </script>
+   
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verify OTP</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 d-flex align-items-center justify-content-center min-vh-100">
+  <div class="bg-white shadow-lg rounded-lg p-4 p-md-5 max-w-xs md:max-w-md w-100 text-center">
+    <h2 class="fs-4 fw-bold text-gray-800 mb-3">Verify Your OTP</h2>
+    <p class="text-gray-600 mb-3">Enter the 6-digit OTP sent to your email.</p>
+    <form id="otpForm" action="/verifyOtp" method="post">
+        <div class="d-flex justify-content-center gap-2 mb-3">
+          <input type="text" name="otp1" maxlength="1" class="otp-input form-control text-center fw-semibold" style="width: 45px; height: 45px;" />
+          <input type="text" name="otp2" maxlength="1" class="otp-input form-control text-center fw-semibold" style="width: 45px; height: 45px;" />
+          <input type="text" name="otp3" maxlength="1" class="otp-input form-control text-center fw-semibold" style="width: 45px; height: 45px;" />
+          <input type="text" name="otp4" maxlength="1" class="otp-input form-control text-center fw-semibold" style="width: 45px; height: 45px;" />
+          <input type="text" name="otp5" maxlength="1" class="otp-input form-control text-center fw-semibold" style="width: 45px; height: 45px;" />
+          <input type="text" name="otp6" maxlength="1" class="otp-input form-control text-center fw-semibold" style="width: 45px; height: 45px;" />
+        </div>
+        <!-- Hidden input to hold the combined OTP value -->
+        <input type="hidden" name="otp" id="otp" />
+        <button type="submit" class="btn btn-primary w-100">Verify OTP</button>
+      </form>
+      <p class="text-gray-600 mt-3">
+        Didn’t receive the code?    
+        <button id="resendOtpBtn" class="btn btn-link text-primary p-0" onclick="resendOtp()">Resend OTP</button>
+        <span id="resendTimer" class="text-li"></span>
+      </p>
+  </div>
+  
+  <script>
+    
+    const otpInputs = document.querySelectorAll('.otp-input');
+
+    otpInputs.forEach((input, index) => {
+      input.addEventListener('input', (e) => {
+        if (e.target.value.length === e.target.maxLength && index < otpInputs.length - 1) {
+          otpInputs[index + 1].focus();
+        }
+      });
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && input.value === '' && index > 0) {
+          otpInputs[index - 1].focus();
+        }
+      });
+
+      input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const pasteData = e.clipboardData.getData('text').trim().split('');
+        otpInputs.forEach((input, idx) => {
+          input.value = pasteData[idx] || '';
+        });
+        const lastIndex = Math.min(pasteData.length, otpInputs.length) - 1;
+        if (lastIndex >= 0) otpInputs[lastIndex].focus();
+      });
+    });
+
+    document.getElementById('otpForm').addEventListener('submit', function(e) {
+      let combinedOtp = '';
+      otpInputs.forEach(input => combinedOtp += input.value);
+      document.getElementById('otp').value = combinedOtp;
+    });
+
+    function resendOtp() {
+      let resendBtn = document.getElementById("resendOtpBtn");
+      let timerText = document.getElementById("resendTimer");
+
+      resendBtn.disabled = true;
+      let timeLeft = 60;
+      timerText.textContent = `(${timeLeft}s)`;
+
+      let countdown = setInterval(() => {
+        timeLeft--;
+        timerText.textContent = `(${timeLeft}s)`;
+
+        if (timeLeft <= 0) {
+          clearInterval(countdown);
+          resendBtn.disabled = false;
+          timerText.textContent = "";
+        }
+      }, 1000);
+
+      // Call backend API to resend OTP (Replace with actual API request)
+      fetch("/resend-otp")
+        .then(response => response.json())
+        .then(data => alert(data.message)) 
+        .catch(error => console.error("Error:", error));
+    }
+
+  </script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

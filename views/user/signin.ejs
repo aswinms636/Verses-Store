@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f0f8ff; /* Light blue background for the page */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 80%;
+            max-width: 1200px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            background: #ffffff; /* White background for the container */
+        }
+        .form-section {
+            flex: 1;
+            padding: 40px;
+            background: #ffffff; /* White background for the form */
+        }
+        .form-section h3 {
+            color: #003366; /* Dark blue text for headings */
+            font-weight: 600;
+        }
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #ddd; /* Subtle border for inputs */
+            padding: 10px;
+        }
+        .form-control:focus {
+            border-color: #003366; /* Dark blue accent color for focus */
+            box-shadow: 0 0 5px rgba(0, 51, 102, 0.5);
+        }
+        .btn-custom {
+            background: #003366; /* Dark blue button */
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        .btn-custom:hover {
+            background: #002244; /* Slightly darker blue on hover */
+            transform: scale(1.03);
+        }
+        .btn-google {
+            background: #ffffff; /* White background for Google button */
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        .btn-google img {
+            width: 20px;
+            height: 20px;
+        }
+        .btn-google:hover {
+            background: #f4f4f4; /* Slightly darker on hover */
+            transform: scale(1.03);
+        }
+        .text-center a {
+            color: #003366; /* Dark blue for links */
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .text-center a:hover {
+            text-decoration: underline;
+        }
+        .logo-section {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #ffffff; /* White background for the logo section */
+            padding: 20px;
+        }
+        .logo-section img {
+            max-width: 80%;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Form Section -->
+        <div class="form-section">
+            <h3 class="text-center mb-4">Sign in </h3>
+            <form>
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" placeholder="Enter your email">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-control" placeholder="Enter password">
+                </div>
+
+                <button type="submit" class="btn btn-custom w-100 mb-3">Sign in</button>
+                <button type="button" class="btn btn-google w-100">
+                    <img src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png">
+                    Sign in with Google
+                </button>
+                <div class="text-center mt-3">
+                    <small> does not have a account? <a href="#">Sign up</a></small>
+                </div>
+            </form>
+        </div>
+
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <img src="/logo/logo.png" alt="Store Logo">
+        </div>
+    </div>
+</body>
+</html>
