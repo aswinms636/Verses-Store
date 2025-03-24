@@ -73,14 +73,26 @@ async function otpSend(email, otp) {
             }
         });
 
-        const info = await transporter.sendMail({
-            from: process.env.VERIFY_EMAIL,
+        const mailOptions = {
+            from: `"Verses Store" <${process.env.VERIFY_EMAIL}>`,
             to: email,
-            subject: 'Your OTP for Sign-up verification',
-            text: `Your OTP is ${otp}`,
-        });
+            subject: 'Verses Store - OTP Verification',
+            html: `
+                <div style="font-family: Arial, sans-serif; color: #333;">
+                    <h2 style="color: #007bff;">Verses Store - OTP Verification</h2>
+                    <p>Dear User,</p>
+                    <p>Thank you for signing up at <strong>Verses Store</strong>. To complete your registration, please use the following One-Time Password (OTP):</p>
+                    <h3 style="background-color: #f4f4f4; padding: 10px; display: inline-block; border-radius: 5px;">${otp}</h3>
+                    <p>This OTP is valid for the next 10 minutes. Please do not share it with anyone.</p>
+                    <p>If you did not request this, please ignore this email.</p>
+                    <p>Best regards,</p>
+                    <p><strong>Verses Store Team</strong></p>
+                </div>
+            `
+        };
 
-        console.log(`Your otp is ${otp}`)
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`OTP sent to ${email}: ${otp}`);
         return info.accepted.length > 0;
         
     } catch (error) {
@@ -88,6 +100,7 @@ async function otpSend(email, otp) {
         return false;
     }
 }
+
 
 
 const signup = async (req, res) => {
