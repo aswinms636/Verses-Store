@@ -16,4 +16,14 @@ router.get("/logout",userController.logout);
 
 
 
+router.post('/verifyEmail',userController.verifyEmail)
+router.get('/forgot-Password',userController.loadForgotPasswordPage)
+router.get('/resend-otp',userController.resendOtp)
+router.get("/otpVerify",userController.loadFFOtpPage)
+router.post('/otpVerify',userController.otpVerify)
+router.get('/newPassword',userController.loadPasswordPage)
+router.post('/changePassword',userController.changePassword)
+
+
+
 module.exports = router;
