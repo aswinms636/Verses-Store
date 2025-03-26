@@ -227,10 +227,10 @@
                             </div>
                             <div class="card-body">
                                 <div class="row" id="currentImages">
-                                    <% product.productImage.forEach((image, index) => { %>
+                                    <% product.productImage.forEach((image) => { %>
                                         <div class="col-md-3 mb-3" data-image="<%= image %>">
                                             <div class="position-relative">
-                                                <img src="/Uploads/product-Images/<%= image %>" 
+                                                <img src="/product-Images/<%= image %>" 
                                                      class="img-thumbnail" 
                                                      alt="Product image"
                                                      style="width: 150px; height: 150px; object-fit: cover;">
@@ -295,7 +295,7 @@ function handleNewImageUpload(event) {
     if (!file) return;
 
     // Validate file type
-    const validTypes = ['image/jpeg', 'image/png', 'image/jpg' ,'image/webp'];
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg' ,'image.webp'];
     if (!validTypes.includes(file.type)) {
         Swal.fire({
             icon: 'error',
@@ -492,7 +492,7 @@ document.getElementById('productForm').addEventListener('submit', async function
                 await Swal.fire({
                     icon: 'success',
                     title: 'Success!',
-                    text: 'Product updated successfully',
+                    text: result.message||'Product updated successfully',
                     timer: 1500,
                     showConfirmButton: false
                 });

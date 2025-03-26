@@ -11,7 +11,7 @@ const storage = multer.diskStorage({
    
     
     destination: (req, file, cb) => {
-        cb(null, 'Uploads/'); 
+        cb(null, 'public/Uploads/'); 
     },
     filename: (req, file, cb) => {
         const namePrefix = Date.now();

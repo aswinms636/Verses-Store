@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controller/user/userContoller'); 
 const { isLogin,checkSession }=require('../middlewares/userAuthentic')
+ const shopController=require('../controller/user/shopController')
 const passport=require('../config/passport')
 
 
@@ -29,5 +30,9 @@ router.get("/auth/google",passport.authenticate('google',{scope:['profile','emai
 router.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/signin'}),(req,res)=>{
     res.redirect('/');
 })
+
+
+
+router.get("/shop",shopController.loadShopPage);
 
 module.exports = router;
