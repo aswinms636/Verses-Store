@@ -38,35 +38,37 @@ const loadAddProduct = async (req, res) => {
 const addProducts = async (req, res) => {
     try {
         const products = req.body;
-        console.log(" Received product data:", products);
+        console.log("Received product data:", products);
 
+        // Check if product already exists
         const productExists = await Product.findOne({ productName: products.productName });
 
         if (productExists) {
             return res.status(400).json({ error: "Product already exists, please try another name" });
         }
 
+        // Validate image upload
         if (!req.files || req.files.length === 0) {
-            console.error(" No image files uploaded.");
+            console.error("No image files uploaded.");
             return res.status(400).json({ error: "No image files uploaded." });
         }
 
-        console.log(' Uploaded files:', req.files.map(f => f.path));
+        console.log('Uploaded files:', req.files.map(f => f.path));
 
+        // Image processing
         const images = [];
-
         for (const file of req.files) {
             const originalImagePath = file.path;
             const resizedImagePath = path.join(uploadDir, file.filename);
 
             if (!fs.existsSync(originalImagePath)) {
-                console.error(` File not found: ${originalImagePath}`);
+                console.error(`File not found: ${originalImagePath}`);
                 continue;
             }
 
             const isValid = await validateImage(originalImagePath);
             if (!isValid) {
-                console.error(` Skipping invalid image: ${originalImagePath}`);
+                console.error(`Skipping invalid image: ${originalImagePath}`);
                 continue;
             }
 
@@ -76,9 +78,9 @@ const addProducts = async (req, res) => {
                     .toFile(resizedImagePath);
 
                 images.push(file.filename);
-                console.log(` Image processed successfully: ${file.filename}`);
+                console.log(`Image processed successfully: ${file.filename}`);
             } catch (err) {
-                console.error(` Error processing image ${file.filename}:`, err);
+                console.error(`Error processing image ${file.filename}:`, err);
             }
         }
 
@@ -87,27 +89,42 @@ const addProducts = async (req, res) => {
             return res.status(400).json({ error: "No valid images processed." });
         }
 
+        // Fetch category ID
         const categoryId = await Category.findOne({ name: products.category });
 
         if (!categoryId) {
-            console.error(" Invalid category name.");
+            console.error("Invalid category name.");
             return res.status(400).json({ error: "Invalid category name" });
         }
 
-        console.log(' Category ID:', categoryId._id);
+        console.log('Category ID:', categoryId._id);
 
+        // **Fix for sizes handling**
+        const sizeMapping = { 6: 0, 7: 0, 8: 0, 9: 0 }; // Default size mapping
+
+        if (products.sizes && Array.isArray(products.sizes)) {
+            const availableSizes = [6, 7, 8, 9];
+            products.sizes.forEach((size, index) => {
+                const sizeKey = availableSizes[index];
+                if (sizeKey && !isNaN(size)) {
+                    sizeMapping[sizeKey] = parseInt(size);
+                }
+            });
+        }
+
+        // Save product
         const newProduct = new Product({
             productName: products.productName,
             description: products.description,
             brand: products.brand,
             category: categoryId._id,
-            regularPrice: products.regularPrice,
-            salePrice: products.salePrice,
+            regularPrice: parseFloat(products.regularPrice),
+            salePrice: parseFloat(products.salePrice),
             createdOn: new Date(),
-            quantity: products.quantity,
-            size: products.size,
+            quantity: parseInt(products.quantity),
+            sizes: sizeMapping, // ✅ Now sizes are correctly structured
             color: products.color,
-            productImage: images, // Store only valid images
+            productImage: images, 
             status: "Available",
         });
 
@@ -121,6 +138,7 @@ const addProducts = async (req, res) => {
         return res.redirect('/admin/pageNotFound');
     }
 };
+
 
 
 const getAllProducts=async(req,res)=>{
