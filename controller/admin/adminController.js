@@ -1,5 +1,6 @@
 const Admin = require("../../models/userSchema");
 const bcrypt = require("bcrypt");
+const User = require("../../models/userSchema");
 
 
 
