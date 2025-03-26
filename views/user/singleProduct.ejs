@@ -3,9 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Running Shoes | Amazon Style</title>
+    <title>Product Details</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         :root {
             --amazon-orange: #FF9900;
             --amazon-dark: #131921;
@@ -14,96 +20,38 @@
             --amazon-text: #0F1111;
             --amazon-price: #B12704;
             --amazon-success: #007600;
+            --header-height: 80px;
         }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Amazon Ember', Arial, sans-serif;
-        }
-        
+
         body {
-            background-color: var(--amazon-gray);
-            color: var(--amazon-text);
+            background-color: #EAEDED;
             line-height: 1.6;
+            margin: 0;
+            color: var(--amazon-text);
         }
         
-        .navbar {
-            background-color: var(--amazon-dark);
-            color: white;
-            padding: 10px 20px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
+        .main-content {
+            padding-top: 80px;
         }
-        
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: white;
-            text-decoration: none;
-        }
-        
-        .search-bar {
-            flex-grow: 1;
-            display: flex;
-        }
-        
-        .search-bar input {
-            width: 100%;
-            padding: 10px;
-            border: none;
-            border-radius: 4px 0 0 4px;
-        }
-        
-        .search-bar button {
-            background-color: var(--amazon-orange);
-            border: none;
-            padding: 10px 15px;
-            border-radius: 0 4px 4px 0;
-            cursor: pointer;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 15px;
-        }
-        
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        
-        .breadcrumb {
-            padding: 10px 20px;
-            background-color: var(--amazon-light);
-            color: white;
-            font-size: 14px;
-        }
-        
-        .breadcrumb a {
-            color: white;
-            text-decoration: none;
-        }
-        
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
-        
+
         .main-container {
             max-width: 1200px;
             margin: 20px auto;
-            padding: 0 20px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        
+
         .product-container {
             display: flex;
             background: #fff;
             border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             overflow: hidden;
+        }
+        
+        * {
+            font-family: 'Amazon Ember', Arial, sans-serif;
         }
         
         .product-images {
@@ -115,143 +63,104 @@
         
         .thumbnail-container {
             display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            overflow-x: auto;
-            padding-bottom: 10px;
+            gap: 12px;
+            margin-top: 20px;
+            padding: 10px;
+            justify-content: center;
         }
         
         .thumbnail {
-            width: 70px;
-            height: 70px;
+            width: 80px;
+            height: 80px;
             object-fit: cover;
             cursor: pointer;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            transition: border-color 0.3s;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            padding: 2px;
         }
         
-        .thumbnail:hover, .thumbnail.active {
+        .thumbnail:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             border-color: var(--amazon-orange);
+        }
+        
+        .thumbnail.active {
+            border-color: var(--amazon-orange);
+            box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--amazon-orange);
         }
         
         .main-image-container {
             position: relative;
-            height: 400px;
+            height: 500px;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            border-radius: 8px;
+            background: #fff;
+            cursor: zoom-in;
         }
         
         .main-image {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
-            transition: transform 0.3s;
+            transition: transform 0.3s ease-out;
         }
         
-        .zoom-icon {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            background-color: rgba(255,255,255,0.8);
-            padding: 5px;
-            border-radius: 50%;
-            cursor: pointer;
+        .main-image-container:hover .main-image {
+            transform: scale(1.5);
         }
         
         .product-details {
-            flex: 1;
-            padding: 20px;
-            border-left: 1px solid #eee;
+            position: relative;
+            padding: 30px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
         
         .product-title {
-            font-size: 24px;
-            font-weight: 400;
-            margin-bottom: 5px;
-            color: var(--amazon-text);
+            font-size: 28px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            line-height: 1.3;
         }
         
         .brand {
-            color: #0066c0;
-            font-size: 14px;
-            margin-bottom: 10px;
-            display: block;
+            display: inline-block;
+            padding: 5px 15px;
+            background: #f8f9fa;
+            border-radius: 20px;
+            color: #2c3e50;
+            font-weight: 500;
             text-decoration: none;
+            transition: all 0.3s ease;
         }
         
         .brand:hover {
-            text-decoration: underline;
-            color: #c45500;
-        }
-        
-        .rating {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        
-        .stars {
-            color: var(--amazon-orange);
-            font-size: 18px;
-            margin-right: 5px;
-        }
-        
-        .rating-count {
-            color: #0066c0;
-            font-size: 14px;
-            margin-left: 5px;
-            text-decoration: none;
-        }
-        
-        .rating-count:hover {
-            text-decoration: underline;
-            color: #c45500;
+            background: #e9ecef;
+            transform: translateY(-2px);
         }
         
         .price-container {
-            margin: 15px 0;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
         }
         
         .price {
-            font-size: 28px;
-            color: var(--amazon-price);
-        }
-        
-        .price sup {
-            font-size: 16px;
+            font-size: 32px;
+            color: #2c3e50;
         }
         
         .inclusive {
             font-size: 12px;
             color: #565959;
-        }
-        
-        .delivery-info {
-            margin: 15px 0;
-            padding: 10px;
-            border-top: 1px solid #eee;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .delivery-info p {
-            margin: 5px 0;
-            font-size: 14px;
-        }
-        
-        .delivery-location {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            color: #0066c0;
-            cursor: pointer;
-        }
-        
-        .delivery-location:hover {
-            text-decoration: underline;
-            color: #c45500;
         }
         
         .in-stock {
@@ -260,294 +169,320 @@
             font-weight: bold;
             margin: 10px 0;
         }
-        
-        .size-selection {
+
+        .size-section {
             margin: 20px 0;
         }
-        
-        .size-title {
-            font-weight: bold;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        .size-chart {
-            color: #0066c0;
-            text-decoration: none;
-            font-weight: normal;
-            font-size: 14px;
-        }
-        
-        .size-chart:hover {
-            text-decoration: underline;
-            color: #c45500;
-        }
-        
-        .sizes {
+
+        .size-buttons {
             display: flex;
             gap: 10px;
-            flex-wrap: wrap;
+            margin-top: 10px;
         }
-        
+
         .size-btn {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            background: none;
-            cursor: pointer;
-            border-radius: 4px;
-            min-width: 40px;
-            text-align: center;
-            transition: all 0.3s;
-        }
-        
-        .size-btn:hover {
-            background: #f0f2f2;
-        }
-        
-        .size-btn.selected {
-            background: var(--amazon-dark);
-            color: white;
-            border-color: var(--amazon-dark);
-        }
-        
-        .quantity-selector {
-            margin: 20px 0;
-        }
-        
-        .quantity-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-        
-        .quantity-dropdown {
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            background-color: #f0f2f2;
-            cursor: pointer;
-        }
-        
-        .action-buttons {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-        }
-        
-        .add-to-cart, .buy-now, .add-to-wishlist {
-            padding: 10px 20px;
+            width: 70px;
+            height: 45px;
+            font-size: 16px;
+            font-weight: 500;
+            border: 2px solid #dee2e6;
             border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .add-to-cart {
-            background: #FFD814;
-            border-color: #FCD200;
-        }
-        
-        .add-to-cart:hover {
-            background: #F7CA00;
-        }
-        
-        .buy-now {
-            background: #FFA41C;
-            border-color: #FF8F00;
-        }
-        
-        .buy-now:hover {
-            background: #FA8900;
-        }
-        
-        .add-to-wishlist {
             background: white;
-            border: 1px solid #ddd;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
-        
+
+        .size-btn:hover:not(.disabled) {
+            border-color: var(--amazon-orange);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .size-btn.selected {
+            background: var(--amazon-orange);
+            color: white;
+            border-color: var(--amazon-orange);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,153,0,0.3);
+        }
+
+        .size-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f5f5f5;
+        }
+
+        .original-price {
+            text-decoration: line-through;
+            color: #565959;
+            font-size: 16px;
+            margin-left: 10px;
+        }
+
+        .discount {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .action-buttons {
+            margin-top: 30px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .add-to-cart, .add-to-wishlist {
+            flex: 1;
+            padding: 15px 30px;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .add-to-cart {
+            background: var(--amazon-orange);
+            color: white;
+            box-shadow: 0 5px 15px rgba(255,153,0,0.3);
+        }
+
+        .add-to-cart:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(255,153,0,0.4);
+        }
+
+        .add-to-wishlist {
+            background: #f8f9fa;
+            color: #2c3e50;
+            border: 2px solid #dee2e6;
+        }
+
         .add-to-wishlist:hover {
-            background: #f7f7f7;
+            background: #e9ecef;
+            transform: translateY(-2px);
         }
-        
-        .product-features {
+
+        .description {
             margin-top: 30px;
             padding: 20px;
-            background: white;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            background: #f8f9fa;
+            border-radius: 8px;
         }
-        
-        .features-title {
-            font-size: 20px;
+
+        .description h3 {
+            color: #2c3e50;
             margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
+            font-size: 20px;
         }
-        
-        .feature-list {
-            list-style-type: none;
+
+        .description p {
+            color: #6c757d;
+            line-height: 1.7;
         }
-        
-        .feature-list li {
-            margin-bottom: 8px;
-            position: relative;
-            padding-left: 20px;
-        }
-        
-        .feature-list li:before {
-            content: "•";
-            color: var(--amazon-orange);
+
+        .out-of-stock {
+            color: #d00;
+            font-size: 18px;
             font-weight: bold;
-            position: absolute;
-            left: 0;
+            margin: 10px 0;
         }
-        
+
         @media (max-width: 768px) {
             .product-container {
                 flex-direction: column;
             }
-            
-            .product-details {
-                border-left: none;
-                border-top: 1px solid #eee;
-            }
-            
+
             .main-image-container {
-                height: 300px;
+                height: 350px;
+            }
+
+            .product-details {
+                padding: 20px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
             }
         }
+        
     </style>
 </head>
 
-<%- include('../../views/partials/user/header') %>
 <body>
-    
-    
+    <%- include('../../views/partials/user/header') %>
+
+<div class="main-content">
     <div class="main-container">
         <div class="product-container">
             <div class="product-images">
                 <div class="main-image-container">
-                    <img src="https://m.media-amazon.com/images/I/61K5SIRMdYL._AC_UL1500_.jpg" alt="Premium Running Shoes" class="main-image" id="mainImage">
-                    <div class="zoom-icon">
-                        <i class="fas fa-search-plus"></i>
-                    </div>
+                    <img src="/Uploads/product-Images/<%= product.productImage[0] %>" 
+                         alt="<%= product.productName %>" 
+                         class="main-image" 
+                         id="mainImage">
                 </div>
                 <div class="thumbnail-container">
-                    <img src="https://m.media-amazon.com/images/I/61K5SIRMdYL._AC_UL1500_.jpg" alt="Thumbnail" class="thumbnail active" onclick="changeImage(this.src)">
-                    <img src="https://m.media-amazon.com/images/I/71nDKc-QXsL._AC_UL1500_.jpg" alt="Thumbnail" class="thumbnail" onclick="changeImage(this.src)">
-                    <img src="https://m.media-amazon.com/images/I/71+UB9+k1IL._AC_UL1500_.jpg" alt="Thumbnail" class="thumbnail" onclick="changeImage(this.src)">
-                    <img src="https://m.media-amazon.com/images/I/71Jd2V9zAAL._AC_UL1500_.jpg" alt="Thumbnail" class="thumbnail" onclick="changeImage(this.src)">
-                    <img src="https://m.media-amazon.com/images/I/71w+3E0G1YL._AC_UL1500_.jpg" alt="Thumbnail" class="thumbnail" onclick="changeImage(this.src)">
+                    <% product.productImage.forEach((image, index) => { %>
+                        <img src="/Uploads/product-Images/<%= image %>" 
+                             alt="Product thumbnail" 
+                             class="thumbnail <%= index === 0 ? 'active' : '' %>"
+                             onclick="changeImage(this.src)">
+                    <% }); %>
                 </div>
             </div>
+            
             <div class="product-details">
-                <h1 class="product-title">Nike Air Zoom Pegasus 40 Premium Running Shoes</h1>
-                <a href="#" class="brand">Visit the Nike Store</a>
-                <div class="rating">
-                    <div class="stars">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star-half-alt"></i>
-                    </div>
-                    <a href="#" class="rating-count">12,345 ratings</a>
-                </div>
-                <hr>
+                <h1 class="product-title"><%= product.productName %></h1>
+                <a href="#" class="brand">Brand: <%= product.brand %></a>
+                
                 <div class="price-container">
-                    <div class="price">₹6,390<sup>.00</sup></div>
+                    <% if (product.salePrice < product.regularPrice) { %>
+                        <div class="price">
+                            ₹<%= product.salePrice %><sup>.00</sup>
+                            <span class="original-price">₹<%= product.regularPrice %></span>
+                        </div>
+                        <div class="discount">
+                            Save ₹<%= product.regularPrice - product.salePrice %>
+                            (<%= Math.round((product.regularPrice - product.salePrice) / product.regularPrice * 100) %>% off)
+                        </div>
+                    <% } else { %>
+                        <div class="price">₹<%= product.regularPrice %><sup>.00</sup></div>
+                    <% } %>
                     <div class="inclusive">Inclusive of all taxes</div>
                 </div>
-                <div class="delivery-info">
-                    <p><i class="fas fa-map-marker-alt"></i> <span class="delivery-location">Deliver to India</span></p>
-                    <p><i class="fas fa-check-circle"></i> <strong>FREE Delivery</strong> by Amazon <strong>Tomorrow</strong></p>
-                    <p><i class="fas fa-undo"></i> <strong>FREE Returns</strong></p>
-                </div>
-                <div class="in-stock">In Stock</div>
-                <div class="size-selection">
-                    <div class="size-title">
-                        <span>Size:</span>
-                        <a href="#" class="size-chart">Size Chart</a>
-                    </div>
-                    <div class="sizes">
-                        <button class="size-btn">6</button>
-                        <button class="size-btn">7</button>
-                        <button class="size-btn selected">8</button>
-                        <button class="size-btn">9</button>
-                        <button class="size-btn">10</button>
-                        <button class="size-btn">11</button>
+
+                <div class="size-section">
+                    <h3>Select Size</h3>
+                    <div class="size-buttons">
+                        <% [6,7,8,9].forEach(size => { %>
+                            <button class="size-btn <%= product.sizes[size] > 0 ? '' : 'disabled' %>"
+                                    onclick="selectSize(<%= size %>)"
+                                    <%= product.sizes[size] > 0 ? '' : 'disabled' %>>
+                                <%= size %>
+                            </button>
+                        <% }); %>
                     </div>
                 </div>
-                <div class="quantity-selector">
-                    <label class="quantity-label">Quantity:</label>
-                    <select class="quantity-dropdown">
-                        <option>1</option>
-                        <option>2</option>
-                        <option>3</option>
-                        <option>4</option>
-                        <option>5</option>
-                    </select>
+
+                <div class="stock-info">
+                    <% if (product.quantity > 0) { %>
+                        <div class="in-stock">In Stock</div>
+                    <% } else { %>
+                        <div class="out-of-stock">Out of Stock</div>
+                    <% } %>
                 </div>
+
+                <div class="description">
+                    <h3>About this item</h3>
+                    <p><%= product.description %></p>
+                </div>
+
                 <div class="action-buttons">
-                    <button class="add-to-cart"><i class="fas fa-shopping-cart"></i> Add to Cart</button>
-                    <button class="buy-now"><i class="fas fa-bolt"></i> Buy Now</button>
-                    <button class="add-to-wishlist"><i class="far fa-heart"></i> Add to Wishlist</button>
-                </div>
-                <div class="secure-transaction">
-                    <p><i class="fas fa-lock"></i> Secure transaction</p>
+                    <button class="add-to-cart" onclick="addToCart('<%= product._id %>')">
+                        Add to Cart
+                    </button>
+                    <button class="add-to-wishlist" onclick="addToWishlist('<%= product._id %>')">
+                        Add to Wishlist
+                    </button>
                 </div>
             </div>
         </div>
-        
-        <div class="product-features">
-            <h2 class="features-title">About this item</h2>
-            <ul class="feature-list">
-                <li><strong>Colour:</strong> White/Black</li>
-                <li><strong>Style:</strong> BG6806-100</li>
-                <li><strong>Origin:</strong> Indonesia</li>
-                <li><strong>Upper Material:</strong> Engineered mesh for breathability</li>
-                <li><strong>Sole Material:</strong> Rubber with Nike Air cushioning</li>
-                <li><strong>Closure:</strong> Lace-up</li>
-                <li><strong>Weight:</strong> 255 grams (approx.)</li>
-                <li><strong>Warranty:</strong> 6 months against manufacturing defects</li>
-                <li>Responsive Zoom Air cushioning provides a springy feel</li>
-                <li>Durable rubber outsole with waffle pattern for traction</li>
-                <li>Midfoot band provides secure, locked-in fit</li>
-                <li>Foam midsole delivers lightweight cushioning</li>
-            </ul>
-        </div>
     </div>
-    
-    <script>
-        function changeImage(src) {
-            document.getElementById('mainImage').src = src;
-            
-            // Update active thumbnail
-            const thumbnails = document.querySelectorAll('.thumbnail');
-            thumbnails.forEach(thumb => {
-                thumb.classList.remove('active');
-                if (thumb.src === src) {
-                    thumb.classList.add('active');
-                }
+</div>
+
+<script>
+    function changeImage(src) {
+        document.getElementById('mainImage').src = src;
+        
+        const thumbnails = document.querySelectorAll('.thumbnail');
+        thumbnails.forEach(thumb => {
+            thumb.classList.remove('active');
+            if (thumb.src === src) {
+                thumb.classList.add('active');
+            }
+        });
+    }
+
+    function selectSize(size) {
+        const buttons = document.querySelectorAll('.size-btn');
+        buttons.forEach(btn => btn.classList.remove('selected'));
+        event.target.classList.add('selected');
+        selectedSize = size;
+    }
+
+    async function addToCart(productId) {
+        if (!selectedSize) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Please select a size',
+                text: 'You must select a size before adding to cart'
             });
+            return;
         }
         
-        // Size selection
-        const sizeButtons = document.querySelectorAll('.size-btn');
-        sizeButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                sizeButtons.forEach(btn => btn.classList.remove('selected'));
-                button.classList.add('selected');
+        try {
+            const response = await fetch('/addToCart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    productId,
+                    size: selectedSize
+                })
             });
-        });
+            
+            const data = await response.json();
+            if (data.status) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Added to Cart!',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Something went wrong!'
+            });
+        }
+    }
+
+    // Add this to your existing script section
+    let isZoomed = false;
+    const mainImageContainer = document.querySelector('.main-image-container');
+    const mainImage = document.getElementById('mainImage');
+
+    mainImageContainer.addEventListener('mousemove', function(e) {
+        if (!isZoomed) return;
         
-        // Quantity dropdown would be handled similarly
-    </script>
+        const bounds = mainImageContainer.getBoundingClientRect();
+        const x = (e.clientX - bounds.left) / bounds.width;
+        const y = (e.clientY - bounds.top) / bounds.height;
+        
+        mainImage.style.transformOrigin = `${x * 100}% ${y * 100}%`;
+    });
+
+    mainImageContainer.addEventListener('mouseenter', function() {
+        isZoomed = true;
+        mainImage.style.transform = 'scale(2)';
+    });
+
+    mainImageContainer.addEventListener('mouseleave', function() {
+        isZoomed = false;
+        mainImage.style.transform = 'scale(1)';
+    });
+</script>
+
 </body>
 </html>
