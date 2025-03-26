@@ -11,64 +11,46 @@
     <meta property="og:url" content="">
     <meta property="og:image" content="">
     <link rel="shortcut icon" type="image/x-icon" href="#">
-    
-    <!-- CSS Links with fallbacks -->
     <link href="/admin-assets/css/main.css" rel="stylesheet" type="text/css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10.16.6/dist/sweetalert2.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Internal CSS as fallback if CDNs fail -->
-    <style>
-        body {
-            background-color: #ffffff;
-            font-family: Arial, sans-serif;
-        }
-        .navbar {
-            background-color: #8da7ab;
-        }
-        .navbar-aside {
-            background-color: #b0d5de;
-        }
-        .menu-item a.menu-link {
-            color: #310505;
-        }
-        .menu-item a.menu-link:hover,
-        .menu-item a.menu-link.active {
-            background-color: #6e7e6e; 
-            color: #ffffff;
-        }
-        .dropdown-menu {
-            background-color: #bb9aaf;
-        }
-        .dropdown-item:hover {
-            background-color: #33053d;
-            color: #ffffff;
-        }
-        
-        /* Basic styles to ensure functionality if main.css fails */
-        .material-icons {
-            font-family: 'Material Icons';
-            font-weight: normal;
-            font-style: normal;
-            font-size: 24px;
-            line-height: 1;
-            letter-spacing: normal;
-            text-transform: none;
-            display: inline-block;
-            white-space: nowrap;
-            word-wrap: normal;
-            direction: ltr;
-            -webkit-font-feature-settings: 'liga';
-            -webkit-font-smoothing: antialiased;
-        }
-    </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10.16.6/dist/sweetalert2.min.css">
+<script src="https://kit.fontawesome.com/16d4885483.js" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<style>
+body {
+    background-color: #ffffff;
+}
+.navbar {
+    background-color: #8da7ab;
+}
+.navbar-aside {
+    background-color: #b0d5de;
+}
+.menu-item a.menu-link {
+    color: #310505;
+}
+
+.menu-item a.menu-link:hover,
+.menu-item a.menu-link.active {
+    background-color: #6e7e6e; 
+    color: #ffffff;
+}
+.dropdown-menu {
+    background-color: #bb9aaf;
+}
+
+.dropdown-item:hover {
+    background-color: #33053d;
+    color: #ffffff;
+}
+
+</style>
 </head>
 <body>
     <div class="screen-overlay"></div>
     <aside class="navbar-aside" id="offcanvas_aside">
         <div class="aside-top">
             <a href="#" class="brand-wrap">
-                <img src="/img/logo.png" class="logo" alt="Men Fashion Dashboard">
+                <img src="/img/logo.png"  class="logo" alt="Men Fashion Dashboard">
             </a>
             <div>
                 <button class="btn btn-icon btn-aside-minimize"> <i class="text-muted material-icons md-menu_open"></i> </button>
@@ -85,11 +67,13 @@
                     <a class="menu-link" href="/admin/users"> <i class="icon material-icons md-person"></i>
                         <span class="text">Customers</span>
                     </a>
+
                 </li>
                 <li class="menu-item">
                     <a class="menu-link" href="/admin/category"> <i class="icon material-icons md-person"></i>
                         <span class="text">Category</span>
                     </a>
+
                 </li>
                 <li class="menu-item">
                     <a class="menu-link" href="/admin/brands"> <i class="icon material-icons md-stars"></i>
@@ -105,6 +89,7 @@
                         <span class="text">Products</span>
                     </a>
                 </li>
+            
                 <li class="menu-item">
                     <a class="menu-link" href="/admin/coupon"> <i class="icon material-icons md-class"></i>
                         <span class="text">Coupon</span> </a>
@@ -113,6 +98,7 @@
                     <a class="menu-link" href="/admin/banner"> <i class="icon material-icons md-photo_size_select_actual"></i>
                         <span class="text">Banner</span> </a>
                 </li>
+
                 <li class="menu-item">
                     <a class="menu-link" href="/admin/orderList"> <i class="icon material-icons md-shopping_cart"></i>
                         <span class="text">Orders</span>
@@ -137,7 +123,4 @@
                     </li>
                 </ul>
             </div>
-        </header>  
-    </main>
-
-    
+        </header>
