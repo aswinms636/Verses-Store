@@ -38,7 +38,16 @@ const loadAddProduct = async (req, res) => {
 const addProducts = async (req, res) => {
     try {
         const products = req.body;
-        console.log("Received product data:", products);
+        
+        // Handle sizes properly
+        const sizeMapping = { 6: 0, 7: 0, 8: 0, 9: 0 };
+        
+        // Convert size inputs to correct format
+        if (products.sizes) {
+            Object.entries(products.sizes).forEach(([size, quantity]) => {
+                sizeMapping[size] = parseInt(quantity) || 0;
+            });
+        }
 
         // Check if product already exists
         const productExists = await Product.findOne({ productName: products.productName });
@@ -99,19 +108,6 @@ const addProducts = async (req, res) => {
 
         console.log('Category ID:', categoryId._id);
 
-        // **Fix for sizes handling**
-        const sizeMapping = { 6: 0, 7: 0, 8: 0, 9: 0 }; // Default size mapping
-
-        if (products.sizes && Array.isArray(products.sizes)) {
-            const availableSizes = [6, 7, 8, 9];
-            products.sizes.forEach((size, index) => {
-                const sizeKey = availableSizes[index];
-                if (sizeKey && !isNaN(size)) {
-                    sizeMapping[sizeKey] = parseInt(size);
-                }
-            });
-        }
-
         // Save product
         const newProduct = new Product({
             productName: products.productName,
@@ -120,22 +116,27 @@ const addProducts = async (req, res) => {
             category: categoryId._id,
             regularPrice: parseFloat(products.regularPrice),
             salePrice: parseFloat(products.salePrice),
-            createdOn: new Date(),
             quantity: parseInt(products.quantity),
-            sizes: sizeMapping, // ✅ Now sizes are correctly structured
+            sizes: sizeMapping,
             color: products.color,
             productImage: images, 
             status: "Available",
         });
 
         await newProduct.save();
-        console.log("New product saved:", newProduct);
+        console.log("New product saved with sizes:", newProduct.sizes);
 
-        return res.redirect('/admin/addProducts');
+        res.status(200).json({ 
+            status: true, 
+            message: 'Product added successfully' 
+        });
 
     } catch (error) {
         console.error('Error saving product:', error);
-        return res.redirect('/admin/pageNotFound');
+        res.status(500).json({ 
+            status: false, 
+            message: 'Failed to add product' 
+        });
     }
 };
 

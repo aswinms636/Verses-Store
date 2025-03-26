@@ -396,7 +396,9 @@
         addNewImage();
     });
 
-    document.getElementById('productForm').addEventListener('submit', function(event) {
+    document.getElementById('productForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
         document.getElementById("productName-error").textContent = "";
         document.getElementById("brand-error").textContent = "";
         document.getElementById("description-error").textContent = "";
@@ -446,24 +448,72 @@
             hasErrors = true;
         }
 
+        let sizes = document.querySelectorAll('input[name^="sizes"]');
+        let sizeValid = false;
 
+        sizes.forEach(input => {
+            if (input.value.trim() !== "" && parseInt(input.value) > 0) {
+                sizeValid = true;
+            }
+        });
 
-    let sizes = document.querySelectorAll('input[name^="sizes"]');
-    let sizeValid = false;
-
-    sizes.forEach(input => {
-        if (input.value.trim() !== "" && parseInt(input.value) > 0) {
-            sizeValid = true;
+        if (!sizeValid) {
+            document.getElementById("size-error").textContent = "At least one size quantity is required.";
+            hasErrors = true;
         }
-    });
-
-    if (!sizeValid) {
-        document.getElementById("size-error").textContent = "At least one size quantity is required.";
-        hasErrors = true;
-    }
 
         if (hasErrors) {
-            event.preventDefault();
+            return;
+        }
+
+        try {
+            const formData = new FormData(this);
+            
+            // Properly format sizes data
+            const sizes = {
+                6: parseInt(document.getElementById('size-6').value) || 0,
+                7: parseInt(document.getElementById('size-7').value) || 0,
+                8: parseInt(document.getElementById('size-8').value) || 0,
+                9: parseInt(document.getElementById('size-9').value) || 0
+            };
+
+            // Remove existing size entries and add the formatted ones
+            formData.delete('sizes[6]');
+            formData.delete('sizes[7]');
+            formData.delete('sizes[8]');
+            formData.delete('sizes[9]');
+            formData.append('sizes', JSON.stringify(sizes));
+
+            const response = await fetch('/admin/addProducts', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.status) {
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Product added successfully',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                window.location.href = '/admin/products';
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: result.message || 'Failed to add product'
+                });
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Something went wrong. Please try again.'
+            });
         }
     });
 </script>
