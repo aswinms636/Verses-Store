@@ -4,7 +4,25 @@ const Product = require("../../models/productSchema");
 const loadShopPage = async (req, res) => {
     try {
         const sortOption = req.query.sort || 'default';
+        const category = req.query.category;
+        const minPrice = parseInt(req.query.minPrice) || 0;
+        const maxPrice = parseInt(req.query.maxPrice) || Number.MAX_SAFE_INTEGER;
+        let query = { isBlocked: false };
         let sortQuery = {};
+
+        // Apply category filter
+        if (category) {
+            query.category = category;
+        }
+
+        // Apply price range filter
+        query.salePrice = {
+            $gte: minPrice,
+            $lte: maxPrice
+        };
+
+        // Get all categories for filter options
+        const categories = await Category.find({ isListed: true });
 
         // Define sort queries
         switch (sortOption) {
@@ -21,18 +39,34 @@ const loadShopPage = async (req, res) => {
                 sortQuery = { productName: -1 };
                 break;
             default:
-                sortQuery = { createdAt: -1 }; // Default sort by newest
+                sortQuery = { createdAt: -1 };
         }
 
-        // Get products with sorting
-        const products = await Product.find({ isBlocked: false })
+        // Get products with filters and sorting
+        const products = await Product.find(query)
             .sort(sortQuery)
             .populate('category');
 
-        // Render page with sorted products
+        // Get price range for filter
+        const priceRange = await Product.aggregate([
+            { $match: { isBlocked: false } },
+            {
+                $group: {
+                    _id: null,
+                    minPrice: { $min: '$salePrice' },
+                    maxPrice: { $max: '$salePrice' }
+                }
+            }
+        ]);
+
         res.render('shop', {
             products,
+            categories,
             currentSort: sortOption,
+            selectedCategory: category,
+            priceRange: priceRange[0] || { minPrice: 0, maxPrice: 10000 },
+            currentMinPrice: minPrice,
+            currentMaxPrice: maxPrice,
             user: req.session.user
         });
 
@@ -41,7 +75,7 @@ const loadShopPage = async (req, res) => {
         res.status(500).render('shop', {
             error: 'Failed to load products',
             products: [],
-            currentSort: 'default',
+            categories: [],
             user: req.session.user
         });
     }

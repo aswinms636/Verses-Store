@@ -74,6 +74,38 @@
             width: 100%;
         }
     }
+
+    .filter-wrapper {
+        position: sticky;
+        top: 90px;
+        margin-bottom: 20px;
+    }
+
+    .category-list {
+        max-height: 200px;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+
+    .price-range input {
+        border-radius: 4px;
+    }
+
+    .form-check {
+        margin-bottom: 8px;
+    }
+
+    .form-check-input:checked {
+        background-color: #ff6b6b;
+        border-color: #ff6b6b;
+    }
+
+    @media (max-width: 992px) {
+        .filter-wrapper {
+            position: static;
+            margin-bottom: 20px;
+        }
+    }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
@@ -227,7 +259,80 @@
     </section>
     <!-- End category Area -->
 
-    <!-- Replace the sorting section and script -->
+    <!-- Add this before your products section -->
+<div class="container">
+    <div class="row">
+        <!-- Filter Sidebar -->
+        <div class="col-lg-3">
+            <div class="filter-wrapper bg-white p-4 rounded shadow-sm">
+                <h4 class="mb-4">Filters</h4>
+                
+                <form id="filterForm" method="GET">
+                    <!-- Category Filter -->
+                    <div class="mb-4">
+                        <h5>Categories</h5>
+                        <div class="category-list">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" 
+                                       name="category" id="allCategories" 
+                                       value="" 
+                                       <%= !selectedCategory ? 'checked' : '' %>>
+                                <label class="form-check-label" for="allCategories">
+                                    All Categories
+                                </label>
+                            </div>
+                            <% categories.forEach(category => { %>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" 
+                                           name="category" 
+                                           id="<%= category._id %>" 
+                                           value="<%= category._id %>"
+                                           <%= selectedCategory === category._id.toString() ? 'checked' : '' %>>
+                                    <label class="form-check-label" for="<%= category._id %>">
+                                        <%= category.name %>
+                                    </label>
+                                </div>
+                            <% }); %>
+                        </div>
+                    </div>
+
+                    <!-- Price Range Filter -->
+                    <div class="mb-4">
+                        <h5>Price Range</h5>
+                        <div class="price-range">
+                            <div class="input-group mb-2">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" 
+                                       name="minPrice" 
+                                       value="<%= currentMinPrice %>" 
+                                       min="<%= priceRange.minPrice %>" 
+                                       max="<%= priceRange.maxPrice %>">
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" 
+                                       name="maxPrice" 
+                                       value="<%= currentMaxPrice %>" 
+                                       min="<%= priceRange.minPrice %>" 
+                                       max="<%= priceRange.maxPrice %>">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Keep current sort value -->
+                    <input type="hidden" name="sort" value="<%= currentSort %>">
+
+                    <!-- Apply Filters Button -->
+                    <button type="submit" class="btn btn-primary w-100">
+                        Apply Filters
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="col-lg-9">
+            <!-- Replace the sorting section and script -->
 <div class="container mb-5">
     <div class="row">
         <div class="col-lg-12">
@@ -283,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-    <!-- start product Area -->
+            <!-- start product Area -->
     <section class="owl-carousel active-product-area section_gap">
         <!-- single product slide -->
         <div class="single-product-slider">
@@ -356,6 +461,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
     </section>
     <!-- end product Area -->
+        </div>
+    </div>
+</div>
 
     <!-- Start exclusive deal Area -->
     <section class="exclusive-deal-area">
