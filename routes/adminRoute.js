@@ -51,5 +51,8 @@ router.post('/addProductOffer',productController.addProductOffer)
 router.post("/removeProductOffer",productController.removeProductOffer)
 router.get('/blockProduct',productController.blockProduct)
 router.get('/unblockProduct',productController.unblockProduct)
+router.get('/editProduct',productController.loadEditProduct)
+router.post('/editProduct/:id',uploads.array('images',2,productController.editProduct))
+router.post('/deleteImage',productController.deleteSingleImg)
 
 module.exports = router;

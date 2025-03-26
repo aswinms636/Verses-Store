@@ -124,7 +124,7 @@ const addProducts = async (req, res) => {
         });
 
         await newProduct.save();
-        console.log("New product saved with sizes:", newProduct.sizes);
+        console.log("New product saved with sizes:", newProduct);
 
         res.status(200).json({ 
             status: true, 

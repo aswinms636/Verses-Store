@@ -1,0 +1,313 @@
+<%- include("../../views/partials/admin/header") %>
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
+</head>
+<style>
+    /* Custom CSS for error messages and form styling */
+    .error-message {
+        color: #dc3545; /* Red color for error messages */
+        font-size: 0.875em; /* Slightly smaller font size */
+        margin-top: 0.25rem; /* Space above the error message */
+        display: block; /* Ensure it takes up its own line */
+    }
+
+    .form-control {
+        border: 1px solid #ced4da; /* Default border color */
+        padding: 0.5rem;
+        border-radius: 4px;
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+
+    .form-control:invalid {
+        border-color: #dc3545; /* Red border for invalid inputs */
+    }
+
+    .form-control:focus:invalid {
+        border-color: #dc3545; /* Red border for focused invalid inputs */
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25); /* Red glow for focused invalid inputs */
+    }
+
+    .form-label {
+        font-weight: bold; /* Make labels bold */
+        margin-bottom: 0.5rem; /* Space below the label */
+    }
+
+    .form-select {
+        border: 1px solid #ced4da; /* Default border color */
+        padding: 0.5rem;
+        border-radius: 4px;
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+
+    .form-select:invalid {
+        border-color: #dc3545; /* Red border for invalid selects */
+    }
+
+    .form-select:focus:invalid {
+        border-color: #dc3545; /* Red border for focused invalid selects */
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25); /* Red glow for focused invalid selects */
+    }
+
+    .btn {
+        margin-top: 1rem; /* Space above the button */
+        padding: 0.5rem 1rem;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .btn:hover {
+        background-color: #0056b3;
+    }
+
+    .preview-container {
+        margin-top: 1rem; /* Space above the preview container */
+    }
+
+    .cropped-preview {
+        max-width: 150px;
+        max-height: 150px;
+        display: block;
+        margin-top: 10px;
+        border: 1px solid #eee;
+    }
+
+    .remove-btn {
+        margin-top: 0.5rem; /* Space above the remove button */
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .remove-btn:hover {
+        background-color: #c82333;
+    }
+
+    .image-upload-container {
+        margin-bottom: 1rem;
+    }
+
+    .image-cropper {
+        margin-top: 1rem;
+        display: none;
+    }
+
+    .cropper-container {
+        max-width: 100%;
+    }
+
+    .thumbnail {
+        margin-right: 10px;
+        margin-bottom: 10px;
+    }
+
+    .thumbnails-container {
+        display: flex;
+        flex-wrap: wrap;
+    }
+</style>
+<section class="content-main">
+    <div class="row">
+        <div class="col-9">
+            <div class="content-header">
+                <h2 class="content-title">Edit Product</h2>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form id="productForm" method="POST" action="/admin/editProduct/<%= product._id %>" enctype="multipart/form-data">
+                        <!-- Product Name -->
+                        <div class="mb-4">
+                            <label class="form-label">Product Name</label>
+                            <input type="text" name="productName" class="form-control" value="<%= product.productName %>" required>
+                            <div id="productName-error" class="error-message"></div>
+                        </div>
+
+                        <!-- Brand -->
+                        <div class="mb-4">
+                            <label class="form-label">Brand</label>
+                            <select class="form-select" name="brand" required>
+                                <option value="">Select Brand</option>
+                                <option value="Nike" <%= product.brand === 'Nike' ? 'selected' : '' %>>Nike</option>
+                                <option value="Adidas" <%= product.brand === 'Adidas' ? 'selected' : '' %>>Adidas</option>
+                                <option value="Puma" <%= product.brand === 'Puma' ? 'selected' : '' %>>Puma</option>
+                            </select>
+                            <div id="brand-error" class="error-message"></div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <label class="form-label">Description</label>
+                            <textarea name="description" class="form-control" rows="4" required><%= product.description %></textarea>
+                            <div id="description-error" class="error-message"></div>
+                        </div>
+
+                        <!-- Category -->
+                        <div class="mb-4">
+                            <label class="form-label">Category</label>
+                            <select class="form-select" name="category" required>
+                                <option value="">Select Category</option>
+                                <% cat.forEach(category => { %>
+                                    <option value="<%= category.name %>" 
+                                        <%= product.category.equals(category._id) ? 'selected' : '' %>>
+                                        <%= category.name %>
+                                    </option>
+                                <% }); %>
+                            </select>
+                            <div id="category-error" class="error-message"></div>
+                        </div>
+
+                        <!-- Prices -->
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="mb-4">
+                                    <label class="form-label">Regular Price</label>
+                                    <input type="number" name="regularPrice" class="form-control" 
+                                           value="<%= product.regularPrice %>" required>
+                                    <div id="regularPrice-error" class="error-message"></div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="mb-4">
+                                    <label class="form-label">Sale Price</label>
+                                    <input type="number" name="salePrice" class="form-control" 
+                                           value="<%= product.salePrice %>" required>
+                                    <div id="salePrice-error" class="error-message"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sizes -->
+                        <div class="mb-4">
+                            <label class="form-label">Sizes</label>
+                            <div class="row">
+                                <% [6,7,8,9].forEach(size => { %>
+                                    <div class="col-md-3 mb-2">
+                                        <label class="form-label">Size <%= size %></label>
+                                        <input type="number" name="sizes[<%= size %>]" 
+                                               class="form-control" min="0" 
+                                               value="<%= product.sizes[size] || 0 %>">
+                                    </div>
+                                <% }); %>
+                            </div>
+                            <div id="size-error" class="error-message"></div>
+                        </div>
+
+                        <!-- Current Images -->
+                        <div class="mb-4">
+                            <label class="form-label">Current Images</label>
+                            <div class="row">
+                                <% product.productImage.forEach((image, index) => { %>
+                                    <div class="col-md-3 mb-2">
+                                        <div class="position-relative">
+                                            <img src="/Uploads/product-Images/<%= image %>" 
+                                                 class="img-thumbnail" alt="Product image">
+                                            <button type="button" class="btn-close position-absolute top-0 end-0" 
+                                                    onclick="deleteImage('<%= image %>', this)"></button>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            </div>
+                        </div>
+
+                        <!-- New Images Upload -->
+                        <div class="mb-4">
+                            <label class="form-label">Add New Images</label>
+                            <input type="file" name="images" class="form-control" multiple accept="image/*">
+                            <div id="image-error" class="error-message"></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Update Product</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .error-message {
+        color: red;
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+    }
+    .img-thumbnail {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+    }
+    .btn-close {
+        background-color: white;
+        border-radius: 50%;
+        padding: 0.25rem;
+    }
+</style>
+
+<script>
+async function deleteImage(imageName, button) {
+    try {
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        });
+
+        if (result.isConfirmed) {
+            const response = await fetch('/admin/deleteSingleImg', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    imageNameToServer: imageName,
+                    productIdToServer: '<%= product._id %>'
+                })
+            });
+
+            const data = await response.json();
+            if (data.status) {
+                button.closest('.col-md-3').remove();
+                Swal.fire('Deleted!', 'Image has been deleted.', 'success');
+            }
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire('Error!', 'Failed to delete image.', 'error');
+    }
+}
+
+// Form validation
+document.getElementById('productForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    let hasErrors = false;
+
+    // Reset error messages
+    document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+
+    // Validate fields
+    const formData = new FormData(this);
+    if (!formData.get('productName').trim()) {
+        document.getElementById('productName-error').textContent = 'Product name is required';
+        hasErrors = true;
+    }
+
+    if (!hasErrors) {
+        this.submit();
+    }
+});
+</script>
+
+<%- include("../../views/partials/admin/footer") %>
