@@ -1,0 +1,174 @@
+<%- include("../../views/partials/admin/header") %>
+
+<div class="content-main">
+    <div class="content-header">
+        <h2 class="content-title">Customers</h2>
+        
+        <!-- Add search bar -->
+        <div class="search-wrapper">
+            <div class="input-group">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    class="form-control" 
+                    placeholder="Search by name, email or phone..."
+                    onkeyup="debounceSearch()"
+                >
+                <button class="btn btn-primary" onclick="handleSearch()">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="customersTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% users.forEach(user => { %>
+                            <tr data-user-id="<%= user._id %>">
+                                <td><%= user.name %></td>
+                                <td><%= user.email %></td>
+                                <td><%= user.mobile %></td>
+                                <td>
+                                    <% if(user.isBlocked) { %>
+                                        <span class="badge bg-danger">Blocked</span>
+                                    <% } else { %>
+                                        <span class="badge bg-success">Active</span>
+                                    <% } %>
+                                </td>
+                                <td><%= new Date(user.createdAt).toLocaleDateString() %></td>
+                                <td>
+                                    <button 
+                                        onclick="toggleUserStatus('<%= user._id %>')"
+                                        class="btn btn-sm <%= user.isBlocked ? 'btn-success' : 'btn-danger' %>"
+                                    >
+                                        <%= user.isBlocked ? 'Unblock' : 'Block' %>
+                                    </button>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.search-wrapper {
+    max-width: 400px;
+    margin-bottom: 20px;
+}
+
+.input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.input-group input {
+    border-radius: 4px;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+}
+
+.input-group .btn {
+    border-radius: 4px;
+}
+
+.highlight {
+    background-color: #fff3cd;
+    transition: background-color 0.3s;
+}
+</style>
+
+<script>
+let debounceTimer;
+
+function debounceSearch() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+        handleSearch();
+    }, 300);
+}
+
+async function handleSearch() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const tableRows = document.querySelectorAll('#customersTable tbody tr');
+    
+    tableRows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+            row.style.display = '';
+            if (searchTerm.length > 0) {
+                row.classList.add('highlight');
+            } else {
+                row.classList.remove('highlight');
+            }
+        } else {
+            row.style.display = 'none';
+            row.classList.remove('highlight');
+        }
+    });
+}
+
+async function toggleUserStatus(userId) {
+    try {
+        const response = await fetch('/admin/toggleUserStatus', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ userId })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            const row = document.querySelector(`tr[data-user-id="${userId}"]`);
+            const statusBadge = row.querySelector('.badge');
+            const toggleButton = row.querySelector('button');
+            
+            if (data.isBlocked) {
+                statusBadge.className = 'badge bg-danger';
+                statusBadge.textContent = 'Blocked';
+                toggleButton.className = 'btn btn-sm btn-success';
+                toggleButton.textContent = 'Unblock';
+            } else {
+                statusBadge.className = 'badge bg-success';
+                statusBadge.textContent = 'Active';
+                toggleButton.className = 'btn btn-sm btn-danger';
+                toggleButton.textContent = 'Block';
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: data.message,
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to update user status'
+        });
+    }
+}
+</script>
+
+<%- include("../../views/partials/admin/footer") %>

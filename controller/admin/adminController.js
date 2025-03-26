@@ -93,6 +93,36 @@ const unblockUser = async (req, res) => {
     }
 };
 
+const toggleUserStatus = async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Toggle blocked status
+        user.isBlocked = !user.isBlocked;
+        await user.save();
+
+        res.json({
+            success: true,
+            isBlocked: user.isBlocked,
+            message: `User has been ${user.isBlocked ? 'blocked' : 'unblocked'} successfully`
+        });
+
+    } catch (error) {
+        console.error('Toggle user status error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+};
 
    module.exports={
     adminLogin,
@@ -101,4 +131,5 @@ const unblockUser = async (req, res) => {
     logout,
     blockUser,
     unblockUser,
+    toggleUserStatus,
    }
