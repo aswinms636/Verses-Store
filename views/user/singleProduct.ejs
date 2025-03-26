@@ -1,10 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Mobile Specific Meta -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Favicon-->
+    <link rel="shortcut icon" href="img/fav.png">
+    <!-- meta character set -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Details</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Site Title -->
+    <title>Verses Store - Product Details</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/linearicons.css">
+    <link rel="stylesheet" href="/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/themify-icons.css">
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/owl.carousel.css">
+    <link rel="stylesheet" href="/css/nice-select.css">
+    <link rel="stylesheet" href="/css/nouislider.min.css">
+    <link rel="stylesheet" href="/css/ion.rangeSlider.css" />
+    <link rel="stylesheet" href="/css/ion.rangeSlider.skinFlat.css" />
+    <link rel="stylesheet" href="/css/magnific-popup.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <link href="/admin-assets/css/main.css" rel="stylesheet" type="text/css" />
+    
+    <!-- Keep your existing product page styles -->
     <style>
         * {
             margin: 0;
@@ -312,177 +332,294 @@
             }
         }
         
+        /* Add these styles to your existing style section */
+        .header_area {
+            transition: all 0.3s ease;
+        }
+
+        .header_area.navbar-shrink {
+            padding: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: #fff;
+        }
+
+        .navbar-shrink .main_box {
+            padding: 0;
+        }
+
+        .navbar-shrink .logo_h img {
+            height: 40px; /* Adjust based on your logo size */
+            transition: all 0.3s ease;
+        }
+
+        .main_menu {
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .main_box {
+            padding: 10px 0;
+            transition: all 0.3s ease;
+        }
+
+        .fixed-top {
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 0;
+            z-index: 1030;
+        }
     </style>
 </head>
 
 <body>
-    <%- include('../../views/partials/user/header') %>
+    <!-- Start Header Area -->
+    <header class="header_area sticky-header">
+        <div class="main_menu">
+            <nav class="navbar navbar-expand-lg navbar-light main_box">
+                <div class="container">
+                    <!-- Brand and toggle get grouped for better mobile display -->
+                    <a class="navbar-brand logo_h" href="/"><img src="/img/logo.png" alt=""></a>
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <!-- Collect the nav links, forms, and other content for toggling -->
+                    <div class="collapse navbar-collapse offset" id="navbarSupportedContent">
+                        <ul class="nav navbar-nav menu_nav ml-auto">
+                            <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                            <li class="nav-item submenu dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                                    aria-expanded="false">Shop</a>
+                            </li>
+                            <li class="nav-item submenu dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                                    aria-expanded="false">Wishlist</a>
+                            </li>
+                            
+                            <% if (typeof user !== 'undefined' && user) { %>
+                                <li class="nav-item submenu dropdown">
+                                    <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+                                        <%= user.name %>
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li class="nav-item"><a class="nav-link" href="/profile">Profile</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+                                    </ul>
+                                </li>
+                            <% } else { %>
+                                <li class="nav-item"><a class="nav-link" href="/signin">Sign in</a></li>
+                                <li class="nav-item"><a class="nav-link" href="/signup">Sign Up</a></li>
+                            <% } %>
+                        </ul>
+                        <ul class="nav navbar-nav navbar-right">
+                            <li class="nav-item"><a href="#" class="cart"><span class="ti-bag"></span></a></li>
+                            <li class="nav-item">
+                                <button class="search"><span class="lnr lnr-magnifier" id="search"></span></button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+    <!-- End Header Area -->
 
-<div class="main-content">
-    <div class="main-container">
-        <div class="product-container">
-            <div class="product-images">
-                <div class="main-image-container">
-                    <img src="/Uploads/product-Images/<%= product.productImage[0] %>" 
-                         alt="<%= product.productName %>" 
-                         class="main-image" 
-                         id="mainImage">
-                </div>
-                <div class="thumbnail-container">
-                    <% product.productImage.forEach((image, index) => { %>
-                        <img src="/Uploads/product-Images/<%= image %>" 
-                             alt="Product thumbnail" 
-                             class="thumbnail <%= index === 0 ? 'active' : '' %>"
-                             onclick="changeImage(this.src)">
-                    <% }); %>
-                </div>
-            </div>
-            
-            <div class="product-details">
-                <h1 class="product-title"><%= product.productName %></h1>
-                <a href="#" class="brand">Brand: <%= product.brand %></a>
-                
-                <div class="price-container">
-                    <% if (product.salePrice < product.regularPrice) { %>
-                        <div class="price">
-                            ₹<%= product.salePrice %><sup>.00</sup>
-                            <span class="original-price">₹<%= product.regularPrice %></span>
-                        </div>
-                        <div class="discount">
-                            Save ₹<%= product.regularPrice - product.salePrice %>
-                            (<%= Math.round((product.regularPrice - product.salePrice) / product.regularPrice * 100) %>% off)
-                        </div>
-                    <% } else { %>
-                        <div class="price">₹<%= product.regularPrice %><sup>.00</sup></div>
-                    <% } %>
-                    <div class="inclusive">Inclusive of all taxes</div>
-                </div>
-
-                <div class="size-section">
-                    <h3>Select Size</h3>
-                    <div class="size-buttons">
-                        <% [6,7,8,9].forEach(size => { %>
-                            <button class="size-btn <%= product.sizes[size] > 0 ? '' : 'disabled' %>"
-                                    onclick="selectSize(<%= size %>)"
-                                    <%= product.sizes[size] > 0 ? '' : 'disabled' %>>
-                                <%= size %>
-                            </button>
+    <!-- Keep your existing product content -->
+    <div class="main-content">
+        <div class="main-container">
+            <div class="product-container">
+                <div class="product-images">
+                    <div class="main-image-container">
+                        <img src="/Uploads/product-Images/<%= product.productImage[0] %>" 
+                             alt="<%= product.productName %>" 
+                             class="main-image" 
+                             id="mainImage">
+                    </div>
+                    <div class="thumbnail-container">
+                        <% product.productImage.forEach((image, index) => { %>
+                            <img src="/Uploads/product-Images/<%= image %>" 
+                                 alt="Product thumbnail" 
+                                 class="thumbnail <%= index === 0 ? 'active' : '' %>"
+                                 onclick="changeImage(this.src)">
                         <% }); %>
                     </div>
                 </div>
+                
+                <div class="product-details">
+                    <h1 class="product-title"><%= product.productName %></h1>
+                    <a href="#" class="brand">Brand: <%= product.brand %></a>
+                    
+                    <div class="price-container">
+                        <% if (product.salePrice < product.regularPrice) { %>
+                            <div class="price">
+                                ₹<%= product.salePrice %><sup>.00</sup>
+                                <span class="original-price">₹<%= product.regularPrice %></span>
+                            </div>
+                            <div class="discount">
+                                Save ₹<%= product.regularPrice - product.salePrice %>
+                                (<%= Math.round((product.regularPrice - product.salePrice) / product.regularPrice * 100) %>% off)
+                            </div>
+                        <% } else { %>
+                            <div class="price">₹<%= product.regularPrice %><sup>.00</sup></div>
+                        <% } %>
+                        <div class="inclusive">Inclusive of all taxes</div>
+                    </div>
 
-                <div class="stock-info">
-                    <% if (product.quantity > 0) { %>
-                        <div class="in-stock">In Stock</div>
-                    <% } else { %>
-                        <div class="out-of-stock">Out of Stock</div>
-                    <% } %>
-                </div>
+                    <div class="size-section">
+                        <h3>Select Size</h3>
+                        <div class="size-buttons">
+                            <% [6,7,8,9].forEach(size => { %>
+                                <button class="size-btn <%= product.sizes[size] > 0 ? '' : 'disabled' %>"
+                                        onclick="selectSize(<%= size %>)"
+                                        <%= product.sizes[size] > 0 ? '' : 'disabled' %>>
+                                    <%= size %>
+                                </button>
+                            <% }); %>
+                        </div>
+                    </div>
 
-                <div class="description">
-                    <h3>About this item</h3>
-                    <p><%= product.description %></p>
-                </div>
+                    <div class="stock-info">
+                        <% if (product.quantity > 0) { %>
+                            <div class="in-stock">In Stock</div>
+                        <% } else { %>
+                            <div class="out-of-stock">Out of Stock</div>
+                        <% } %>
+                    </div>
 
-                <div class="action-buttons">
-                    <button class="add-to-cart" onclick="addToCart('<%= product._id %>')">
-                        Add to Cart
-                    </button>
-                    <button class="add-to-wishlist" onclick="addToWishlist('<%= product._id %>')">
-                        Add to Wishlist
-                    </button>
+                    <div class="description">
+                        <h3>About this item</h3>
+                        <p><%= product.description %></p>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="add-to-cart" onclick="addToCart('<%= product._id %>')">
+                            Add to Cart
+                        </button>
+                        <button class="add-to-wishlist" onclick="addToWishlist('<%= product._id %>')">
+                            Add to Wishlist
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-    function changeImage(src) {
-        document.getElementById('mainImage').src = src;
-        
-        const thumbnails = document.querySelectorAll('.thumbnail');
-        thumbnails.forEach(thumb => {
-            thumb.classList.remove('active');
-            if (thumb.src === src) {
-                thumb.classList.add('active');
-            }
-        });
-    }
-
-    function selectSize(size) {
-        const buttons = document.querySelectorAll('.size-btn');
-        buttons.forEach(btn => btn.classList.remove('selected'));
-        event.target.classList.add('selected');
-        selectedSize = size;
-    }
-
-    async function addToCart(productId) {
-        if (!selectedSize) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Please select a size',
-                text: 'You must select a size before adding to cart'
-            });
-            return;
-        }
-        
-        try {
-            const response = await fetch('/addToCart', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    productId,
-                    size: selectedSize
-                })
-            });
+    <!-- Add required scripts at the bottom -->
+    <script src="/js/vendor/jquery-2.2.4.min.js"></script>
+    <script src="/js/vendor/bootstrap.min.js"></script>
+    <script src="/js/jquery.nice-select.min.js"></script>
+    <script src="/js/jquery.sticky.js"></script>
+    <script>
+        function changeImage(src) {
+            document.getElementById('mainImage').src = src;
             
-            const data = await response.json();
-            if (data.status) {
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            thumbnails.forEach(thumb => {
+                thumb.classList.remove('active');
+                if (thumb.src === src) {
+                    thumb.classList.add('active');
+                }
+            });
+        }
+
+        function selectSize(size) {
+            const buttons = document.querySelectorAll('.size-btn');
+            buttons.forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+            selectedSize = size;
+        }
+
+        async function addToCart(productId) {
+            if (!selectedSize) {
                 Swal.fire({
-                    icon: 'success',
-                    title: 'Added to Cart!',
-                    showConfirmButton: false,
-                    timer: 1500
+                    icon: 'warning',
+                    title: 'Please select a size',
+                    text: 'You must select a size before adding to cart'
+                });
+                return;
+            }
+            
+            try {
+                const response = await fetch('/addToCart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        productId,
+                        size: selectedSize
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.status) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Added to Cart!',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Something went wrong!'
                 });
             }
-        } catch (error) {
-            console.error('Error:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'Something went wrong!'
-            });
         }
-    }
 
-    // Add this to your existing script section
-    let isZoomed = false;
-    const mainImageContainer = document.querySelector('.main-image-container');
-    const mainImage = document.getElementById('mainImage');
+        // Add this to your existing script section
+        let isZoomed = false;
+        const mainImageContainer = document.querySelector('.main-image-container');
+        const mainImage = document.getElementById('mainImage');
 
-    mainImageContainer.addEventListener('mousemove', function(e) {
-        if (!isZoomed) return;
+        mainImageContainer.addEventListener('mousemove', function(e) {
+            if (!isZoomed) return;
+            
+            const bounds = mainImageContainer.getBoundingClientRect();
+            const x = (e.clientX - bounds.left) / bounds.width;
+            const y = (e.clientY - bounds.top) / bounds.height;
+            
+            mainImage.style.transformOrigin = `${x * 100}% ${y * 100}%`;
+        });
+
+        mainImageContainer.addEventListener('mouseenter', function() {
+            isZoomed = true;
+            mainImage.style.transform = 'scale(2)';
+        });
+
+        mainImageContainer.addEventListener('mouseleave', function() {
+            isZoomed = false;
+            mainImage.style.transform = 'scale(1)';
+        });
+
+        // Add this to your existing script section
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('.header_area');
+            if (window.scrollY > 100) {
+                header.classList.add('navbar-shrink', 'fixed-top');
+            } else {
+                header.classList.remove('navbar-shrink', 'fixed-top');
+            }
+        });
+
+        // Ensure proper spacing when header becomes fixed
+        const header = document.querySelector('.header_area');
+        const mainContent = document.querySelector('.main-content');
         
-        const bounds = mainImageContainer.getBoundingClientRect();
-        const x = (e.clientX - bounds.left) / bounds.width;
-        const y = (e.clientY - bounds.top) / bounds.height;
-        
-        mainImage.style.transformOrigin = `${x * 100}% ${y * 100}%`;
-    });
+        function updateHeaderSpace() {
+            const headerHeight = header.offsetHeight;
+            mainContent.style.paddingTop = headerHeight + 'px';
+        }
 
-    mainImageContainer.addEventListener('mouseenter', function() {
-        isZoomed = true;
-        mainImage.style.transform = 'scale(2)';
-    });
-
-    mainImageContainer.addEventListener('mouseleave', function() {
-        isZoomed = false;
-        mainImage.style.transform = 'scale(1)';
-    });
-</script>
+        window.addEventListener('load', updateHeaderSpace);
+        window.addEventListener('resize', updateHeaderSpace);
+    </script>
 
 </body>
 </html>

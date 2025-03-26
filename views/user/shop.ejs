@@ -26,7 +26,61 @@
             margin-top: 60px; /* Adjust for mobile */
         }
     }
+
+    /* Sorting Styles */
+    .sorting-wrapper {
+        margin-top: 30px;
+    }
+
+    .sorting-box {
+        transition: all 0.3s ease;
+    }
+
+    .sorting-box:hover {
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important;
+    }
+
+    .form-select {
+        min-width: 200px;
+        border-radius: 25px;
+        padding: 8px 15px;
+        border: 1px solid #dee2e6;
+        cursor: pointer;
+        background-color: #f8f9fa;
+        transition: all 0.3s ease;
+    }
+
+    .form-select:hover {
+        background-color: #fff;
+        border-color: #adb5bd;
+    }
+
+    .form-select:focus {
+        box-shadow: none;
+        border-color: var(--primary-color);
+    }
+
+    @media (max-width: 768px) {
+        .sorting-box {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sorting-options {
+            width: 100%;
+        }
+
+        .form-select {
+            width: 100%;
+        }
+    }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+
+
+<link rel="stylesheet" href="/css/bootstrap.css">
+<link rel="stylesheet" href="/css/owl.carousel.css">
 
 <div class="main-content">
     <!-- start banner Area -->
@@ -172,6 +226,62 @@
         </div>
     </section>
     <!-- End category Area -->
+
+    <!-- Replace the sorting section and script -->
+<div class="container mb-5">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="sorting-wrapper">
+                <div class="sorting-box d-flex justify-content-between align-items-center p-3 bg-white rounded shadow-sm">
+                    <div class="found-items">
+                        <span class="text-muted">Showing <%= products ? products.length : 0 %> items</span>
+                    </div>
+                    <div class="sorting-options d-flex align-items-center">
+                        <label class="me-2 text-muted">Sort by:</label>
+                        <form id="sortForm" method="GET" class="mb-0">
+                            <select class="form-select" name="sort" onchange="submitSort(this.value)">
+                                <option value="default" <%= currentSort === 'default' ? 'selected' : '' %>>Featured</option>
+                                <option value="priceAsc" <%= currentSort === 'priceAsc' ? 'selected' : '' %>>Price: Low to High</option>
+                                <option value="priceDesc" <%= currentSort === 'priceDesc' ? 'selected' : '' %>>Price: High to Low</option>
+                                <option value="nameAsc" <%= currentSort === 'nameAsc' ? 'selected' : '' %>>Name: A to Z</option>
+                                <option value="nameDesc" <%= currentSort === 'nameDesc' ? 'selected' : '' %>>Name: Z to A</option>
+                            </select>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function submitSort(value) {
+    Swal.fire({
+        title: 'Sorting Products...',
+        text: 'Please wait...',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+            
+            // Create form data
+            const formData = new FormData();
+            formData.append('sort', value);
+
+            // Submit the form
+            const form = document.getElementById('sortForm');
+            form.action = `/shop?sort=${value}`;
+            form.submit();
+        }
+    });
+}
+
+// Initialize sort selection on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sortValue = urlParams.get('sort') || 'default';
+    document.querySelector('select[name="sort"]').value = sortValue;
+});
+</script>
 
     <!-- start product Area -->
     <section class="owl-carousel active-product-area section_gap">

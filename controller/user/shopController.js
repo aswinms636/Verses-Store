@@ -3,41 +3,49 @@ const Product = require("../../models/productSchema");
 
 const loadShopPage = async (req, res) => {
     try {
-        const user = req.session.user;
-        
-        // Get all active categories
-        const categories = await Category.find({ isListed: true });
-        
-        // Get all available products
-        const products = await Product.find({ 
-            isBlocked: false,
-            status: "Available"
-        }).populate('category');
+        const sortOption = req.query.sort || 'default';
+        let sortQuery = {};
 
-        console.log("Found products:", products.length); // Debug log
+        // Define sort queries
+        switch (sortOption) {
+            case 'priceAsc':
+                sortQuery = { salePrice: 1 };
+                break;
+            case 'priceDesc':
+                sortQuery = { salePrice: -1 };
+                break;
+            case 'nameAsc':
+                sortQuery = { productName: 1 };
+                break;
+            case 'nameDesc':
+                sortQuery = { productName: -1 };
+                break;
+            default:
+                sortQuery = { createdAt: -1 }; // Default sort by newest
+        }
 
-        // Render the shop page
+        // Get products with sorting
+        const products = await Product.find({ isBlocked: false })
+            .sort(sortQuery)
+            .populate('category');
+
+        // Render page with sorted products
         res.render('shop', {
-            user,
-            categories,
             products,
-            title: 'Shop'
+            currentSort: sortOption,
+            user: req.session.user
         });
 
     } catch (error) {
-        console.error("Shop page error:", error);
+        console.error('Shop page error:', error);
         res.status(500).render('shop', {
-            user: req.session.user,
-            categories: [],
+            error: 'Failed to load products',
             products: [],
-            error: "Failed to load products"
+            currentSort: 'default',
+            user: req.session.user
         });
     }
 };
-
-
-
-
 
 const loadProductDetails = async (req, res) => {    
     try {
