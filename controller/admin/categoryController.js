@@ -1,5 +1,3 @@
-
-
 const Category=require('../../models/categorySchema');
 const Product = require('../../models/productSchema');
 const mongoose=require('mongoose')
@@ -128,58 +126,39 @@ const removeCategoryOffer=async(req,res)=>{
 
 const listCategory = async (req, res) => {
     try {
-        let id = req.body.id;
-        
+        const id = req.body.id;
         if (!id || !mongoose.Types.ObjectId.isValid(id)) {
-            
-            return res.status(400).json({ error: "Invalid category ID" });
+            return res.status(400).json({ status: false, message: "Invalid category ID" });
         }
-
+        // Set isListed to false to unlist the category
         const result = await Category.updateOne({ _id: id }, { $set: { isListed: false } });
-
         if (result.matchedCount === 0) {
-            return res.status(404).json({ error: "Category not found" });
+            return res.status(404).json({ status: false, message: "Category not found" });
         }
-
-        console.log('listed successfully')
         res.json({ status: true, message: "Category unlisted successfully" });
-
     } catch (error) {
         console.error("Error in listCategory:", error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ status: false, message: error.message });
     }
 };
-
-
 
 const unlistCategory = async (req, res) => {
     try {
-        let id = req.body.id;
-        console.log("Received request to unlist category with ID:", id);
-
+        const id = req.body.id;
         if (!id || !mongoose.Types.ObjectId.isValid(id)) {
-           
-            return res.json({ status:false, message: "Invalid category ID" });
+            return res.status(400).json({ status: false, message: "Invalid category ID" });
         }
-
+        // Set isListed to true to list the category
         const result = await Category.updateOne({ _id: id }, { $set: { isListed: true } });
-
         if (result.matchedCount === 0) {
-            
-            return res.json({ status:false, message: "Category not found" });
+            return res.status(404).json({ status: false, message: "Category not found" });
         }
-
-        console.log('unlisted')
         res.json({ status: true, message: "Category listed successfully" });
-
     } catch (error) {
         console.error("Error in unlistCategory:", error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ status: false, message: error.message });
     }
 };
-
-
-
 
 const loadEditCategory = async (req, res) => {
     try {

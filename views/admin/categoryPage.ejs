@@ -17,7 +17,7 @@
     }
 
     .form-control {
-      width: 100%;
+      width: 100%;                          
       padding: 8px;
       margin-bottom: 10px;
       border: 1px solid #ccc;
@@ -104,21 +104,25 @@
                       </td>
                       <td class="text-start">
                         <% if(category.isListed) { %>
-                          <button class="btn btn-danger" style="width: 70px" onclick="toggleCategory('<%=category._id %>', 'listCategory')">
-                            Unlist
+                          <button class="btn btn-danger" 
+                                  style="width: 70px" 
+                                  data-category-id="<%=category._id %>"
+                                  onclick="toggleCategory('<%=category._id %>', 'listCategory')">
+                              Unlist
                           </button>
                         <% } else { %>
-                          <button class="btn btn-success" style="width: 70px" onclick="toggleCategory('<%=category._id %>', 'unlistCategory')">
-                            List
+                          <button class="btn btn-success" 
+                                  style="width: 70px" 
+                                  data-category-id="<%=category._id %>"
+                                  onclick="toggleCategory('<%=category._id %>', 'unlistCategory')">
+                              List
                           </button>
                         <% } %>
                       </td>
-                      
-                      
                       <td class="text-start">
                         <a href="/admin/editCategory/<%= category._id %>" class="btn btn-info text-white">Edit</a>
                       </td>
-                    </tr>\\\\\\
+                    </tr>
                   <% }) %>
                 </tbody>
               </table>
@@ -159,43 +163,53 @@
 
     async function toggleCategory(id, action) {
     try {
-        console.log(`Sending request to /admin/${action} with id:`, id);
-
-        const response = await fetch(`/admin/${action}`, {
+        const endpoint = `/admin/${action}`;
+        const response = await fetch(endpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id }) // Send ID
+            body: JSON.stringify({ id })
         });
-        console.log("Response:", response);
-        // Convert response to text first
-        const text = await response.text();
-        console.log("Raw Response:", text);
-
-        let data;
-        try {
-            data = JSON.parse(text); // Try parsing JSON
-        } catch (error) {
-            throw new Error("Invalid JSON received: " + text);
-        }
-
-        console.log("Response Status:", response.status);
-        console.log("Response Data:", data);
-
-        if (response.ok) {
-            Swal.fire({ icon: "success", title: "Success", text: data.message })
-                .then(() => location.reload());
+        
+        const data = await response.json();
+        if (response.ok && data.status) {
+            // Update the button directly without page reload
+            const button = document.querySelector(`button[data-category-id="${id}"]`);
+            if (button) {
+                if (action === 'listCategory') {
+                    button.classList.replace('btn-danger', 'btn-success');
+                    button.textContent = 'List';
+                    button.setAttribute('onclick', `toggleCategory('${id}', 'unlistCategory')`);
+                } else {
+                    button.classList.replace('btn-success', 'btn-danger');
+                    button.textContent = 'Unlist';
+                    button.setAttribute('onclick', `toggleCategory('${id}', 'listCategory')`);
+                }
+            }
+            
+            // Show success message
+            Swal.fire({
+                icon: "success",
+                title: "Success",
+                text: data.message,
+                showConfirmButton: false,
+                timer: 1500
+            });
         } else {
-            Swal.fire({ icon: "error", title: "Error", text: data.message || "An error occurred" });
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: data.message || "An error occurred"
+            });
         }
-
     } catch (error) {
         console.error("Network or server error:", error);
-        Swal.fire({ icon: "error", title: "Error", text: "Network error: " + error.message });
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Network error: " + error.message
+        });
     }
 }
-
-
-
   </script>
   <script src="/admin-assets/js/vendors/fontawesome.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
