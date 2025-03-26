@@ -288,12 +288,12 @@ const loadEditProduct=async(req,res)=>{
 
 const editProduct=async(req,res)=>{
     try {
-        
+       console.log('====================1') 
         const id=req.params.id;
         console.log(id)
         const product=await Product.findOne({_id:id})
         const data=req.body;
-        console.log(req.body)
+        console.log(req.body);
 
         const existingProduct=await Product.findOne({
           productName:data.productName,
@@ -331,8 +331,8 @@ const editProduct=async(req,res)=>{
             updateFields.$push={productImage:{$each:images}}
         }
         await Product.findByIdAndUpdate(id,updateFields,{new:true});
-
-        res.redirect('/admin/products');
+        res.json({status:true,message:"Product updated successfully"})
+        // res.redirect('/admin/products');
 
     } catch (error) {
         console.error(error);
@@ -348,17 +348,24 @@ const editProduct=async(req,res)=>{
                 productIdToServer,
                 { $pull: { productImage: imageNameToServer } }
             );
+
+
+            console.log('=======1')
             
-            const iamgePath = path.join('public', 'uploads');
+            const imagePath = path.join(__dirname, 'Uploads', imageNameToServer);
+
+            console.log("=======3",imagePath)
     
-            if (fs.existsSync(iamgePath)) {
-                await fs.unlinkSync(iamgePath);
+            if (fs.existsSync(imagePath)) {
+                await fs.unlinkSync(imagePath);
                 console.log(`Image deleted successfully: ${imageNameToServer}`);
             } else {
                 console.log(`Image not found: ${imageNameToServer}`);
             }
+
+            console.log('=======2');
     
-            res.send({ status: true });
+            res.send({ status: true ,message:"Image deleted successfully"});
     
         } catch (error) {
             console.error('Error deleting image:', error);
