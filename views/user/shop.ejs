@@ -341,26 +341,34 @@
                     <div class="found-items">
                         <span class="text-muted">Showing <%= products ? products.length : 0 %> items</span>
                     </div>
-                    <div class="sorting-options d-flex align-items-center">
-                        <label class="me-2 text-muted">Sort by:</label>
-                        <form id="sortForm" method="GET" class="mb-0">
-                            <select class="form-select" name="sort" onchange="submitSort(this.value)">
-                                <option value="default" <%= currentSort === 'default' ? 'selected' : '' %>>Featured</option>
-                                <option value="priceAsc" <%= currentSort === 'priceAsc' ? 'selected' : '' %>>Price: Low to High</option>
-                                <option value="priceDesc" <%= currentSort === 'priceDesc' ? 'selected' : '' %>>Price: High to Low</option>
-                                <option value="nameAsc" <%= currentSort === 'nameAsc' ? 'selected' : '' %>>Name: A to Z</option>
-                                <option value="nameDesc" <%= currentSort === 'nameDesc' ? 'selected' : '' %>>Name: Z to A</option>
-                            </select>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+                    <!-- Update the sorting form to preserve filter parameters -->
+<div class="sorting-options d-flex align-items-center">
+    <label class="me-2 text-muted">Sort by:</label>
+    <form id="sortForm" method="GET" class="mb-0">
+        <!-- Preserve existing filter values -->
+        <input type="hidden" name="category" value="<%= selectedCategory || '' %>">
+        <input type="hidden" name="minPrice" value="<%= currentMinPrice %>">
+        <input type="hidden" name="maxPrice" value="<%= currentMaxPrice %>">
+        
+        <select class="form-select" name="sort" onchange="submitSort(this.value)">
+            <option value="default" <%= currentSort === 'default' ? 'selected' : '' %>>Featured</option>
+            <option value="priceAsc" <%= currentSort === 'priceAsc' ? 'selected' : '' %>>Price: Low to High</option>
+            <option value="priceDesc" <%= currentSort === 'priceDesc' ? 'selected' : '' %>>Price: High to Low</option>
+            <option value="nameAsc" <%= currentSort === 'nameAsc' ? 'selected' : '' %>>Name: A to Z</option>
+            <option value="nameDesc" <%= currentSort === 'nameDesc' ? 'selected' : '' %>>Name: Z to A</option>
+        </select>
+    </form>
 </div>
 
 <script>
 function submitSort(value) {
+    // Get current URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Update sort value while preserving other parameters
+    urlParams.set('sort', value);
+    
+    // Show loading indicator
     Swal.fire({
         title: 'Sorting Products...',
         text: 'Please wait...',
@@ -368,25 +376,56 @@ function submitSort(value) {
         didOpen: () => {
             Swal.showLoading();
             
-            // Create form data
-            const formData = new FormData();
-            formData.append('sort', value);
-
-            // Submit the form
+            // Submit form with all parameters
             const form = document.getElementById('sortForm');
-            form.action = `/shop?sort=${value}`;
+            
+            // Preserve category filter if exists
+            const category = urlParams.get('category');
+            if (category) {
+                const categoryInput = form.querySelector('input[name="category"]');
+                categoryInput.value = category;
+            }
+            
+            // Preserve price filters if they exist
+            const minPrice = urlParams.get('minPrice');
+            const maxPrice = urlParams.get('maxPrice');
+            if (minPrice) form.querySelector('input[name="minPrice"]').value = minPrice;
+            if (maxPrice) form.querySelector('input[name="maxPrice"]').value = maxPrice;
+            
+            form.action = `/shop?${urlParams.toString()}`;
             form.submit();
         }
     });
 }
 
-// Initialize sort selection on page load
+// Initialize all parameters on page load
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
+    
+    // Set sort value
     const sortValue = urlParams.get('sort') || 'default';
     document.querySelector('select[name="sort"]').value = sortValue;
+    
+    // Set category if exists
+    const category = urlParams.get('category');
+    if (category) {
+        const categoryInput = document.querySelector(`input[name="category"][value="${category}"]`);
+        if (categoryInput) categoryInput.checked = true;
+    }
+    
+    // Set price range if exists
+    const minPrice = urlParams.get('minPrice');
+    const maxPrice = urlParams.get('maxPrice');
+    if (minPrice) document.querySelector('input[name="minPrice"]').value = minPrice;
+    if (maxPrice) document.querySelector('input[name="maxPrice"]').value = maxPrice;
 });
 </script>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
             <!-- start product Area -->
     <section class="owl-carousel active-product-area section_gap">

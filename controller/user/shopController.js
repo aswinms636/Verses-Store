@@ -7,24 +7,23 @@ const loadShopPage = async (req, res) => {
         const category = req.query.category;
         const minPrice = parseInt(req.query.minPrice) || 0;
         const maxPrice = parseInt(req.query.maxPrice) || Number.MAX_SAFE_INTEGER;
+        
+        // Build query
         let query = { isBlocked: false };
-        let sortQuery = {};
-
-        // Apply category filter
+        
+        // Add category filter
         if (category) {
             query.category = category;
         }
-
-        // Apply price range filter
+        
+        // Add price filter
         query.salePrice = {
             $gte: minPrice,
             $lte: maxPrice
         };
-
-        // Get all categories for filter options
-        const categories = await Category.find({ isListed: true });
-
-        // Define sort queries
+        
+        // Build sort query
+        let sortQuery = {};
         switch (sortOption) {
             case 'priceAsc':
                 sortQuery = { salePrice: 1 };
@@ -41,6 +40,9 @@ const loadShopPage = async (req, res) => {
             default:
                 sortQuery = { createdAt: -1 };
         }
+
+        // Get categories for filter
+        const categories = await Category.find({ isListed: true });
 
         // Get products with filters and sorting
         const products = await Product.find(query)
@@ -64,9 +66,9 @@ const loadShopPage = async (req, res) => {
             categories,
             currentSort: sortOption,
             selectedCategory: category,
-            priceRange: priceRange[0] || { minPrice: 0, maxPrice: 10000 },
             currentMinPrice: minPrice,
             currentMaxPrice: maxPrice,
+            priceRange: priceRange[0] || { minPrice: 0, maxPrice: 10000 },
             user: req.session.user
         });
 
