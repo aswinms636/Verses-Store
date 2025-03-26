@@ -34,5 +34,6 @@ router.get('/auth/google/callback',passport.authenticate('google',{failureRedire
 
 
 router.get("/shop",shopController.loadShopPage);
+router.get('/productDetails/:id',shopController.loadProductDetails);
 
 module.exports = router;

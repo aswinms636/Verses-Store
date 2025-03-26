@@ -1,34 +1,73 @@
-const Category=require("../../models/categorySchema")
-const Product=require("../../models/productSchema")
+const Category = require("../../models/categorySchema");
+const Product = require("../../models/productSchema");
 
 const loadShopPage = async (req, res) => {
     try {
-        const user = req.session.user; 
-        const categories = await Category.find({ isListed: true });
-
-        let productData = await Product.find({
-            isBlocked: false,
-            category: { $in: categories.map(category => category._id) },
-            quantity: { $gt: 0 }
-        })
-        .sort({ createdOn: -1 })
-        .limit(4); 
-
-        console.log('products.data', productData);
-
-        if(user){
-            res.render('shop', { user: user, products: productData });
-        }else{
-            res.render('shop', { products: productData });
-        }
-
+        const user = req.session.user;
         
+        // Get all active categories
+        const categories = await Category.find({ isListed: true });
+        
+        // Get all available products
+        const products = await Product.find({ 
+            isBlocked: false,
+            status: "Available"
+        }).populate('category');
+
+        console.log("Found products:", products.length); // Debug log
+
+        // Render the shop page
+        res.render('shop', {
+            user,
+            categories,
+            products,
+            title: 'Shop'
+        });
+
     } catch (error) {
-        res.status(500).json({ message: "Server error", error });
+        console.error("Shop page error:", error);
+        res.status(500).render('shop', {
+            user: req.session.user,
+            categories: [],
+            products: [],
+            error: "Failed to load products"
+        });
     }
 };
 
 
-module.exports={
+
+
+
+const loadProductDetails = async (req, res) => {    
+    try {
+        const user = req.session.user
+        const productId = req.params.id;
+        const product = await Product.findById(productId).populate('category');
+        
+        if (!product) {
+            return res.status(404).render('productDetails', {
+                user,
+                error: "Product not found"
+            });
+        }
+
+        res.render('singleProduct', {
+            user,
+            product,
+            title: product.name
+        });
+
+    } catch (error) {
+        console.error("Product details error:", error);
+        res.status(500).render('productDetails', {
+            user: req.session.user,
+            error: "Failed to load product details"
+        });
+    }
+}
+
+module.exports = {
     loadShopPage,
-}    
+    loadProductDetails,
+};
