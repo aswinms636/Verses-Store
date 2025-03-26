@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controller/user/userContoller'); 
 const { isLogin,checkSession }=require('../middlewares/userAuthentic')
+const passport=require('../config/passport')
 
 
 
@@ -24,6 +25,9 @@ router.post('/otpVerify',userController.otpVerify)
 router.get('/newPassword',userController.loadPasswordPage)
 router.post('/changePassword',userController.changePassword)
 
-
+router.get("/auth/google",passport.authenticate('google',{scope:['profile','email']}));
+router.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/signin'}),(req,res)=>{
+    res.redirect('/');
+})
 
 module.exports = router;

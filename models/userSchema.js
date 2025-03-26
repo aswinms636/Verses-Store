@@ -14,7 +14,7 @@ const userSchema = new Schema({
     phone: {
         type: String,
         required: false,
-        unique: false,
+        unique: true,
         sparse: true,
         default: null
     },
@@ -63,13 +63,13 @@ const userSchema = new Schema({
 const User = mongoose.model('User', userSchema);
 
 
-// User.collection.dropIndex("googleId_1").catch(err => {
-//     if (err.codeName !== "NamespaceNotFound") {
-//         console.error("Error dropping index:", err);
-//     }
-// });
+User.collection.dropIndex("googleId_1").catch(err => {
+    if (err.codeName !== "NamespaceNotFound") {
+        console.error("Error dropping index:", err);
+    }
+});
 
 
-// userSchema.index({ googleId: 1 }, { unique: true, sparse: true })
+userSchema.index({ googleId: 1 }, { unique: true, sparse: true })
 
 module.exports = User;

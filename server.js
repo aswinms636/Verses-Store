@@ -1,6 +1,7 @@
 const express=require('express')
 const session=require('express-session')
 const path=require('path')
+const passport=require('./config/passport')
 const env=require('dotenv').config();
 const userRouter=require('./routes/userRoute')
 const adminRouter=require('./routes/adminRoute')
@@ -22,6 +23,8 @@ app.use(session({
    }
 }))
 
+app.use(passport.initialize())
+app.use(passport.session())
 app.use(express.static(path.join(__dirname,'public')))
 app.use(nocache())
 

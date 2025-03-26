@@ -5,12 +5,14 @@ const bcrypt = require('bcrypt');
 
 const loadHome = async (req, res) => {
     try {
-        const user=req.session.userData.name;
-        console.log("home",user)
-        res.render("home",{
-            user:user
-        })
-
+        const user=req.session.user
+        console.log("home--------------------",user)
+        if(user){
+            res.render('home',{user})
+        }else{
+            res.render('home')
+        }
+      
     } catch (error) {
         console.error('Home page not found:', error);
         res.status(500).send('Server error');
@@ -402,8 +404,7 @@ module.exports={
     resendOtp,
     loadForgotPasswordPage,
     loadFFOtpPage,
-   
-    
+     
 }
 
 

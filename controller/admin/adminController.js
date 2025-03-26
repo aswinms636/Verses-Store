@@ -68,9 +68,36 @@ const adminLogin = async (req, res) => {
    }
 
 
+
+   const blockUser = async (req, res) => {
+    try {
+        const userId = req.query.id;
+        await User.findByIdAndUpdate(userId, { isBlocked: true });
+        res.redirect('/admin/users'); 
+    } catch (error) {
+        console.error('Error blocking user:', error);
+        res.status(500).send('Internal Server Error');
+    }
+};
+
+// Function to unblock a user
+const unblockUser = async (req, res) => {
+    try {
+        const userId = req.query.id;
+        await User.findByIdAndUpdate(userId, { isBlocked: false });
+        res.redirect('/admin/users'); 
+    } catch (error) {
+        console.error('Error unblocking user:', error);
+        res.status(500).send('Internal Server Error');
+    }
+};
+
+
    module.exports={
     adminLogin,
     loadlogin,
     loadDashboard,
     logout,
+    blockUser,
+    unblockUser,
    }
