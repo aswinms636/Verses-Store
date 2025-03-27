@@ -54,8 +54,7 @@ router.post('/editCategory/:id',categoryController.editCategory)
 
 //Product Management
 router.get('/addProducts',checkSession,productController.loadAddProduct)
-router.post('/addProducts',uploads.array('productImages', 4),productController.addProducts
-);
+router.post('/addProducts',uploads.array('productImages', 4),productController.addProducts);
 router.get('/products',checkSession,productController.getAllProducts);
 router.post('/addProductOffer',productController.addProductOffer)
 router.post("/removeProductOffer",productController.removeProductOffer)
