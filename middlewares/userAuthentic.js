@@ -1,4 +1,6 @@
 
+const User=require('../models/userSchema')
+
 const isLogin=async (req,res,next)=>{
     if(req.session.user){
         res.redirect('/')
@@ -7,6 +9,31 @@ const isLogin=async (req,res,next)=>{
     }
 }
 
+
+const blockCheck = async (req, res, next) => {
+    try {
+        const userId = req.session.user;
+        if (!userId) {
+            return next();
+        }
+  
+        const userData = await User.findById(userId);
+        
+        if (userData?.isBlocked) {
+            req.session.destroy((err) => {
+                if (err) {
+                    console.log("Error destroying session:", err);
+                }
+            });
+        }
+  
+        next();
+  
+    } catch (error) {
+        console.log("Error in block check middleware:", error);
+        next();
+    }
+  };
 
 const checkSession=async (req,res,next)=>{
     if(req.session.user){
@@ -19,5 +46,6 @@ const checkSession=async (req,res,next)=>{
 
 module.exports={
     isLogin,
-    checkSession
+    checkSession,
+    blockCheck
 }

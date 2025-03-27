@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controller/user/userContoller'); 
-const { isLogin,checkSession }=require('../middlewares/userAuthentic')
+const { isLogin,checkSession,blockCheck }=require('../middlewares/userAuthentic')
  const shopController=require('../controller/user/shopController')
 const passport=require('../config/passport')
 
 
+//Authentication
 
 router.get("/",userController.loadHome);
 router.get("/signup",isLogin,userController.loadSingnup)
@@ -17,7 +18,7 @@ router.post("/verifyOtp",userController.verifyOtp);
 router.get("/logout",userController.logout);
 
 
-
+//Forgot Password
 router.post('/verifyEmail',userController.verifyEmail)
 router.get('/forgot-Password',userController.loadForgotPasswordPage)
 router.get('/resend-otp',userController.resendOtp)
@@ -26,13 +27,20 @@ router.post('/otpVerify',userController.otpVerify)
 router.get('/newPassword',userController.loadPasswordPage)
 router.post('/changePassword',userController.changePassword)
 
+
+//google Signin
 router.get("/auth/google",passport.authenticate('google',{scope:['profile','email']}));
-router.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/signin'}),(req,res)=>{
-    res.redirect('/');
-})
+router.get("/google/callback", passport.authenticate('google', { failureRedirect: '/signin' }), 
+    (req, res) => {
+        if (req.user) {
+            req.session.user = req.user.name;  // Store user email in session
+        }
+        res.redirect('/');
+    }
+);
 
 
-
+//sz
 router.get("/shop",shopController.loadShopPage);
 router.get('/productDetails/:id',shopController.loadProductDetails);
 

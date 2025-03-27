@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const userSchema = new Schema({
+    googleId: { 
+        type: String, 
+        unique: true, 
+        sparse: true // Allows some users to have it while others don't
+    },
     name: {
         type: String,
         required: true
@@ -60,16 +65,8 @@ const userSchema = new Schema({
     }]
 });
 
+// Ensure unique googleId while allowing null values
+userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
+
 const User = mongoose.model('User', userSchema);
-
-
-User.collection.dropIndex("googleId_1").catch(err => {
-    if (err.codeName !== "NamespaceNotFound") {
-        console.error("Error dropping index:", err);
-    }
-});
-
-
-userSchema.index({ googleId: 1 }, { unique: true, sparse: true })
-
 module.exports = User;
