@@ -1,27 +1,31 @@
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 
-// Configure multer storage
+const uploadDir = path.join('public', 'Uploads', 'product-Images');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'public/Uploads/product-Images');
+    destination: function (req, file, cb) {
+        cb(null, uploadDir);
     },
-    filename: (req, file, cb) => {
+    filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
+        cb(null, 'product-' + uniqueSuffix + path.extname(file.originalname));
     }
 });
 
-// File filter
 const fileFilter = (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
         cb(null, true);
     } else {
-        cb(new Error('Not an image! Please upload an image.'), false);
+        cb(new Error('Only image files are allowed!'), false);
     }
 };
 
-// Export multer middleware
+// Create multer instance
 const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
@@ -30,4 +34,5 @@ const upload = multer({
     }
 });
 
+// Export the middleware
 module.exports = upload;

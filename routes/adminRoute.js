@@ -5,7 +5,7 @@ const customerController = require('../controller/admin/customerController');
 const categoryController = require('../controller/admin/categoryController');
 const productController = require('../controller/admin/productController');
 const { isLogin,checkSession }=require('../middlewares/adminAuthetic');
-const uploads= require('../middlewares/multer');
+const upload= require('../middlewares/multer');
 // const multer = require('multer');
 // const path = require('path');
 
@@ -54,14 +54,15 @@ router.post('/editCategory/:id',categoryController.editCategory)
 
 //Product Management
 router.get('/addProducts',checkSession,productController.loadAddProduct)
-router.post('/addProducts',uploads.array('productImages', 4),productController.addProducts);
+router.post('/addProducts', upload.array('productImages', 4),productController.addProducts
+);
 router.get('/products',checkSession,productController.getAllProducts);
 router.post('/addProductOffer',productController.addProductOffer)
 router.post("/removeProductOffer",productController.removeProductOffer)
 router.get('/blockProduct',checkSession,productController.blockProduct)
 router.get('/unblockProduct',checkSession,productController.unblockProduct)
 router.get('/editProduct',checkSession,productController.loadEditProduct)
-router.post('/editProduct/:id', uploads.array('productImages', 2), productController.editProduct);
+router.post('/editProduct/:id', upload.array('productImages', 4), productController.editProduct);
 router.post('/deleteImage',checkSession,productController.deleteSingleImg)
 
 module.exports = router;

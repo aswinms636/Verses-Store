@@ -41,9 +41,9 @@ const addProducts = async (req, res) => {
         const products = req.body;
         const images = [];
 
-        // Validate required fields
+        
         if (!products.productName || !products.description || !products.brand || !products.category) {
-            // Clean up any uploaded files
+          
             if (req.files) {
                 req.files.forEach(file => {
                     if (fs.existsSync(file.path)) {
@@ -278,101 +278,76 @@ const loadEditProduct=async(req,res)=>{
 }
 
 
-
-const editProduct = async (req, res) => {
+const editProduct = async (req, res, next) => {
     try {
         const id = req.params.id;
+        const product = await Product.findOne({ _id: id });
         const data = req.body;
-        
-        const product = await Product.findById(id);
-        if (!product) {
-            return res.status(404).json({ error: "Product not found" });
-        }
 
-        // Validate sizes stock
-        const sizes = data.sizes || {};
-        let formattedSizes = {};
-        let totalSizeStock = 0;
-
-        for (let key in sizes) {
-            if (sizes[key].trim() !== "") {
-                const sizeQty = parseInt(sizes[key], 10);
-                if (isNaN(sizeQty) || sizeQty < 0) {
-                    return res.json({ error: 'Invalid size stock values' });
-                }
-                formattedSizes[key] = sizeQty;
-                totalSizeStock += sizeQty;
-            }
-        }
-
-        if (totalSizeStock > parseInt(data.quantity)) {
-            return res.json({ error: 'Size stock cannot exceed total stock' });
-        }
-
-        // Process new images if any
-        const newImages = [];
-        if (req.files && req.files.length > 0) {
-            for (const file of req.files) {
-                try {
-                    const filename = Date.now() + '-' + file.originalname;
-                    const resizedImagePath = path.join('public', 'Uploads', 'product-Images', filename);
-                    
-                    const dir = path.dirname(resizedImagePath);
-                    if (!fs.existsSync(dir)) {
-                        fs.mkdirSync(dir, { recursive: true });
-                    }
-
-                    await sharp(file.path)
-                        .resize(440, 440)
-                        .toFile(resizedImagePath);
-                    
-                    newImages.push(`/uploads/images/${filename}`);
-                    fs.unlinkSync(file.path);
-                } catch (err) {
-                    console.error('Error processing new image:', err);
-                }
-            }
-        }
-
-        // Validate images (new + existing)
-        const updatedImages = [...product.productImage, ...newImages];
-        if (updatedImages.length === 0) {
-            return res.json({ error: 'At least one image is required' });
-        }
-
-        // Validate category
-        const categoryDoc = await Category.findOne({ name: data.category });
-        if (!categoryDoc) {
-            return res.json({ error: 'Invalid category' });
-        }
-
-        // Perform update
-        await Product.findByIdAndUpdate(
-            id,
-            {
-                productName: data.productName,
-                description: data.description,
-                brand: data.brand,
-                category: categoryDoc._id,
-                regularPrice: parseFloat(data.regularPrice),
-                salePrice: parseFloat(data.salePrice),
-                quantity: parseInt(data.quantity),
-                color: data.color,
-                sizes: formattedSizes,
-                productImage: updatedImages
-            },
-            { new: true }
-        );
-
-        return res.json({ success: true, message: 'Product updated successfully' });
-
-    } catch (error) {
-        console.error("Error updating product:", error);
-        return res.status(500).json({ 
-            error: error.message || 'Failed to update product' 
+        console.log("file------------", req.files);
+        const existingProduct = await Product.findOne({
+            productName: data.productName,
+            _id: { $ne: id }
         });
+
+        console.log("data", data);
+
+        if (existingProduct) {
+            return res.status(400).json({ error: "Product with this name already exists. Please try with another name" });
+        }
+
+        const images = [];
+
+        if (req.files && req.files.length > 0) {
+            for (let i = 0; i < req.files.length; i++) {
+                const originalImagePath = req.files[i].path;
+                const resizedFilename = "resized-" + req.files[i].filename;
+                const resizedImagePath = path.join('public', 'Uploads', 'product-Images', resizedFilename);
+                await sharp(originalImagePath).resize({ width: 440, height: 440 }).toFile(resizedImagePath);
+                images.push(resizedFilename);
+            }
+        }
+
+        // Initialize sizes with predefined keys
+        const validSizes = { 6: 0, 7: 0, 8: 0, 9: 0 };
+        
+        if (Array.isArray(data.sizes)) {
+            const sizeValues = data.sizes.slice(-4).map(size => parseInt(size));
+            Object.keys(validSizes).forEach((key, index) => {
+                validSizes[key] = sizeValues[index] || 0;
+            });
+        }
+
+        console.log("-=---------=-------=", validSizes);
+        console.log("img", images);
+
+        const category = await Category.findOne({ name: data.category });
+
+        const updateFields = {
+            productName: data.productName,
+            description: data.descriptionData,
+            brand: data.brand,
+            category: category._id,
+            regularPrice: data.regularPrice,
+            salePrice: data.salePrice,
+            quantity: parseInt(data.quantity),
+            sizes: validSizes,
+            productImage: images
+        };
+
+        
+
+        console.log("updateFields", updateFields);
+        await Product.findByIdAndUpdate(id, updateFields, { new: true });
+        res.redirect("/admin/products");
+    } catch (error) {
+        console.error(error);
+        next(error);
     }
 };
+
+
+
 
     const deleteSingleImg = async (req, res) => {
         try {
