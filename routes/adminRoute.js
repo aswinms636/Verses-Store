@@ -4,6 +4,7 @@ const adminController = require('../controller/admin/adminController');
 const customerController = require('../controller/admin/customerController');
 const categoryController = require('../controller/admin/categoryController');
 const productController = require('../controller/admin/productController');
+const { isLogin,checkSession }=require('../middlewares/adminAuthentic')
 const multer = require('multer');
 const path = require('path');
 
@@ -23,37 +24,37 @@ const storage = multer.diskStorage({
 
  const uploads = multer({ storage });
 
-router.get('/login',adminController.loadlogin)
+router.get('/login',isLogin,adminController.loadlogin)
 router.post('/adminLogin',adminController.adminLogin)
-router.get('/dashboard',adminController.loadDashboard)
+router.get('/dashboard',checkSession,adminController.loadDashboard)
 router.post('/logout',adminController.logout)
 
 
-router.get('/blockCustomer', adminController.blockUser);
-router.get('/unblockCustomer', adminController.unblockUser);
-router.get('/users',customerController.custermerInfo);
+router.get('/blockCustomer', checkSession,adminController.blockUser);
+router.get('/unblockCustomer',checkSession, adminController.unblockUser);
+router.get('/users',checkSession,customerController.custermerInfo);
 
 
 
-router.get('/category',categoryController.categoryInfo)
-router.post('/addCategory',categoryController.addCategory)
+router.get('/category',checkSession,categoryController.categoryInfo)
+router.post('/addCategory',checkSession,categoryController.addCategory)
 router.post('/addCategoryOffer',categoryController.addCategoryOffer)
 router.post('/removeCategoryOffer',categoryController.removeCategoryOffer)
 router.post('/listCategory',categoryController.listCategory);
 router.post('/unlistCategory',categoryController.unlistCategory);
-router.get('/editCategory/:id',categoryController.loadEditCategory)
+router.get('/editCategory/:id',checkSession,categoryController.loadEditCategory)
 router.post('/editCategory/:id',categoryController.editCategory)
 
-router.get('/addProducts',productController.loadAddProduct)
+router.get('/addProducts',checkSession,productController.loadAddProduct)
 router.post('/addProducts',uploads.array('productImages',2),productController.addProducts)
-router.get('/products',productController.getAllProducts);
+router.get('/products',checkSession,productController.getAllProducts);
 router.post('/addProductOffer',productController.addProductOffer)
 router.post("/removeProductOffer",productController.removeProductOffer)
-router.get('/blockProduct',productController.blockProduct)
-router.get('/unblockProduct',productController.unblockProduct)
-router.get('/editProduct',productController.loadEditProduct)
+router.get('/blockProduct',checkSession,productController.blockProduct)
+router.get('/unblockProduct',checkSession,productController.unblockProduct)
+router.get('/editProduct',checkSession,productController.loadEditProduct)
 router.post('/editProduct/:id', uploads.array('productImages', 2), productController.editProduct);
 
-router.post('/deleteImage',productController.deleteSingleImg)
+router.post('/deleteImage',checkSession,productController.deleteSingleImg)
 
 module.exports = router;
