@@ -5,24 +5,25 @@ const customerController = require('../controller/admin/customerController');
 const categoryController = require('../controller/admin/categoryController');
 const productController = require('../controller/admin/productController');
 const { isLogin,checkSession }=require('../middlewares/adminAuthetic');
-const multer = require('multer');
-const path = require('path');
+const uploads= require('../middlewares/multer');
+// const multer = require('multer');
+// const path = require('path');
 
-const storage = multer.diskStorage({
+// const storage = multer.diskStorage({
    
     
-    destination: (req, file, cb) => {
-        cb(null, 'public/Uploads/product-Images'); 
-    },
-    filename: (req, file, cb) => {
-        const namePrefix = Date.now();
-        const ext = path.extname(file.originalname)
-        const newName = namePrefix + ext; 
-        cb(null, newName);
-    }
- });
+//     destination: (req, file, cb) => {
+//         cb(null, 'public/Uploads/product-Images'); 
+//     },
+//     filename: (req, file, cb) => {
+//         const namePrefix = Date.now();
+//         const ext = path.extname(file.originalname)
+//         const newName = namePrefix + ext; 
+//         cb(null, newName);
+//     }
+//  });
 
- const uploads = multer({ storage });
+//  const uploads = multer({ storage });
 
 
  //Authentication
@@ -53,7 +54,8 @@ router.post('/editCategory/:id',categoryController.editCategory)
 
 //Product Management
 router.get('/addProducts',checkSession,productController.loadAddProduct)
-router.post('/addProducts',uploads.array('productImages',2),productController.addProducts)
+router.post('/addProducts',uploads.array('productImages', 4),productController.addProducts
+);
 router.get('/products',checkSession,productController.getAllProducts);
 router.post('/addProductOffer',productController.addProductOffer)
 router.post("/removeProductOffer",productController.removeProductOffer)

@@ -5,6 +5,7 @@ const path = require('path');
 const sharp = require('sharp');
 const { pageNotFound } = require('./adminController');
 const { find } = require('../../models/userSchema');
+const { Console } = require('console');
 
 const uploadDir = path.join('public', 'Uploads', 'product-Images');
 
@@ -38,104 +39,96 @@ const loadAddProduct = async (req, res) => {
 const addProducts = async (req, res) => {
     try {
         const products = req.body;
-        
-        // Handle sizes properly
-        const sizeMapping = { 6: 0, 7: 0, 8: 0, 9: 0 };
-        
-        // Convert size inputs to correct format
-        if (products.sizes) {
-            Object.entries(products.sizes).forEach(([size, quantity]) => {
-                sizeMapping[size] = parseInt(quantity) || 0;
-            });
-        }
+        const images = [];
 
-        // Check if product already exists
-        const productExists = await Product.findOne({ productName: products.productName });
-
-        if (productExists) {
-            return res.status(400).json({ error: "Product already exists, please try another name" });
+        // Validate required fields
+        if (!products.productName || !products.description || !products.brand || !products.category) {
+            // Clean up any uploaded files
+            if (req.files) {
+                req.files.forEach(file => {
+                    if (fs.existsSync(file.path)) {
+                        fs.unlinkSync(file.path);
+                    }
+                });
+            }
+            return res.status(400).json({ error: "All fields are required" });
         }
 
         // Validate image upload
         if (!req.files || req.files.length === 0) {
-            console.error("No image files uploaded.");
-            return res.status(400).json({ error: "No image files uploaded." });
+            return res.status(400).json({ error: "Product images are required" });
         }
 
-        console.log('Uploaded files:', req.files.map(f => f.path));
-
-        // Image processing
-        const images = [];
+        // Store image filenames
         for (const file of req.files) {
-            const originalImagePath = file.path;
-            const resizedImagePath = path.join(uploadDir, file.filename);
-
-            if (!fs.existsSync(originalImagePath)) {
-                console.error(`File not found: ${originalImagePath}`);
-                continue;
-            }
-
-            const isValid = await validateImage(originalImagePath);
-            if (!isValid) {
-                console.error(`Skipping invalid image: ${originalImagePath}`);
-                continue;
-            }
-
-            try {
-                await sharp(originalImagePath)
-                    .resize({ width: 440, height: 440 })
-                    .toFile(resizedImagePath);
-
-                images.push(file.filename);
-                console.log(`Image processed successfully: ${file.filename}`);
-            } catch (err) {
-                console.error(`Error processing image ${file.filename}:`, err);
-            }
+            images.push(file.filename);
         }
 
-        if (images.length === 0) {
-            console.error("No valid images processed.");
-            return res.status(400).json({ error: "No valid images processed." });
+        // Check if product already exists
+        const productExists = await Product.findOne({ 
+            productName: { $regex: new RegExp(`^${products.productName}$`, 'i') }
+        });
+
+        if (productExists) {
+            // Clean up uploaded files
+            images.forEach(image => {
+                const imagePath = path.join(uploadDir, image);
+                if (fs.existsSync(imagePath)) {
+                    fs.unlinkSync(imagePath);
+                }
+            });
+            return res.status(400).json({ error: "Product already exists" });
         }
 
-        // Fetch category ID
-        const categoryId = await Category.findOne({ name: products.category });
-
-        if (!categoryId) {
-            console.error("Invalid category name.");
-            return res.status(400).json({ error: "Invalid category name" });
+        // Get category
+        const category = await Category.findOne({ name: products.category });
+        if (!category) {
+            // Clean up uploaded files
+            images.forEach(image => {
+                const imagePath = path.join(uploadDir, image);
+                if (fs.existsSync(imagePath)) {
+                    fs.unlinkSync(imagePath);
+                }
+            });
+            return res.status(400).json({ error: "Invalid category" });
         }
 
-        console.log('Category ID:', categoryId._id);
-
-        // Save product
+        // Create new product
         const newProduct = new Product({
             productName: products.productName,
             description: products.description,
             brand: products.brand,
-            category: categoryId._id,
+            category: category._id,
             regularPrice: parseFloat(products.regularPrice),
             salePrice: parseFloat(products.salePrice),
             quantity: parseInt(products.quantity),
-            sizes: sizeMapping,
+            sizes: products.sizes || {},
             color: products.color,
-            productImage: images, 
-            status: "Available",
+            productImage: images,
+            status: "Available"
         });
 
         await newProduct.save();
-        console.log("New product saved with sizes:", newProduct);
 
-        res.status(200).json({ 
-            status: true, 
-            message: 'Product added successfully' 
+        res.status(200).json({
+            status: true,
+            message: 'Product added successfully'
         });
 
     } catch (error) {
-        console.error('Error saving product:', error);
-        res.status(500).json({ 
-            status: false, 
-            message: 'Failed to add product' 
+        // Clean up any uploaded files on error
+        if (req.files) {
+            req.files.forEach(file => {
+                if (fs.existsSync(file.path)) {
+                    fs.unlinkSync(file.path);
+                }
+            });
+        }
+        
+        console.error('Error adding product:', error);
+        res.status(500).json({
+            status: false,
+            message: error.message || 'Failed to add product'
         });
     }
 };

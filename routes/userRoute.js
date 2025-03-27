@@ -8,7 +8,7 @@ const passport=require('../config/passport')
 
 //Authentication
 
-router.get("/",userController.loadHome);
+router.get("/",blockCheck,userController.loadHome);
 router.get("/signup",isLogin,userController.loadSingnup)
 router.get("/signin",userController.loadsignin);
 router.post("/signin",isLogin,userController.signin);

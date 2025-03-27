@@ -112,28 +112,6 @@
         display: flex;
         flex-wrap: wrap;
     }
-
-    /* Add to your existing style section */
-    input[type="file"] {
-        padding: 8px;
-        border: 1px solid #ced4da;
-        border-radius: 4px;
-        width: 100%;
-    }
-
-    input[type="file"]::file-selector-button {
-        background-color: #007bff;
-        color: white;
-        padding: 8px 16px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        margin-right: 16px;
-    }
-
-    input[type="file"]::file-selector-button:hover {
-        background-color: #0056b3;
-    }
 </style>
 <section class="content-main">
     <div class="row">
@@ -236,14 +214,7 @@
                                     <h3>Select Images:</h3>
                                     <div id="imageUploadContainer" class="image-upload-container">
                                         <div class="image-input-row" id="imageInput1">
-                                            <input 
-                                                type="file" 
-                                                class="form-control" 
-                                                name="productImages" 
-                                                id="input1" 
-                                                onchange="handleImageUpload(event, 1)" 
-                                                accept="image/jpeg, image/png, image/jpg, image/webp"
-                                            />
+                                            <input type="file" class="form-control" name="productImages" id="input1" onchange="handleImageUpload(event, 1)" />
                                             <div class="image-cropper" id="cropper1">
                                                 <img id="croppedImg1" alt="" style="max-width: 100%; height: auto;" />
                                                 <button type="button" id="saveButton1" class="btn" onclick="saveImage(1)">
@@ -275,35 +246,17 @@
     const cropperInstances = {};
     let uploadedImageCount = 0;
 
-    // Replace the handleImageUpload function with this updated version
     function handleImageUpload(event, index) {
         const fileInput = event.target;
         const file = fileInput.files[0];
         if (!file) return;
 
-        // Update valid file types to include WebP
-        const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-        const maxSize = 5 * 1024 * 1024; // 5MB
-
-        // Validate file type
+        const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         if (!validTypes.includes(file.type)) {
             Swal.fire({
                 icon: 'error',
-                title: 'Invalid File Type',
-                text: 'Please select a valid image file (JPEG, PNG, JPG, or WebP)',
-                confirmButtonColor: '#3085d6'
-            });
-            fileInput.value = '';
-            return;
-        }
-
-        // Validate file size
-        if (file.size > maxSize) {
-            Swal.fire({
-                icon: 'error',
-                title: 'File Too Large',
-                text: 'Image size should be less than 5MB',
-                confirmButtonColor: '#3085d6'
+                title: 'Invalid Format',
+                text: 'Only images are allowed'
             });
             fileInput.value = '';
             return;
@@ -336,6 +289,7 @@
                     responsive: true,
                     checkCrossOrigin: false
                 });
+
                 cropperInstances[index] = cropper;
             };
         };
@@ -395,7 +349,7 @@
         previewList.removeChild(thumbnail);
         imageInput.value = '';
 
-        const cropperContainer = document.getElementById(cropper${index});
+        const cropperContainer = document.getElementById(`cropper${index}`);
         cropperContainer.style.display = "none";
 
         if (cropperInstances[index]) {
@@ -406,7 +360,7 @@
         uploadedImageCount--;
 
         // Remove the corresponding file input field
-        const imageInputRow = document.getElementById(imageInput${index});
+        const imageInputRow = document.getElementById(`imageInput${index}`);
         if (imageInputRow) {
             imageInputRow.remove();
         }
@@ -417,7 +371,7 @@
 
         const newInput = document.createElement('div');
         newInput.className = 'image-input-row';
-        newInput.id = imageInput${fileInputCount};
+        newInput.id = `imageInput${fileInputCount}`;
 
         newInput.innerHTML = `
             <input
@@ -443,9 +397,7 @@
         addNewImage();
     });
 
-    document.getElementById('productForm').addEventListener('submit', async function(event) {
-        event.preventDefault();
-        
+    document.getElementById('productForm').addEventListener('submit', function(event) {
         document.getElementById("productName-error").textContent = "";
         document.getElementById("brand-error").textContent = "";
         document.getElementById("description-error").textContent = "";
@@ -495,72 +447,24 @@
             hasErrors = true;
         }
 
-        let sizes = document.querySelectorAll('input[name^="sizes"]');
-        let sizeValid = false;
 
-        sizes.forEach(input => {
-            if (input.value.trim() !== "" && parseInt(input.value) > 0) {
-                sizeValid = true;
-            }
-        });
 
-        if (!sizeValid) {
-            document.getElementById("size-error").textContent = "At least one size quantity is required.";
-            hasErrors = true;
+    let sizes = document.querySelectorAll('input[name^="sizes"]');
+    let sizeValid = false;
+
+    sizes.forEach(input => {
+        if (input.value.trim() !== "" && parseInt(input.value) > 0) {
+            sizeValid = true;
         }
+    });
+
+    if (!sizeValid) {
+        document.getElementById("size-error").textContent = "At least one size quantity is required.";
+        hasErrors = true;
+    }
 
         if (hasErrors) {
-            return;
-        }
-
-        try {
-            const formData = new FormData(this);
-            
-            // Properly format sizes data
-            const sizes = {
-                6: parseInt(document.getElementById('size-6').value) || 0,
-                7: parseInt(document.getElementById('size-7').value) || 0,
-                8: parseInt(document.getElementById('size-8').value) || 0,
-                9: parseInt(document.getElementById('size-9').value) || 0
-            };
-
-            // Remove existing size entries and add the formatted ones
-            formData.delete('sizes[6]');
-            formData.delete('sizes[7]');
-            formData.delete('sizes[8]');
-            formData.delete('sizes[9]');
-            formData.append('sizes', JSON.stringify(sizes));
-
-            const response = await fetch('/admin/addProducts', {
-                method: 'POST',
-                body: formData
-            });
-
-            const result = await response.json();
-
-            if (response.ok && result.status) {
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    text: result.message ||'Product added successfully',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-                window.location.href = '/admin/products';
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: result.message || 'Failed to add product'
-                });
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Something went wrong. Please try again.'
-            });
+            event.preventDefault();
         }
     });
 </script>
