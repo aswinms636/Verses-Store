@@ -3,31 +3,43 @@ const Product = require('../../models/productSchema');
 const mongoose=require('mongoose')
 
 
-const categoryInfo=async(req,res)=>{
+const categoryInfo = async (req, res) => {
     try {
-        const page=parseInt(req.query.page)||1;
-        const limit=4;
-        const skip=(page-1)*limit;
+        const page = parseInt(req.query.page) || 1;
+        const limit = 4;
+        const skip = (page - 1) * limit;
+        const search = req.query.search || '';
 
-        const categoryData=await Category.find({})
-        .sort({createdAt:1})
-        .skip(skip)
-        .limit(limit)
+        // Build search query
+        const searchQuery = search ? {
+            name: { $regex: search, $options: 'i' }
+        } : {};
 
-        const totalCategories= await Category.countDocuments();
-        const totalPages=Math.ceil(totalCategories/limit)
-        res.render('categoryPage',{
-             cat:categoryData,
-             currentPage:page,
-             totalPages:totalPages,
-             totalCategories:totalCategories,
+        // Get categories with descending order
+        const categoryData = await Category.find(searchQuery)
+            .sort({ createdAt: -1 }) // Changed to -1 for descending order
+            .skip(skip)
+            .limit(limit);
 
+        const totalCategories = await Category.countDocuments(searchQuery);
+        const totalPages = Math.ceil(totalCategories / limit);
+
+        res.render('categoryPage', {
+            cat: categoryData,
+            currentPage: page,
+            totalPages: totalPages,
+            totalCategories: totalCategories,
+            search: search
         });
+
     } catch (error) {
-        console.error(error)
-        res.redirect('/pageNotFound');
+        console.error('Error in categoryInfo:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
     }
-}
+};
 
 
 const addCategory=async(req,res)=>{
