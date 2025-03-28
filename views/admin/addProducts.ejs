@@ -1,6 +1,9 @@
 <%- include("../../views/partials/admin/header") %>
 <head>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <style>
     /* Custom CSS for error messages and form styling */
@@ -265,32 +268,32 @@
         const reader = new FileReader();
         reader.onload = function(e) {
             const image = document.getElementById(`croppedImg${index}`);
-            image.src = e.target.result;
+            if (!image) return;
 
+            image.src = e.target.result;
+            
+            // Wait for image to load before initializing Cropper
             image.onload = function() {
                 const cropperContainer = document.getElementById(`cropper${index}`);
+                if (!cropperContainer) return;
+
                 cropperContainer.style.display = "block";
 
+                // Destroy existing cropper instance if it exists
                 if (cropperInstances[index]) {
                     cropperInstances[index].destroy();
                 }
 
-                const cropper = new Cropper(image, {
+                // Initialize new Cropper instance
+                cropperInstances[index] = new Cropper(image, {
                     aspectRatio: 1,
                     viewMode: 1,
                     guides: true,
                     background: false,
                     autoCropArea: 0.8,
-                    minCropBoxWidth: 100,
-                    minCropBoxHeight: 100,
-                    zoomable: true,
-                    scalable: true,
-                    movable: true,
                     responsive: true,
                     checkCrossOrigin: false
                 });
-
-                cropperInstances[index] = cropper;
             };
         };
         reader.readAsDataURL(file);
@@ -397,76 +400,120 @@
         addNewImage();
     });
 
-    document.getElementById('productForm').addEventListener('submit', function(event) {
-        document.getElementById("productName-error").textContent = "";
-        document.getElementById("brand-error").textContent = "";
-        document.getElementById("description-error").textContent = "";
-        document.getElementById("regularPrice-error").textContent = "";
-        document.getElementById("salePrice-error").textContent = "";
-        document.getElementById("quantity-error").textContent = "";
-        document.getElementById("color-error").textContent = "";
-        document.getElementById("category-error").textContent = "";
-        document.getElementById("size-error").textContent = "";
+    document.getElementById('productForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        // Clear previous errors
+        clearErrorMessages();
 
-        let hasErrors = false;
-        let productName = document.getElementById("product_name").value.trim();
-        let brand = document.querySelector('select[name="brand"]').value;
-        let description = document.getElementById("descriptionid").value.trim();
-        let regularPrice = document.querySelector('input[name="regularPrice"]').value.trim();
-        let salePrice = document.querySelector('input[name="salePrice"]').value.trim();
-        let quantity = document.querySelector('input[name="quantity"]').value.trim();
-        let color = document.querySelector('input[name="color"]').value.trim();
-        let category = document.querySelector('select[name="category"]').value;
-
-        if (!productName) {
-            document.getElementById("productName-error").textContent = "Product Name is required.";
-            hasErrors = true;
-        }
-        if (!brand) {
-            document.getElementById("brand-error").textContent = "Brand is required.";
-            hasErrors = true;
-        }
-        if (!description) {
-            document.getElementById("description-error").textContent = "Description is required.";
-            hasErrors = true;
-        }
-        if (!regularPrice) {
-            document.getElementById("regularPrice-error").textContent = "Regular Price is required.";
-            hasErrors = true;
-        }
-        if (!salePrice) {
-            document.getElementById("salePrice-error").textContent = "Sale Price is required.";
-            hasErrors = true;
-        }
-        if (!quantity) {
-            document.getElementById("quantity-error").textContent = "Quantity is required.";
-            hasErrors = true;
-        }
-        if (!category) {
-            document.getElementById("category-error").textContent = "Category is required.";
-            hasErrors = true;
+        // Validate form
+        if (!validateForm()) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error',
+                text: 'Please check all required fields'
+            });
+            return;
         }
 
+        try {
+            // Show loading state
+            Swal.fire({
+                title: 'Adding Product',
+                text: 'Please wait...',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
 
+            const formData = new FormData(this);
+            const response = await fetch('/admin/addProducts', {
+                method: 'POST',
+                body: formData
+            });
 
-    let sizes = document.querySelectorAll('input[name^="sizes"]');
-    let sizeValid = false;
+            const result = await response.json();
 
-    sizes.forEach(input => {
-        if (input.value.trim() !== "" && parseInt(input.value) > 0) {
-            sizeValid = true;
+            if (result.success) {
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: result.message || 'Product added successfully'
+                });
+                window.location.href = '/admin/products';
+            } else {
+                throw new Error(result.message || 'Failed to add product');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: error.message || 'Failed to add product'
+            });
         }
     });
 
-    if (!sizeValid) {
-        document.getElementById("size-error").textContent = "At least one size quantity is required.";
-        hasErrors = true;
+    // Add these helper functions
+    function clearErrorMessages() {
+        const errorElements = document.querySelectorAll('.error-message, .text-danger');
+        errorElements.forEach(el => {
+            if (el) el.textContent = '';
+        });
     }
 
-        if (hasErrors) {
-            event.preventDefault();
+    function validateForm() {
+        let hasErrors = false;
+        const fields = {
+            'product_name': 'Product Name',
+            'brand': 'Brand',
+            'descriptionid': 'Description',
+            'regularPrice': 'Regular Price',
+            'salePrice': 'Sale Price',
+            'quantity': 'Quantity',
+            'category': 'Category'
+        };
+
+        // Validate required fields
+        for (const [id, label] of Object.entries(fields)) {
+            const element = document.getElementById(id) || document.querySelector(`[name="${id}"]`);
+            const errorElement = document.getElementById(`${id.replace('_', '')}-error`);
+            
+            if (element && errorElement) {
+                if (!element.value.trim()) {
+                    errorElement.textContent = `${label} is required.`;
+                    hasErrors = true;
+                }
+            }
         }
-    });
+
+        // Validate sizes
+        let totalSizeQuantity = 0;
+        const sizes = {
+            6: parseInt(document.getElementById('size-6')?.value) || 0,
+            7: parseInt(document.getElementById('size-7')?.value) || 0,
+            8: parseInt(document.getElementById('size-8')?.value) || 0,
+            9: parseInt(document.getElementById('size-9')?.value) || 0
+        };
+
+        totalSizeQuantity = Object.values(sizes).reduce((sum, qty) => sum + qty, 0);
+        const declaredQuantity = parseInt(document.querySelector('[name="quantity"]')?.value) || 0;
+
+        const sizeError = document.getElementById('size-error');
+        if (sizeError) {
+            if (totalSizeQuantity === 0) {
+                sizeError.textContent = "At least one size quantity is required.";
+                hasErrors = true;
+            } else if (totalSizeQuantity !== declaredQuantity) {
+                sizeError.textContent = `Total size quantities (${totalSizeQuantity}) must match the total quantity (${declaredQuantity}).`;
+                hasErrors = true;
+            }
+        }
+
+        return !hasErrors;
+    }
 </script>
 
 <%- include("../../views/partials/admin/footer") %>
