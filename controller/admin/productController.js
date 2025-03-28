@@ -241,51 +241,44 @@ const addProduct = async (req, res) => {
     }
 };
 
-const getAllProducts=async(req,res)=>{
+const getAllProducts = async (req, res) => {
     try {
-        console.log('=========================1')
-        const search=req.query.search || "";
-        const page=req.query.page || 1;
-        const limit=4;
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10; // items per page
+        const search = req.query.search || '';
 
-        const productData=await Product.find({
-            $or:[
-                {productName:{$regex:new RegExp(".*"+search+ ".*",'i')}}
-            ],
-        }).limit(limit*1)
-        .skip((page-1)*limit)
-        .populate('category')
-        .exec();    
-        
-        const count=await Product.find({
-            $or:[
-                {productName:{$regex:new RegExp('.*'+search+".*",'i')}}
-            ],
+        // Build search query
+        const searchQuery = search ? {
+            $or: [
+                { productName: { $regex: search, $options: 'i' }},
+                { brand: { $regex: search, $options: 'i' }}
+            ]
+        } : {};
 
-        }).countDocuments();
+        // Get products with descending order
+        const productData = await Product.find(searchQuery)
+            .sort({ createdAt: -1 }) // This ensures newest products appear first
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .populate('category')
+            .exec();
 
-        const category=await Category.find({isListed:true})
-        console.log('=========================2')
-        if(category){
-            res.render('products',{
-                data:productData,
-                currentPage:page,
-                totalPages:Math.ceil(count/limit),
-                cat:category,
+        // Get total count for pagination
+        const totalProducts = await Product.countDocuments(searchQuery);
+        const totalPages = Math.ceil(totalProducts / limit);
 
-            })
-        }else{
-            res.redirect('/pageNotFound')
-        }
+        res.render('products', {
+            data: productData,
+            currentPage: page,
+            totalPages: totalPages,
+            search: search
+        });
 
     } catch (error) {
-        console.log('catch',error)
-        res.redirect('/pageNotFound')
-        
+        console.error('Error in getAllProducts:', error);
+        res.status(500).render('error', { message: 'Internal server error' });
     }
-}
-
-
+};
 
 const addProductOffer= async(req,res)=>{
     try {
