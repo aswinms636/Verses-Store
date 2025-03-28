@@ -19,6 +19,14 @@ const loadHome = async (req, res) => {
     }
 };
 
+const loadPageNotFound=async(req,res)=>{
+    try {
+        res.render("page-404")
+    } catch (error) {
+        
+    }
+
+}    
 
 
 const loadSingnup=async (req,res)=>{
@@ -404,6 +412,7 @@ module.exports={
     resendOtp,
     loadForgotPasswordPage,
     loadFFOtpPage,
+    loadPageNotFound
      
 }
 

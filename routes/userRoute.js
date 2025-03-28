@@ -16,6 +16,7 @@ router.post("/signup",userController.signup);
 router.get("/verifyOtp",isLogin,userController.loadOtpPage);
 router.post("/verifyOtp",userController.verifyOtp);
 router.get("/logout",userController.logout);
+router.get("/pageNotFound",userController.loadPageNotFound);
 
 
 //Forgot Password
