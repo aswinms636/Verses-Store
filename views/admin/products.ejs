@@ -11,8 +11,14 @@
 <header class="card-header text-center mb-20">
     <form action="" method="get" class="d-inline">
         <div class="input-group input-group-sm border border-1 border-grey rounded-pill" style="width: 500px; margin-left: 230px;">
-            <input type="text" class="form-control border-0 rounded-pill" placeholder="Search products or brands" name="search">
-            <button class="btn  border-0" type="submit">Search</button>
+            <input 
+                type="text" 
+                class="form-control border-0 rounded-pill" 
+                placeholder="Search products or brands" 
+                name="search"
+                value="<%= locals.search || '' %>"
+            >
+            <button class="btn border-0" type="submit">Search</button>
         </div>
     </form>
 </header>
@@ -81,7 +87,7 @@
         <ul class="pagination justify-content-center mb-20" style="margin-right: 200px;">
             <% for (let i = 1; i <= totalPages; i++) { %>
             <li class="page-item <%=(i === currentPage) ? 'active' : '' %>">
-                <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                <a class="page-link" href="?page=<%= i %>&search=<%= locals.search || '' %>"><%= i %></a>
             </li>
             <% } %>
         </ul>
