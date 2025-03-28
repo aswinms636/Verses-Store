@@ -171,17 +171,17 @@
                             <div class="col-lg-4">
                                 <div class="mb-4">
                                     <label for="size-6">Size 6 Quantity:</label>
-                                    <input type="number" id="size-6" name="sizes[6]" min="0" class="form-control">
-                                
+                                    <input type="number" id="size-6" name="sizes[6]" min="0" class="form-control" >
+                        
                                     <label for="size-7">Size 7 Quantity:</label>
-                                    <input type="number" id="size-7" name="sizes[7]" min="0" class="form-control">
-                                
+                                    <input type="number" id="size-7" name="sizes[7]" min="0" class="form-control" >
+                        
                                     <label for="size-8">Size 8 Quantity:</label>
-                                    <input type="number" id="size-8" name="sizes[8]" min="0" class="form-control">
-                                
+                                    <input type="number" id="size-8" name="sizes[8]" min="0" class="form-control" >
+                        
                                     <label for="size-9">Size 9 Quantity:</label>
-                                    <input type="number" id="size-9" name="sizes[9]" min="0" class="form-control">
-                                
+                                    <input type="number" id="size-9" name="sizes[9]" min="0" class="form-control" >
+                        
                                     <!-- Size validation error message -->
                                     <small id="size-error" class="text-danger"></small>
                                 </div>
@@ -448,21 +448,53 @@
             hasErrors = true;
         }
 
+        // Size validation
+        const sizes = {
+            6: parseInt(document.getElementById('size-6').value) || 0,
+            7: parseInt(document.getElementById('size-7').value) || 0,
+            8: parseInt(document.getElementById('size-8').value) || 0,
+            9: parseInt(document.getElementById('size-9').value) || 0
+        };
 
+        const totalSizeQuantity = Object.values(sizes).reduce((a, b) => a + b, 0);
+        const declaredQuantity = parseInt(quantity);
 
-    let sizes = document.querySelectorAll('input[name^="sizes"]');
-    let sizeValid = false;
-
-    sizes.forEach(input => {
-        if (input.value.trim() !== "" && parseInt(input.value) > 0) {
-            sizeValid = true;
+        if (totalSizeQuantity === 0) {
+            document.getElementById("size-error").textContent = "At least one size quantity is required.";
+            hasErrors = true;
+        } else if (totalSizeQuantity !== declaredQuantity) {
+            document.getElementById("size-error").textContent = 
+                `Total size quantities (${totalSizeQuantity}) must match the total quantity (${declaredQuantity}).`;
+            hasErrors = true;
         }
-    });
 
-    if (!sizeValid) {
-        document.getElementById("size-error").textContent = "At least one size quantity is required.";
-        hasErrors = true;
-    }
+        // Additional size-specific validations
+        Object.entries(sizes).forEach(([size, qty]) => {
+            if (qty < 0) {
+                document.getElementById("size-error").textContent = 
+                    `Size ${size} cannot have negative quantity.`;
+                hasErrors = true;
+            }
+            if (!Number.isInteger(qty)) {
+                document.getElementById("size-error").textContent = 
+                    `Size ${size} must be a whole number.`;
+                hasErrors = true;
+            }
+        });
+
+        let sizes = document.querySelectorAll('input[name^="sizes"]');
+        let sizeValid = false;
+
+        sizes.forEach(input => {
+            if (input.value.trim() !== "" && parseInt(input.value) > 0) {
+                sizeValid = true;
+            }
+        });
+
+        if (!sizeValid) {
+            document.getElementById("size-error").textContent = "At least one size quantity is required.";
+            hasErrors = true;
+        }
 
         if (hasErrors) {
             event.preventDefault();
