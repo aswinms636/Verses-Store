@@ -106,6 +106,73 @@
             margin-bottom: 20px;
         }
     }
+
+    /* Add this to your existing styles */
+    .banner-area {
+        position: relative;
+        background: #f4f4f4;
+        padding: 120px 0 60px;
+        margin-bottom: 40px;
+    }
+
+    .banner-overlay {
+        position: relative;
+        z-index: 2;
+        color: #333;
+    }
+
+    .banner-content h2 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: #333;
+    }
+
+    .banner-content p {
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+        color: #666;
+    }
+
+    .breadcrumb {
+        background: transparent;
+        margin-bottom: 0;
+    }
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: ">";
+    }
+
+    .breadcrumb-item a {
+        color: #3498db;
+        text-decoration: none;
+    }
+
+    .breadcrumb-item.active {
+        color: #666;
+    }
+
+    .search-results-count {
+        margin-top: 1rem;
+    }
+
+    .search-results-count .badge {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .banner-area {
+            padding: 80px 0 40px;
+        }
+
+        .banner-content h2 {
+            font-size: 2rem;
+        }
+
+        .banner-content p {
+            font-size: 1rem;
+        }
+    }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
@@ -117,6 +184,38 @@
 <div class="main-content">
     <!-- start banner Area -->
     <section class="banner-area">
+        <div class="banner-overlay">
+            <div class="container">
+                <div class="banner-content text-center">
+                    <h2><%= bannerInfo.title %></h2>
+                    <p><%= bannerInfo.subtitle %></p>
+                    
+                    <!-- Breadcrumb -->
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center">
+                            <% bannerInfo.breadcrumbs.forEach((crumb, index) => { %>
+                                <li class="breadcrumb-item <%= index === bannerInfo.breadcrumbs.length - 1 ? 'active' : '' %>">
+                                    <% if (index === bannerInfo.breadcrumbs.length - 1) { %>
+                                        <%= crumb.label %>
+                                    <% } else { %>
+                                        <a href="<%= crumb.url %>"><%= crumb.label %></a>
+                                    <% } %>
+                                </li>
+                            <% }); %>
+                        </ol>
+                    </nav>
+
+                    <!-- Search results count -->
+                    <% if (searchQuery) { %>
+                        <div class="search-results-count mt-3">
+                            <span class="badge bg-primary">
+                                <%= totalProducts %> products found
+                            </span>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
         <div class="container-fluid p-0">
             <div class="row m-0">
                 <div class="col-12 p-0">
@@ -330,6 +429,18 @@
             </div>
         </div>
 
+        <!-- Add this after the filter section and before the products grid -->
+<div class="search-wrapper mb-4">
+    <form id="searchForm" class="d-flex">
+        <input type="text" 
+               class="form-control me-2" 
+               name="search" 
+               placeholder="Search products..."
+               value="<%= searchQuery || '' %>">
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+</div>
+
         <!-- Products Grid -->
         <div class="col-lg-9">
             <!-- Replace the sorting section and script -->
@@ -484,6 +595,30 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         </div>
 
+        <!-- Add this after the products grid -->
+<div class="pagination-wrapper mt-4">
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            <% if (pagination.hasPrevPage) { %>
+                <li class="page-item">
+                    <a class="page-link" href="#" data-page="<%= pagination.currentPage - 1 %>">Previous</a>
+                </li>
+            <% } %>
+            
+            <% for(let i = 1; i <= pagination.totalPages; i++) { %>
+                <li class="page-item <%= pagination.currentPage === i ? 'active' : '' %>">
+                    <a class="page-link" href="#" data-page="<%= i %>"><%= i %></a>
+                </li>
+            <% } %>
+            
+            <% if (pagination.hasNextPage) { %>
+                <li class="page-item">
+                    <a class="page-link" href="#" data-page="<%= pagination.currentPage + 1 %>">Next</a>
+                </li>
+            <% } %>
+        </ul>
+    </nav>
+</div>
 
         <% if (typeof error !== 'undefined') { %>
             <div class="alert alert-danger">
@@ -741,5 +876,184 @@ document.addEventListener('DOMContentLoaded', () => {
     </section>
     <!-- End related-product Area -->
 </div>
+
+<!-- Add this JavaScript before the closing body tag -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const productsContainer = document.querySelector('.row.justify-content-center');
+    const searchForm = document.getElementById('searchForm');
+    const paginationLinks = document.querySelectorAll('.pagination .page-link');
+
+    // Handle search
+    searchForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const searchQuery = new FormData(searchForm).get('search');
+        await loadProducts({ search: searchQuery, page: 1 });
+    });
+
+    // Handle pagination
+    paginationLinks.forEach(link => {
+        link.addEventListener('click', async function(e) {
+            e.preventDefault();
+            const page = this.dataset.page;
+            await loadProducts({ page });
+        });
+    });
+
+    async function loadProducts(params = {}) {
+        try {
+            // Show loading indicator
+            Swal.fire({
+                title: 'Loading...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Build URL with current filters and new parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            Object.entries(params).forEach(([key, value]) => {
+                urlParams.set(key, value);
+            });
+
+            const response = await fetch(`/shop?${urlParams.toString()}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.products) {
+                // Update URL without refreshing page
+                history.pushState({}, '', `?${urlParams.toString()}`);
+                
+                // Update banner information
+                updateBanner(data.bannerInfo);
+                
+                // Update products grid
+                updateProductsGrid(data.products);
+                
+                // Update pagination
+                updatePagination(data.pagination);
+            }
+
+            Swal.close();
+        } catch (error) {
+            console.error('Error loading products:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to load products'
+            });
+        }
+    }
+
+    function updateBanner(bannerInfo) {
+        const bannerContent = document.querySelector('.banner-content');
+        bannerContent.innerHTML = `
+            <h2>${bannerInfo.title}</h2>
+            <p>${bannerInfo.subtitle}</p>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb justify-content-center">
+                    ${bannerInfo.breadcrumbs.map((crumb, index) => `
+                        <li class="breadcrumb-item ${index === bannerInfo.breadcrumbs.length - 1 ? 'active' : ''}">
+                            ${index === bannerInfo.breadcrumbs.length - 1 
+                                ? crumb.label 
+                                : `<a href="${crumb.url}">${crumb.label}</a>`
+                            }
+                        </li>
+                    `).join('')}
+                </ol>
+            </nav>
+            ${bannerInfo.searchQuery ? `
+                <div class="search-results-count mt-3">
+                    <span class="badge bg-primary">
+                        ${bannerInfo.totalProducts} products found
+                    </span>
+                </div>
+            ` : ''}
+        `;
+    }
+
+    function updateProductsGrid(products) {
+        const productsHTML = products.map(product => `
+            <div class="col-lg-3 col-md-6">
+                <div class="single-product">
+                    <a href="/productDetails/${product._id}">
+                        <img class="img-fluid" 
+                             src="/Uploads/product-Images/${product.productImage[0]}" 
+                             alt="${product.productName}"
+                             style="height: 250px; object-fit: cover;">
+                    </a>
+                    <div class="product-details">
+                        <h6>${product.productName}</h6>
+                        <div class="price">
+                            <h6>₹${product.salePrice}</h6>
+                            <h6 class="l-through">₹${product.regularPrice}</h6>
+                        </div>
+                        <div class="prd-bottom">
+                            <a href="/addToCart/${product._id}" class="social-info">
+                                <span class="ti-bag"></span>
+                                <p class="hover-text">Add to bag</p>
+                            </a>
+                            <a href="/addToWishlist/${product._id}" class="social-info">
+                                <span class="lnr lnr-heart"></span>
+                                <p class="hover-text">Wishlist</p>
+                            </a>
+                            <a href="/productDetails/${product._id}" class="social-info">
+                                <span class="lnr lnr-move"></span>
+                                <p class="hover-text">View More</p>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        productsContainer.innerHTML = productsHTML;
+    }
+
+    function updatePagination(pagination) {
+        // Update pagination UI based on new data
+        const paginationHTML = `
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    ${pagination.hasPrevPage ? `
+                        <li class="page-item">
+                            <a class="page-link" href="#" data-page="${pagination.currentPage - 1}">Previous</a>
+                        </li>
+                    ` : ''}
+                    
+                    ${Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+                        .map(i => `
+                            <li class="page-item ${pagination.currentPage === i ? 'active' : ''}">
+                                <a class="page-link" href="#" data-page="${i}">${i}</a>
+                            </li>
+                        `).join('')}
+                    
+                    ${pagination.hasNextPage ? `
+                        <li class="page-item">
+                            <a class="page-link" href="#" data-page="${pagination.currentPage + 1}">Next</a>
+                        </li>
+                    ` : ''}
+                </ul>
+            </nav>
+        `;
+
+        document.querySelector('.pagination-wrapper').innerHTML = paginationHTML;
+        
+        // Reattach event listeners to new pagination links
+        document.querySelectorAll('.pagination .page-link').forEach(link => {
+            link.addEventListener('click', async function(e) {
+                e.preventDefault();
+                const page = this.dataset.page;
+                await loadProducts({ page });
+            });
+        });
+    }
+});
+</script>
 
 <%- include('../../views/partials/user/footer') %>

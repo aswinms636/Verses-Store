@@ -3,6 +3,9 @@ const Product = require("../../models/productSchema");
 
 const loadShopPage = async (req, res) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = 8; // Products per page
+        const search = req.query.search || '';
         const sortOption = req.query.sort || 'default';
         const category = req.query.category;
         const minPrice = parseInt(req.query.minPrice) || 0;
@@ -10,6 +13,11 @@ const loadShopPage = async (req, res) => {
         
         // Build query
         let query = { isBlocked: false };
+        
+        // Add search filter
+        if (search) {
+            query.productName = { $regex: search, $options: 'i' };
+        }
         
         // Add category filter
         if (category) {
@@ -41,13 +49,19 @@ const loadShopPage = async (req, res) => {
                 sortQuery = { createdAt: -1 };
         }
 
+        // Get total count for pagination
+        const totalProducts = await Product.countDocuments(query);
+        const totalPages = Math.ceil(totalProducts / limit);
+
         // Get categories for filter
         const categories = await Category.find({ isListed: true });
 
-        // Get products with filters and sorting
+        // Get products with pagination
         const products = await Product.find(query)
             .sort(sortQuery)
-            .populate('category');
+            .populate('category')
+            .skip((page - 1) * limit)
+            .limit(limit);
 
         // Get price range for filter
         const priceRange = await Product.aggregate([
@@ -61,6 +75,31 @@ const loadShopPage = async (req, res) => {
             }
         ]);
 
+        // Add banner data
+        const bannerInfo = {
+            title: search ? `Search Results for "${search}"` : "Our Shop",
+            subtitle: search ? `${totalProducts} products found` : "Browse our latest products",
+            breadcrumbs: [
+                { label: "Home", url: "/" },
+                { label: "Shop", url: "/shop" },
+                ...(search ? [{ label: `Search: ${search}`, url: "#" }] : [])
+            ]
+        };
+
+        if (req.xhr) {
+            return res.json({
+                products,
+                pagination: {
+                    currentPage: page,
+                    totalPages,
+                    hasNextPage: page < totalPages,
+                    hasPrevPage: page > 1
+                },
+                bannerInfo,
+                totalProducts
+            });
+        }
+
         res.render('shop', {
             products,
             categories,
@@ -69,7 +108,16 @@ const loadShopPage = async (req, res) => {
             currentMinPrice: minPrice,
             currentMaxPrice: maxPrice,
             priceRange: priceRange[0] || { minPrice: 0, maxPrice: 10000 },
-            user: req.session.user
+            user: req.session.user,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1
+            },
+            searchQuery: search,
+            bannerInfo,
+            totalProducts
         });
 
     } catch (error) {
