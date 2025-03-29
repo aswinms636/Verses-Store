@@ -20,7 +20,7 @@ const loadShopPage = async (req, res) => {
         }
         
         // Add category filter
-        if (category) {
+        if (category && category !== 'all') {
             query.category = category;
         }
         
@@ -29,7 +29,19 @@ const loadShopPage = async (req, res) => {
             $gte: minPrice,
             $lte: maxPrice
         };
-        
+
+        // Get price range for filter
+        const priceRange = await Product.aggregate([
+            { $match: { isBlocked: false } },
+            {
+                $group: {
+                    _id: null,
+                    minPrice: { $min: '$salePrice' },
+                    maxPrice: { $max: '$salePrice' }
+                }
+            }
+        ]);
+
         // Build sort query
         let sortQuery = {};
         switch (sortOption) {
@@ -62,18 +74,6 @@ const loadShopPage = async (req, res) => {
             .populate('category')
             .skip((page - 1) * limit)
             .limit(limit);
-
-        // Get price range for filter
-        const priceRange = await Product.aggregate([
-            { $match: { isBlocked: false } },
-            {
-                $group: {
-                    _id: null,
-                    minPrice: { $min: '$salePrice' },
-                    maxPrice: { $max: '$salePrice' }
-                }
-            }
-        ]);
 
         // Add banner data
         const bannerInfo = {
@@ -122,11 +122,9 @@ const loadShopPage = async (req, res) => {
 
     } catch (error) {
         console.error('Shop page error:', error);
-        res.status(500).render('shop', {
-            error: 'Failed to load products',
-            products: [],
-            categories: [],
-            user: req.session.user
+        res.status(500).json({
+            success: false,
+            message: 'Failed to load products'
         });
     }
 };
