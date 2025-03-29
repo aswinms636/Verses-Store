@@ -65,7 +65,7 @@ const userSchema = new Schema({
     }]
 });
 
-// Ensure unique googleId while allowing null values
+
 userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
 
 const User = mongoose.model('User', userSchema);

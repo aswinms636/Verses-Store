@@ -9,17 +9,17 @@ const { Console } = require('console');
 
 const uploadDir = path.join('public', 'Uploads', 'product-Images');
 
-// Ensure the upload directory exists
+
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
     console.log(` Upload directory created: ${uploadDir}`);
 }
 
-// Function to validate image files before processing
+
 const validateImage = async (imagePath) => {
     try {
         const metadata = await sharp(imagePath).metadata();
-        return metadata && metadata.format; // Ensure it's a valid image format
+        return metadata && metadata.format; 
     } catch (err) {
         console.error(` Invalid or corrupt image file: ${imagePath}`, err);
         return false;
@@ -49,11 +49,11 @@ const addProducts = async (req, res) => {
             });
         }
 
-        // Initialize sizes with predefined keys and set values
+       
         const validSizes = { 6: 0, 7: 0, 8: 0, 9: 0 };
         let totalSizeQuantity = 0;
 
-        // Process sizes from form data
+   
         if (products.sizes) {
             Object.keys(validSizes).forEach(size => {
                 const quantity = parseInt(products.sizes[size]) || 0;
@@ -62,7 +62,7 @@ const addProducts = async (req, res) => {
             });
         }
 
-        // Validate total quantity matches size quantities
+       
         const declaredQuantity = parseInt(products.quantity);
         if (totalSizeQuantity !== declaredQuantity) {
             return res.status(400).json({
@@ -71,7 +71,7 @@ const addProducts = async (req, res) => {
             });
         }
 
-        // Process images
+      
         if (!req.files || req.files.length === 0) {
             return res.status(400).json({
                 success: false,
@@ -79,7 +79,7 @@ const addProducts = async (req, res) => {
             });
         }
 
-        // Store and process images
+       
         for (const file of req.files) {
             const originalImagePath = file.path;
             const resizedFilename = "resized-" + file.filename;
@@ -92,13 +92,13 @@ const addProducts = async (req, res) => {
             images.push(resizedFilename);
         }
 
-        // Check if product exists
+ 
         const productExists = await Product.findOne({ 
             productName: { $regex: new RegExp(`^${products.productName}$`, 'i') }
         });
 
         if (productExists) {
-            // Clean up uploaded files
+            
             images.forEach(image => {
                 const imagePath = path.join(uploadDir, image);
                 if (fs.existsSync(imagePath)) {
@@ -111,7 +111,7 @@ const addProducts = async (req, res) => {
             });
         }
 
-        // Get category
+      
         const category = await Category.findOne({ name: products.category });
         if (!category) {
             return res.status(400).json({
@@ -120,7 +120,7 @@ const addProducts = async (req, res) => {
             });
         }
 
-        // Create new product with validated fields
+      
         const newProduct = new Product({
             productName: products.productName,
             description: products.description,
@@ -208,10 +208,10 @@ const addProduct = async (req, res) => {
             9: parseInt(data.sizes[9]) || 0
         };
 
-        // Validate total quantity matches size quantities
+        
         
 
-        // Create new product
+       
         const newProduct = new Product({
             productName: data.productName,
             brand: data.brand,
@@ -226,7 +226,7 @@ const addProduct = async (req, res) => {
 
         await newProduct.save();
 
-        // Send success response
+      
         res.json({
             success: true,
             message: 'Product updated successfully'
@@ -244,7 +244,7 @@ const addProduct = async (req, res) => {
 const getAllProducts = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = 10; // items per page
+        const limit = 10; 
         const search = req.query.search || '';
 
         // Build search query
@@ -255,15 +255,15 @@ const getAllProducts = async (req, res) => {
             ]
         } : {};
 
-        // Get products with descending order
+       
         const productData = await Product.find(searchQuery)
-            .sort({ createdAt: -1 }) // This ensures newest products appear first
+            .sort({ createdAt: -1 }) 
             .skip((page - 1) * limit)
             .limit(limit)
             .populate('category')
             .exec();
 
-        // Get total count for pagination
+       
         const totalProducts = await Product.countDocuments(searchQuery);
         const totalPages = Math.ceil(totalProducts / limit);
 

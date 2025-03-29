@@ -20,11 +20,8 @@ const blockCheck = async (req, res, next) => {
         const userData = await User.findById(userId);
         
         if (userData?.isBlocked) {
-            req.session.destroy((err) => {
-                if (err) {
-                    console.log("Error destroying session:", err);
-                }
-            });
+            delete req.session.user
+            req.redirect('/')
         }
   
         next();

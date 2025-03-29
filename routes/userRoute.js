@@ -10,8 +10,8 @@ const passport=require('../config/passport')
 
 router.get("/",blockCheck,userController.loadHome);
 router.get("/signup",isLogin,userController.loadSingnup)
-router.get("/signin",userController.loadsignin);
-router.post("/signin",isLogin,userController.signin);
+router.get("/signin",isLogin,userController.loadsignin);
+router.post("/signin",userController.signin);
 router.post("/signup",userController.signup);
 router.get("/verifyOtp",isLogin,userController.loadOtpPage);
 router.post("/verifyOtp",userController.verifyOtp);

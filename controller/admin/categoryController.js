@@ -15,9 +15,9 @@ const categoryInfo = async (req, res) => {
             name: { $regex: search, $options: 'i' }
         } : {};
 
-        // Get categories with descending order
+        
         const categoryData = await Category.find(searchQuery)
-            .sort({ createdAt: -1 }) // Changed to -1 for descending order
+            .sort({ createdAt: -1 }) 
             .skip(skip)
             .limit(limit);
 

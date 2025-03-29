@@ -2,79 +2,80 @@ const Admin = require("../../models/userSchema");
 const bcrypt = require("bcrypt");
 const User = require("../../models/userSchema");
 
-
-
-const loadlogin=async (req,res)=>{
+const loadlogin = async (req, res) => {
     try {
         res.render('admin-login')
     } catch (error) {
         res.status(500).send('server error')
-        
     }
 }
 
-
 const adminLogin = async (req, res) => {
     try {
-      console.log(req.body)
-      const { email, password } = req.body;
-      
-      const admin = await Admin.findOne({ email });
-      console.log('admin11',admin)
-  
-      if (!admin) {
-       res.json({message:'Admin not found'})
-        return res.redirect("/admin/login");
-      }
-       
-  
-      const isMatch = await bcrypt.compare(password, admin.password);
-      if (!isMatch) {
-        // console.log('ismatch')
-        res.json({message:'Invalid credentials'})
-        return res.redirect("/admin/login");
-      }
+        const { email, password } = req.body;
 
+        const admin = await Admin.findOne({ email });
 
-      console.log('admin',admin)
+        if (!admin) {
+            return res.json({
+                success: false,
+                message: 'Invalid email address'
+            });
+        }
 
-      req.session.admin = admin; 
-    
-      return res.redirect("/admin/dashboard");
-  
+        // Check if user is admin
+        if (!admin.isAdmin) {
+            return res.json({
+                success: false,
+                message: 'Access denied. Not an admin account.'
+            });
+        }
+
+        const isMatch = await bcrypt.compare(password, admin.password);
+        if (!isMatch) {
+            return res.json({
+                success: false,
+                message: 'Invalid password'
+            });
+        }
+
+        req.session.admin = admin;
+        return res.json({
+            success: true,
+            redirectUrl: '/admin/dashboard'
+        });
+
     } catch (error) {
-      console.error("Admin login error:", error);
-      res.status(500).send("Server error");
+        console.error("Admin login error:", error);
+        return res.json({
+            success: false,
+            message: 'Server error occurred'
+        });
     }
+};
 
-  };
-
-
-   const loadDashboard=async (req,res)=>{
+const loadDashboard = async (req, res) => {
     try {
-      res.render('dashboard')
+        res.render('dashboard')
     } catch (error) {
-      res.status(500).send("Server error");
+        res.status(500).send("Server error");
     }
-   }
+}
 
-
-   const logout=async (req,res)=>{
+const logout = async (req, res) => {
     try {
-      req.session.admin=null
-      res.redirect('/admin/login')
+        req.session.admin = null
+        res.redirect('/admin/login')
     } catch (error) {
-      res.status(500).send(' logout error')
+        res.status(500).send('logout error')
     }
-   }
+}
 
-
-
-   const blockUser = async (req, res) => {
+const blockUser = async (req, res) => {
     try {
         const userId = req.query.id;
         await User.findByIdAndUpdate(userId, { isBlocked: true });
-        res.redirect('/admin/users'); 
+        res.redirect('/admin/users', { status: true, message: 'User blocked successfully' });
     } catch (error) {
         console.error('Error blocking user:', error);
         res.status(500).send('Internal Server Error');
@@ -86,7 +87,7 @@ const unblockUser = async (req, res) => {
     try {
         const userId = req.query.id;
         await User.findByIdAndUpdate(userId, { isBlocked: false });
-        res.redirect('/admin/users'); 
+        res.redirect('/admin/users');
     } catch (error) {
         console.error('Error unblocking user:', error);
         res.status(500).send('Internal Server Error');
@@ -124,7 +125,7 @@ const toggleUserStatus = async (req, res) => {
     }
 };
 
-   module.exports={
+module.exports = {
     adminLogin,
     loadlogin,
     loadDashboard,
@@ -132,4 +133,4 @@ const toggleUserStatus = async (req, res) => {
     blockUser,
     unblockUser,
     toggleUserStatus,
-   }
+}

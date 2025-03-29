@@ -6,31 +6,14 @@ const categoryController = require('../controller/admin/categoryController');
 const productController = require('../controller/admin/productController');
 const { isLogin,checkSession }=require('../middlewares/adminAuthetic');
 const upload= require('../middlewares/multer');
-// const multer = require('multer');
-// const path = require('path');
-
-// const storage = multer.diskStorage({
-   
-    
-//     destination: (req, file, cb) => {
-//         cb(null, 'public/Uploads/product-Images'); 
-//     },
-//     filename: (req, file, cb) => {
-//         const namePrefix = Date.now();
-//         const ext = path.extname(file.originalname)
-//         const newName = namePrefix + ext; 
-//         cb(null, newName);
-//     }
-//  });
-
-//  const uploads = multer({ storage });
 
 
- //Authentication
+
+//Authentication manegement
 router.get('/login',isLogin,adminController.loadlogin)
 router.post('/adminLogin',adminController.adminLogin)
 router.get('/dashboard',checkSession,adminController.loadDashboard)
-router.post('/logout',adminController.logout)
+router.get('/logout',adminController.logout)
 
 
 //Users Management

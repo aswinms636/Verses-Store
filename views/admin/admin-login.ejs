@@ -120,6 +120,7 @@ h2 {
 }
 
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
@@ -146,43 +147,44 @@ h2 {
   </div>
 
   <script>
-//     document.getElementById('login-form').addEventListener('submit', function(event) {
-//   event.preventDefault();
+document.getElementById('login-form').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    
+    const formData = {
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value
+    };
 
-//   // Clear previous error messages
-//   clearErrors();
+    try {
+        const response = await fetch('/admin/adminLogin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
 
-//   // Get form values
-//   const email = document.getElementById('email').value;
-//   const password = document.getElementById('password').value;
+        const data = await response.json();
 
-//   let isValid = true;
-
-//   // Validate email
-//   const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-//   if (!emailPattern.test(email)) {
-//     displayError('email', 'Please enter a valid email');
-//     isValid = false;
-//   }
-
-//   // Validate password
-//   if (password === '') {
-//     displayError('password', 'Password is required');
-//     isValid = false;
-//   }
-
-//   // If everything is valid, you can submit the form or send data to the server
-//   if (isValid) {
-//     alert('Login successful!');
-//     // Here you can submit the form data or redirect to another page
-//   }
-// });
-
-// // Function to display error messages
-// function displayError(field, message) {
-//   const errorElement = document.getElementById(`${field}-error`);
-//   errorElement.textContent = message;
-//}
+        if (data.success) {
+            window.location.href = data.redirectUrl;
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message,
+                confirmButtonColor: '#3498db'
+            });
+        }
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An error occurred during login',
+            confirmButtonColor: '#3498db'
+        });
+    }
+});
   </script>
 </body>
 </html>
