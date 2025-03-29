@@ -173,6 +173,44 @@
             font-size: 1rem;
         }
     }
+
+    .shop-container {
+        display: flex;
+        gap: 30px;
+        margin-top: 30px;
+    }
+
+    .filter-sidebar {
+        width: 280px;
+        flex-shrink: 0;
+    }
+
+    .main-content {
+        flex-grow: 1;
+    }
+
+    .filter-wrapper {
+        position: sticky;
+        top: 90px;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    @media (max-width: 992px) {
+        .shop-container {
+            flex-direction: column;
+        }
+
+        .filter-sidebar {
+            width: 100%;
+        }
+
+        .filter-wrapper {
+            position: static;
+        }
+    }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
@@ -187,8 +225,7 @@
         <div class="banner-overlay">
             <div class="container">
                 <div class="banner-content text-center">
-                    <h2><%= bannerInfo.title %></h2>
-                    <p><%= bannerInfo.subtitle %></p>
+                    
                     
                     <!-- Breadcrumb -->
                     <nav aria-label="breadcrumb">
@@ -206,13 +243,6 @@
                     </nav>
 
                     <!-- Search results count -->
-                    <% if (searchQuery) { %>
-                        <div class="search-results-count mt-3">
-                            <span class="badge bg-primary">
-                                <%= totalProducts %> products found
-                            </span>
-                        </div>
-                    <% } %>
                 </div>
             </div>
         </div>
@@ -242,128 +272,19 @@
     <!-- End banner Area -->
 
     <!-- start features Area -->
-    <section class="features-area section_gap">
-        <div class="container">
-            <div class="row features-inner">
-                <!-- single features -->
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <div class="single-features">
-                        <div class="f-icon">
-                            <img src="img/features/f-icon1.png" alt="">
-                        </div>
-                        <h6>Free Delivery</h6>
-                        <p>Free Shipping on all order</p>
-                    </div>
-                </div>
-                <!-- single features -->
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <div class="single-features">
-                        <div class="f-icon">
-                            <img src="img/features/f-icon2.png" alt="">
-                        </div>
-                        <h6>Return Policy</h6>
-                        <p>Free Shipping on all order</p>
-                    </div>
-                </div>
-                <!-- single features -->
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <div class="single-features">
-                        <div class="f-icon">
-                            <img src="img/features/f-icon3.png" alt="">
-                        </div>
-                        <h6>24/7 Support</h6>
-                        <p>Free Shipping on all order</p>
-                    </div>
-                </div>
-                <!-- single features -->
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <div class="single-features">
-                        <div class="f-icon">
-                            <img src="img/features/f-icon4.png" alt="">
-                        </div>
-                        <h6>Secure Payment</h6>
-                        <p>Free Shipping on all order</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    
     <!-- end features Area -->
 
     <!-- Start category Area -->
-    <section class="category-area">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-8 col-md-12">
-                    <div class="row">
-                        <div class="col-lg-8 col-md-8">
-                            <div class="single-deal">
-                                <div class="overlay"></div>
-                                <img class="img-fluid w-100" src="img/category/c1.jpg" alt="">
-                                <a href="img/category/c1.jpg" class="img-pop-up" target="_blank">
-                                    <div class="deal-details">
-                                        <h6 class="deal-title">Sneaker for Sports</h6>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-4">
-                            <div class="single-deal">
-                                <div class="overlay"></div>
-                                <img class="img-fluid w-100" src="img/category/c2.jpg" alt="">
-                                <a href="img/category/c2.jpg" class="img-pop-up" target="_blank">
-                                    <div class="deal-details">
-                                        <h6 class="deal-title">Sneaker for Sports</h6>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-4">
-                            <div class="single-deal">
-                                <div class="overlay"></div>
-                                <img class="img-fluid w-100" src="img/category/c3.jpg" alt="">
-                                <a href="img/category/c3.jpg" class="img-pop-up" target="_blank">
-                                    <div class="deal-details">
-                                        <h6 class="deal-title">Product for Couple</h6>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
-                        <div class="col-lg-8 col-md-8">
-                            <div class="single-deal">
-                                <div class="overlay"></div>
-                                <img class="img-fluid w-100" src="img/category/c4.jpg" alt="">
-                                <a href="img/category/c4.jpg" class="img-pop-up" target="_blank">
-                                    <div class="deal-details">
-                                        <h6 class="deal-title">Sneaker for Sports</h6>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="single-deal">
-                        <div class="overlay"></div>
-                        <img class="img-fluid w-100" src="img/category/c5.jpg" alt="">
-                        <a href="img/category/c5.jpg" class="img-pop-up" target="_blank">
-                            <div class="deal-details">
-                                <h6 class="deal-title">Sneaker for Sports</h6>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    
     <!-- End category Area -->
 
-    <!-- Add this before your products section -->
+    <!-- Replace the container section with this structure -->
 <div class="container">
-    <div class="row">
-        <!-- Filter Sidebar -->
-        <div class="col-lg-3">
-            <div class="filter-wrapper bg-white p-4 rounded shadow-sm">
+    <div class="shop-container">
+        <!-- Aside with Filters -->
+        <aside class="filter-sidebar">
+            <div class="filter-wrapper">
                 <h4 class="mb-4">Filters</h4>
                 
                 <form id="filterForm" method="GET">
@@ -418,143 +339,62 @@
                         </div>
                     </div>
 
-                    <!-- Keep current sort value -->
                     <input type="hidden" name="sort" value="<%= currentSort %>">
-
-                    <!-- Apply Filters Button -->
                     <button type="submit" class="btn btn-primary w-100">
                         Apply Filters
                     </button>
+                    <button type="submit" class="btn btn-primary w-100">
+                        Cancel
+                    </button>
                 </form>
             </div>
-        </div>
+        </aside>
 
-        <!-- Add this after the filter section and before the products grid -->
-<div class="search-wrapper mb-4">
-    <form id="searchForm" class="d-flex">
-        <input type="text" 
-               class="form-control me-2" 
-               name="search" 
-               placeholder="Search products..."
-               value="<%= searchQuery || '' %>">
-        <button type="submit" class="btn btn-primary">Search</button>
-    </form>
-</div>
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Search Bar -->
+            <div class="search-wrapper mb-4">
+                <form id="searchForm" class="d-flex">
+                    <input type="text" 
+                           class="form-control me-2" 
+                           name="search" 
+                           placeholder="Search products..."
+                           value="<%= searchQuery || '' %>">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </form>
+            </div>
 
-        <!-- Products Grid -->
-        <div class="col-lg-9">
-            <!-- Replace the sorting section and script -->
-<div class="container mb-5">
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="sorting-wrapper">
+            <!-- Sorting Options -->
+            <div class="sorting-wrapper mb-4">
                 <div class="sorting-box d-flex justify-content-between align-items-center p-3 bg-white rounded shadow-sm">
                     <div class="found-items">
                         <span class="text-muted">Showing <%= products ? products.length : 0 %> items</span>
                     </div>
-                    <!-- Update the sorting form to preserve filter parameters -->
-<div class="sorting-options d-flex align-items-center">
-    <label class="me-2 text-muted">Sort by:</label>
-    <form id="sortForm" method="GET" class="mb-0">
-        <!-- Preserve existing filter values -->
-        <input type="hidden" name="category" value="<%= selectedCategory || '' %>">
-        <input type="hidden" name="minPrice" value="<%= currentMinPrice %>">
-        <input type="hidden" name="maxPrice" value="<%= currentMaxPrice %>">
-        
-        <select class="form-select" name="sort" onchange="submitSort(this.value)">
-            <option value="default" <%= currentSort === 'default' ? 'selected' : '' %>>Featured</option>
-            <option value="priceAsc" <%= currentSort === 'priceAsc' ? 'selected' : '' %>>Price: Low to High</option>
-            <option value="priceDesc" <%= currentSort === 'priceDesc' ? 'selected' : '' %>>Price: High to Low</option>
-            <option value="nameAsc" <%= currentSort === 'nameAsc' ? 'selected' : '' %>>Name: A to Z</option>
-            <option value="nameDesc" <%= currentSort === 'nameDesc' ? 'selected' : '' %>>Name: Z to A</option>
-        </select>
-    </form>
-</div>
-
-<script>
-function submitSort(value) {
-    // Get current URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    // Update sort value while preserving other parameters
-    urlParams.set('sort', value);
-    
-    // Show loading indicator
-    Swal.fire({
-        title: 'Sorting Products...',
-        text: 'Please wait...',
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
-            
-            // Submit form with all parameters
-            const form = document.getElementById('sortForm');
-            
-            // Preserve category filter if exists
-            const category = urlParams.get('category');
-            if (category) {
-                const categoryInput = form.querySelector('input[name="category"]');
-                categoryInput.value = category;
-            }
-            
-            // Preserve price filters if they exist
-            const minPrice = urlParams.get('minPrice');
-            const maxPrice = urlParams.get('maxPrice');
-            if (minPrice) form.querySelector('input[name="minPrice"]').value = minPrice;
-            if (maxPrice) form.querySelector('input[name="maxPrice"]').value = maxPrice;
-            
-            form.action = `/shop?${urlParams.toString()}`;
-            form.submit();
-        }
-    });
-}
-
-// Initialize all parameters on page load
-document.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    // Set sort value
-    const sortValue = urlParams.get('sort') || 'default';
-    document.querySelector('select[name="sort"]').value = sortValue;
-    
-    // Set category if exists
-    const category = urlParams.get('category');
-    if (category) {
-        const categoryInput = document.querySelector(`input[name="category"][value="${category}"]`);
-        if (categoryInput) categoryInput.checked = true;
-    }
-    
-    // Set price range if exists
-    const minPrice = urlParams.get('minPrice');
-    const maxPrice = urlParams.get('maxPrice');
-    if (minPrice) document.querySelector('input[name="minPrice"]').value = minPrice;
-    if (maxPrice) document.querySelector('input[name="maxPrice"]').value = maxPrice;
-});
-</script>
-
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-            <!-- start product Area -->
-    <section class="owl-carousel active-product-area section_gap">
-        <!-- single product slide -->
-        <div class="single-product-slider">
-            <div class="container">
-                <div class="row justify-content-center">
-                    <div class="col-lg-6 text-center">
-                        <div class="section-title">
-                            <h1>Latest Products</h1>
-                            <p>Our collection of the newest arrivals</p>
-                        </div>
+                    <div class="sorting-options d-flex align-items-center">
+                        <label class="me-2 text-muted">Sort by:</label>
+                        <form id="sortForm" method="GET" class="mb-0">
+                            <input type="hidden" name="category" value="<%= selectedCategory || '' %>">
+                            <input type="hidden" name="minPrice" value="<%= currentMinPrice %>">
+                            <input type="hidden" name="maxPrice" value="<%= currentMaxPrice %>">
+                            
+                            <select class="form-select" name="sort" onchange="submitSort(this.value)">
+                                <option value="default" <%= currentSort === 'default' ? 'selected' : '' %>>Featured</option>
+                                <option value="priceAsc" <%= currentSort === 'priceAsc' ? 'selected' : '' %>>Price: Low to High</option>
+                                <option value="priceDesc" <%= currentSort === 'priceDesc' ? 'selected' : '' %>>Price: High to Low</option>
+                                <option value="nameAsc" <%= currentSort === 'nameAsc' ? 'selected' : '' %>>Name: A to Z</option>
+                                <option value="nameDesc" <%= currentSort === 'nameDesc' ? 'selected' : '' %>>Name: Z to A</option>
+                            </select>
+                        </form>
                     </div>
                 </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="products-grid">
                 <div class="row">
                     <% if (products && products.length > 0) { %>
                         <% products.forEach(product => { %>
-                            <div class="col-lg-3 col-md-6">
+                            <div class="col-lg-4 col-md-6 mb-4">
                                 <div class="single-product">
                                     <a href="/productDetails/<%= product._id %>">
                                         <img class="img-fluid" 
@@ -593,31 +433,33 @@ document.addEventListener('DOMContentLoaded', () => {
                     <% } %>
                 </div>
             </div>
-        </div>
 
-        <!-- Add this after the products grid -->
-<div class="pagination-wrapper mt-4">
-    <nav aria-label="Page navigation">
-        <ul class="pagination justify-content-center">
-            <% if (pagination.hasPrevPage) { %>
-                <li class="page-item">
-                    <a class="page-link" href="#" data-page="<%= pagination.currentPage - 1 %>">Previous</a>
-                </li>
-            <% } %>
-            
-            <% for(let i = 1; i <= pagination.totalPages; i++) { %>
-                <li class="page-item <%= pagination.currentPage === i ? 'active' : '' %>">
-                    <a class="page-link" href="#" data-page="<%= i %>"><%= i %></a>
-                </li>
-            <% } %>
-            
-            <% if (pagination.hasNextPage) { %>
-                <li class="page-item">
-                    <a class="page-link" href="#" data-page="<%= pagination.currentPage + 1 %>">Next</a>
-                </li>
-            <% } %>
-        </ul>
-    </nav>
+            <!-- Pagination -->
+            <div class="pagination-wrapper mt-4">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        <% if (pagination.hasPrevPage) { %>
+                            <li class="page-item">
+                                <a class="page-link" href="#" data-page="<%= pagination.currentPage - 1 %>">Previous</a>
+                            </li>
+                        <% } %>
+                        
+                        <% for(let i = 1; i <= pagination.totalPages; i++) { %>
+                            <li class="page-item <%= pagination.currentPage === i ? 'active' : '' %>">
+                                <a class="page-link" href="#" data-page="<%= i %>"><%= i %></a>
+                            </li>
+                        <% } %>
+                        
+                        <% if (pagination.hasNextPage) { %>
+                            <li class="page-item">
+                                <a class="page-link" href="#" data-page="<%= pagination.currentPage + 1 %>">Next</a>
+                            </li>
+                        <% } %>
+                    </ul>
+                </nav>
+            </div>
+        </main>
+    </div>
 </div>
 
         <% if (typeof error !== 'undefined') { %>
@@ -639,243 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
 </div>
 
-    <!-- Start exclusive deal Area -->
-    <section class="exclusive-deal-area">
-        <div class="container-fluid">
-            <div class="row justify-content-center align-items-center">
-                <div class="col-lg-6 no-padding exclusive-left">
-                    <div class="row clock_sec clockdiv" id="clockdiv">
-                        <div class="col-lg-12">
-                            <h1>Exclusive Hot Deal Ends Soon!</h1>
-                            <p>Who are in extremely love with eco friendly system.</p>
-                        </div>
-                        <div class="col-lg-12">
-                            <div class="row clock-wrap">
-                                <div class="col clockinner1 clockinner">
-                                    <h1 class="days">150</h1>
-                                    <span class="smalltext">Days</span>
-                                </div>
-                                
-                                
-                                <div class="col clockinner clockinner1">
-                                    <h1 class="hours">23</h1>
-                                    <span class="smalltext">Hours</span>
-                                </div>
-                                <div class="col clockinner clockinner1">
-                                    <h1 class="minutes">47</h1>
-                                    <span class="smalltext">Mins</span>
-                                </div>
-                                <div class="col clockinner clockinner1">
-                                    <h1 class="seconds">59</h1>
-                                    <span class="smalltext">Secs</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <a href="" class="primary-btn">Shop Now</a>
-                </div>
-                <div class="col-lg-6 no-padding exclusive-right">
-                    <div class="active-exclusive-product-slider">
-                        <!-- single exclusive carousel -->
-                        <div class="single-exclusive-slider">
-                            <img class="img-fluid" src="img/product/e-p1.png" alt="">
-                            <div class="product-details">
-                                <div class="price">
-                                    <h6>$150.00</h6>
-                                    <h6 class="l-through">$210.00</h6>
-                                </div>
-                                <h4>addidas New Hammer sole
-                                    for Sports person</h4>
-                                <div class="add-bag d-flex align-items-center justify-content-center">
-                                    <a class="add-btn" href=""><span class="ti-bag"></span></a>
-                                    <span class="add-text text-uppercase">Add to Bag</span>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- single exclusive carousel -->
-                        <div class="single-exclusive-slider">
-                            <img class="img-fluid" src="img/product/e-p1.png" alt="">
-                            <div class="product-details">
-                                <div class="price">
-                                    <h6>$150.00</h6>
-                                    <h6 class="l-through">$210.00</h6>
-                                </div>
-                                <h4>addidas New Hammer sole
-                                    for Sports person</h4>
-                                <div class="add-bag d-flex align-items-center justify-content-center">
-                                    <a class="add-btn" href=""><span class="ti-bag"></span></a>
-                                    <span class="add-text text-uppercase">Add to Bag</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- End exclusive deal Area -->
-
-    <!-- Start brand Area -->
-    <section class="brand-area section_gap">
-        <div class="container">
-            <div class="row">
-                <a class="col single-img" href="#">
-                    <img class="img-fluid d-block mx-auto" src="img/brand/1.png" alt="">
-                </a>
-                <a class="col single-img" href="#">
-                    <img class="img-fluid d-block mx-auto" src="img/brand/2.png" alt="">
-                </a>
-                <a class="col single-img" href="#">
-                    <img class="img-fluid d-block mx-auto" src="img/brand/3.png" alt="">
-                </a>
-                <a class="col single-img" href="#">
-                    <img class="img-fluid d-block mx-auto" src="img/brand/4.png" alt="">
-                </a>
-                <a class="col single-img" href="#">
-                    <img class="img-fluid d-block mx-auto" src="img/brand/5.png" alt="">
-                </a>
-            </div>
-        </div>
-    </section>
-    <!-- End brand Area -->
-
-    <!-- Start related-product Area -->
-    <section class="related-product-area section_gap_bottom">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-6 text-center">
-                    <div class="section-title">
-                        <h1>Deals of the Week</h1>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore
-                            magna aliqua.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-lg-9">
-                    <div class="row">
-                        <div class="col-lg-4 col-md-4 col-sm-6 mb-20">
-                            <div class="single-related-product d-flex">
-                                <a href="#"><img src="img/r1.jpg" alt=""></a>
-                                <div class="desc">
-                                    <a href="#" class="title">Black lace Heels</a>
-                                    <div class="price">
-                                        <h6>$189.00</h6>
-                                        <h6 class="l-through">$210.00</h6>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-4 col-sm-6 mb-20">
-                            <div class="single-related-product d-flex">
-                                <a href="#"><img src="img/r2.jpg" alt=""></a>
-                                <div class="desc">
-                                    <a href="#" class="title">Black lace Heels</a>
-                                    <div class="price">
-                                        <h6>$189.00</h6>
-                                        <h6 class="l-through">$210.00</h6>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-4 col-sm-6 mb-20">
-                            <div class="single-related-product d-flex">
-                                <a href="#"><img src="img/r3.jpg" alt=""></a>
-                                <div class="desc">
-                                    <a href="#" class="title">Black lace Heels</a>
-                                    <div class="price">
-                                        <h6>$189.00</h6>
-                                        <h6 class="l-through">$210.00</h6>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-4 col-sm-6 mb-20">
-                            <div class="single-related-product d-flex">
-                                <a href="#"><img src="img/r5.jpg" alt=""></a>
-                                <div class="desc">
-                                    <a href="#" class="title">Black lace Heels</a>
-                                    <div class="price">
-                                        <h6>$189.00</h6>
-                                        <h6 class="l-through">$210.00</h6>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-4 col-sm-6 mb-20">
-                            <div class="single-related-product d-flex">
-                                <a href="#"><img src="img/r6.jpg" alt=""></a>
-                                <div class="desc">
-                                    <a href="#" class="title">Black lace Heels</a>
-                                    <div class="price">
-                                        <h6>$189.00</h6>
-                                        <h6 class="l-through">$210.00</h6>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-4 col-sm-6 mb-20">
-                            <div class="single-related-product d-flex">
-                                <a href="#"><img src="img/r7.jpg" alt=""></a>
-                                <div class="desc">
-                                    <a href="#" class="title">Black lace Heels</a>
-                                    <div class="price">
-                                        <h6>$189.00</h6>
-                                        <h6 class="l-through">$210.00</h6>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-4 col-sm-6">
-                            <div class="single-related-product d-flex">
-                                <a href="#"><img src="img/r9.jpg" alt=""></a>
-                                <div class="desc">
-                                    <a href="#" class="title">Black lace Heels</a>
-                                    <div class="price">
-                                        <h6>$189.00</h6>
-                                        <h6 class="l-through">$210.00</h6>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-4 col-sm-6">
-                            <div class="single-related-product d-flex">
-                                <a href="#"><img src="img/r10.jpg" alt=""></a>
-                                <div class="desc">
-                                    <a href="#" class="title">Black lace Heels</a>
-                                    <div class="price">
-                                        <h6>$189.00</h6>
-                                        <h6 class="l-through">$210.00</h6>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-4 col-sm-6">
-                            <div class="single-related-product d-flex">
-                                <a href="#"><img src="img/r11.jpg" alt=""></a>
-                                <div class="desc">
-                                    <a href="#" class="title">Black lace Heels</a>
-                                    <div class="price">
-                                        <h6>$189.00</h6>
-                                        <h6 class="l-through">$210.00</h6>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3">
-                    <div class="ctg-right">
-                        <a href="#" target="_blank">
-                            <img class="img-fluid d-block mx-auto" src="img/category/c5.jpg" alt="">
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- End related-product Area -->
-</div>
+   
 
 <!-- Add this JavaScript before the closing body tag -->
 <script>
