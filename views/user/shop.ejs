@@ -336,7 +336,7 @@
                                        class="form-control filter-input" 
                                        name="maxPrice" 
                                        placeholder="Max Price"
-                                       value="<%= currentMaxPrice || '' %>" 
+                                       value="<%= '' || currentMaxPrice %>" 
                                        min="0">
                             </div>
                         </div>
@@ -344,8 +344,8 @@
 
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary">Apply Filters</button>
-                        <button type="button" class="btn btn-outline-secondary"  onclick="resetFilters()">
-                            <a href="/shop"><i class="fas fa-undo-alt me-1">Reset All Filters</i> </a>
+                        <button type="button" class="btn btn-outline-secondary" onclick="resetFilters()">
+                            <i class="fas fa-undo-alt me-1"></i> Reset All Filters
                         </button>
                     </div>
                 </form>
@@ -527,8 +527,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add default values
     const defaultFilters = {
         category: 'all',
-        minPrice: <%= priceRange.minPrice %>,
-        maxPrice: <%= priceRange.maxPrice %>,
+        minPrice: 0,  // Set default to 0
+        maxPrice: 0,  // Set default to 0
         sort: 'default',
         search: '',
         page: 1
@@ -548,9 +548,9 @@ document.addEventListener('DOMContentLoaded', function() {
             sortSelect.value = 'default';
             document.querySelector('input[name="search"]').value = '';
             
-            // Reset price inputs
-            document.querySelector('input[name="minPrice"]').value = defaultFilters.minPrice;
-            document.querySelector('input[name="maxPrice"]').value = defaultFilters.maxPrice;
+            // Reset price inputs to 0
+            document.querySelector('input[name="minPrice"]').value = '0';
+            document.querySelector('input[name="maxPrice"]').value = '0';
             
             // Check "All Categories" radio
             document.querySelector('input[name="category"][value="all"]').checked = true;
@@ -585,7 +585,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 didOpen: () => Swal.showLoading()
             });
 
-            const queryString = new URLSearchParams(params).toString();
+            // Ensure price values are included even if they're zero
+            const queryParams = {
+                ...params,
+                minPrice: params.minPrice ?? 0,
+                maxPrice: params.maxPrice ?? 0
+            };
+
+            const queryString = new URLSearchParams(queryParams).toString();
             const response = await fetch(`/shop?${queryString}`, {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
