@@ -1,16 +1,34 @@
 const Category = require("../../models/categorySchema");
 const Product = require("../../models/productSchema");
 
+const getDefaultPriceRange = async () => {
+    try {
+        const maxPriceResult = await Product.aggregate([
+            { $match: { isBlocked: false } },
+            { $group: { _id: null, maxPrice: { $max: '$salePrice' } } }
+        ]);
+        return {
+            minPrice: 0,
+            maxPrice: maxPriceResult[0]?.maxPrice || 10000
+        };
+    } catch (error) {
+        console.error('Error getting price range:', error);
+        return { minPrice: 0, maxPrice: 10000 };
+    }
+};
+
 const loadShopPage = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = 8; // Products per page
+        const limit = 8;
         const search = req.query.search || '';
         const sortOption = req.query.sort || 'default';
         const category = req.query.category;
-        const minPrice = parseInt(req.query.minPrice) || 0;
-        const maxPrice = parseInt(req.query.maxPrice) || Number.MAX_SAFE_INTEGER;
         
+        // Update price handling with default 0
+        const minPrice = req.query.minPrice ? parseInt(req.query.minPrice) : 0;
+        const maxPrice = req.query.maxPrice ? parseInt(req.query.maxPrice) : await getMaxPrice();
+
         // Build query
         let query = { isBlocked: false };
         
@@ -24,23 +42,20 @@ const loadShopPage = async (req, res) => {
             query.category = category;
         }
         
-        // Add price filter
+        // Always add price filter with defaults
         query.salePrice = {
             $gte: minPrice,
             $lte: maxPrice
         };
 
-        // Get price range for filter
-        const priceRange = await Product.aggregate([
-            { $match: { isBlocked: false } },
-            {
-                $group: {
-                    _id: null,
-                    minPrice: { $min: '$salePrice' },
-                    maxPrice: { $max: '$salePrice' }
-                }
-            }
-        ]);
+        // Get max price for default max value
+        async function getMaxPrice() {
+            const maxPriceResult = await Product.aggregate([
+                { $match: { isBlocked: false } },
+                { $group: { _id: null, maxPrice: { $max: '$salePrice' } } }
+            ]);
+            return maxPriceResult[0]?.maxPrice || 10000;
+        }
 
         // Build sort query
         let sortQuery = {};
@@ -88,6 +103,7 @@ const loadShopPage = async (req, res) => {
 
         if (req.xhr) {
             return res.json({
+                success: true,
                 products,
                 pagination: {
                     currentPage: page,
@@ -96,7 +112,11 @@ const loadShopPage = async (req, res) => {
                     hasPrevPage: page > 1
                 },
                 bannerInfo,
-                totalProducts
+                totalProducts,
+                priceRange: {
+                    minPrice: 0,
+                    maxPrice: await getMaxPrice()
+                }
             });
         }
 
@@ -107,7 +127,10 @@ const loadShopPage = async (req, res) => {
             selectedCategory: category,
             currentMinPrice: minPrice,
             currentMaxPrice: maxPrice,
-            priceRange: priceRange[0] || { minPrice: 0, maxPrice: 10000 },
+            priceRange: {
+                minPrice: 0,
+                maxPrice: await getMaxPrice()
+            },
             user: req.session.user,
             pagination: {
                 currentPage: page,
@@ -160,4 +183,5 @@ const loadProductDetails = async (req, res) => {
 module.exports = {
     loadShopPage,
     loadProductDetails,
+    getDefaultPriceRange
 };

@@ -323,23 +323,31 @@
                         <div class="price-range">
                             <div class="input-group mb-2">
                                 <span class="input-group-text">₹</span>
-                                <input type="number" class="form-control filter-input" 
+                                <input type="number" 
+                                       class="form-control filter-input" 
                                        name="minPrice" 
-                                       value="<%= currentMinPrice %>" 
-                                       min="<%= priceRange.minPrice %>">
+                                       placeholder="Min Price"
+                                       value="<%= currentMinPrice || '' %>" 
+                                       min="0">
                             </div>
                             <div class="input-group">
                                 <span class="input-group-text">₹</span>
-                                <input type="number" class="form-control filter-input" 
+                                <input type="number" 
+                                       class="form-control filter-input" 
                                        name="maxPrice" 
-                                       value="<%= currentMaxPrice %>" 
-                                       min="<%= priceRange.minPrice %>">
+                                       placeholder="Max Price"
+                                       value="<%= currentMaxPrice || '' %>" 
+                                       min="0">
                             </div>
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-100 mb-2">Apply Filters</button>
-                    <button type="button" class="btn btn-secondary w-100" onclick="resetFilters()">Reset Filters</button>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Apply Filters</button>
+                        <button type="button" class="btn btn-outline-secondary"  onclick="resetFilters()">
+                            <a href="/shop"><i class="fas fa-undo-alt me-1">Reset All Filters</i> </a>
+                        </button>
+                    </div>
                 </form>
             </div>
         </aside>
@@ -371,7 +379,7 @@
                             <input type="hidden" name="minPrice" value="<%= currentMinPrice %>">
                             <input type="hidden" name="maxPrice" value="<%= currentMaxPrice %>">
                             
-                            <select class="form-select" name="sort" onchange="submitSort(this.value)">
+                            <select class="form-select" name="sort">
                                 <option value="default" <%= currentSort === 'default' ? 'selected' : '' %>>Featured</option>
                                 <option value="priceAsc" <%= currentSort === 'priceAsc' ? 'selected' : '' %>>Price: Low to High</option>
                                 <option value="priceDesc" <%= currentSort === 'priceDesc' ? 'selected' : '' %>>Price: High to Low</option>
@@ -484,6 +492,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchForm = document.getElementById('searchForm');
     const paginationLinks = document.querySelectorAll('.pagination .page-link');
 
+    // Add sortSelect constant
+    const sortSelect = document.querySelector('.form-select[name="sort"]');
+    const filterForm = document.getElementById('filterForm');
+
+    // Handle sort change
+    sortSelect.addEventListener('change', async function() {
+        const currentFilters = {
+            sort: this.value,
+            category: document.querySelector('input[name="category"]:checked')?.value || 'all',
+            minPrice: document.querySelector('input[name="minPrice"]').value,
+            maxPrice: document.querySelector('input[name="maxPrice"]').value,
+            search: document.querySelector('input[name="search"]').value
+        };
+        await loadProducts(currentFilters);
+    });
+
     // Handle search
     searchForm.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -500,24 +524,69 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Add default values
+    const defaultFilters = {
+        category: 'all',
+        minPrice: <%= priceRange.minPrice %>,
+        maxPrice: <%= priceRange.maxPrice %>,
+        sort: 'default',
+        search: '',
+        page: 1
+    };
+
+    // Reset filters function
+    window.resetFilters = async function() {
+        try {
+            Swal.fire({
+                title: 'Resetting filters...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            // Reset form elements
+            filterForm.reset();
+            sortSelect.value = 'default';
+            document.querySelector('input[name="search"]').value = '';
+            
+            // Reset price inputs
+            document.querySelector('input[name="minPrice"]').value = defaultFilters.minPrice;
+            document.querySelector('input[name="maxPrice"]').value = defaultFilters.maxPrice;
+            
+            // Check "All Categories" radio
+            document.querySelector('input[name="category"][value="all"]').checked = true;
+
+            // Load products with default filters
+            await loadProducts(defaultFilters);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Filters Reset',
+                text: 'All filters have been reset to default values',
+                showConfirmButton: false,
+                timer: 1500
+            });
+
+        } catch (error) {
+            console.error('Error resetting filters:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to reset filters'
+            });
+        }
+    };
+
+    // Update loadProducts function to handle reset
     async function loadProducts(params = {}) {
         try {
-            // Show loading indicator
             Swal.fire({
                 title: 'Loading...',
                 allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
+                didOpen: () => Swal.showLoading()
             });
 
-            // Build URL with current filters and new parameters
-            const urlParams = new URLSearchParams(window.location.search);
-            Object.entries(params).forEach(([key, value]) => {
-                urlParams.set(key, value);
-            });
-
-            const response = await fetch(`/shop?${urlParams.toString()}`, {
+            const queryString = new URLSearchParams(params).toString();
+            const response = await fetch(`/shop?${queryString}`, {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
                 }
@@ -525,134 +594,58 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const data = await response.json();
 
-            if (data.products) {
-                // Update URL without refreshing page
-                history.pushState({}, '', `?${urlParams.toString()}`);
-                
-                // Update banner information
-                updateBanner(data.bannerInfo);
-                
-                // Update products grid
+            if (data.success) {
                 updateProductsGrid(data.products);
-                
-                // Update pagination
                 updatePagination(data.pagination);
+                updateFoundItems(data.totalProducts);
+                updateURL(params);
+                
+                // Update price range if provided
+                if (data.priceRange) {
+                    updatePriceRange(data.priceRange);
+                }
+            } else {
+                throw new Error(data.message || 'Failed to load products');
             }
 
             Swal.close();
         } catch (error) {
-            console.error('Error loading products:', error);
+            console.error('Error:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'Failed to load products'
+                text: error.message
             });
         }
     }
 
-    function updateBanner(bannerInfo) {
-        const bannerContent = document.querySelector('.banner-content');
-        bannerContent.innerHTML = `
-            <h2>${bannerInfo.title}</h2>
-            <p>${bannerInfo.subtitle}</p>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb justify-content-center">
-                    ${bannerInfo.breadcrumbs.map((crumb, index) => `
-                        <li class="breadcrumb-item ${index === bannerInfo.breadcrumbs.length - 1 ? 'active' : ''}">
-                            ${index === bannerInfo.breadcrumbs.length - 1 
-                                ? crumb.label 
-                                : `<a href="${crumb.url}">${crumb.label}</a>`
-                            }
-                        </li>
-                    `).join('')}
-                </ol>
-            </nav>
-            ${bannerInfo.searchQuery ? `
-                <div class="search-results-count mt-3">
-                    <span class="badge bg-primary">
-                        ${bannerInfo.totalProducts} products found
-                    </span>
-                </div>
-            ` : ''}
-        `;
-    }
-
-    function updateProductsGrid(products) {
-        const productsHTML = products.map(product => `
-            <div class="col-lg-3 col-md-6">
-                <div class="single-product">
-                    <a href="/productDetails/${product._id}">
-                        <img class="img-fluid" 
-                             src="/Uploads/product-Images/${product.productImage[0]}" 
-                             alt="${product.productName}"
-                             style="height: 250px; object-fit: cover;">
-                    </a>
-                    <div class="product-details">
-                        <h6>${product.productName}</h6>
-                        <div class="price">
-                            <h6>₹${product.salePrice}</h6>
-                            <h6 class="l-through">₹${product.regularPrice}</h6>
-                        </div>
-                        <div class="prd-bottom">
-                            <a href="/addToCart/${product._id}" class="social-info">
-                                <span class="ti-bag"></span>
-                                <p class="hover-text">Add to bag</p>
-                            </a>
-                            <a href="/addToWishlist/${product._id}" class="social-info">
-                                <span class="lnr lnr-heart"></span>
-                                <p class="hover-text">Wishlist</p>
-                            </a>
-                            <a href="/productDetails/${product._id}" class="social-info">
-                                <span class="lnr lnr-move"></span>
-                                <p class="hover-text">View More</p>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-
-        productsContainer.innerHTML = productsHTML;
-    }
-
-    function updatePagination(pagination) {
-        // Update pagination UI based on new data
-        const paginationHTML = `
-            <nav aria-label="Page navigation">
-                <ul class="pagination justify-content-center">
-                    ${pagination.hasPrevPage ? `
-                        <li class="page-item">
-                            <a class="page-link" href="#" data-page="${pagination.currentPage - 1}">Previous</a>
-                        </li>
-                    ` : ''}
-                    
-                    ${Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
-                        .map(i => `
-                            <li class="page-item ${pagination.currentPage === i ? 'active' : ''}">
-                                <a class="page-link" href="#" data-page="${i}">${i}</a>
-                            </li>
-                        `).join('')}
-                    
-                    ${pagination.hasNextPage ? `
-                        <li class="page-item">
-                            <a class="page-link" href="#" data-page="${pagination.currentPage + 1}">Next</a>
-                        </li>
-                    ` : ''}
-                </ul>
-            </nav>
-        `;
-
-        document.querySelector('.pagination-wrapper').innerHTML = paginationHTML;
+    // Add function to update price range inputs
+    function updatePriceRange(priceRange) {
+        const minPriceInput = document.querySelector('input[name="minPrice"]');
+        const maxPriceInput = document.querySelector('input[name="maxPrice"]');
         
-        // Reattach event listeners to new pagination links
-        document.querySelectorAll('.pagination .page-link').forEach(link => {
-            link.addEventListener('click', async function(e) {
-                e.preventDefault();
-                const page = this.dataset.page;
-                await loadProducts({ page });
-            });
-        });
+        if (minPriceInput && maxPriceInput) {
+            minPriceInput.min = priceRange.minPrice;
+            minPriceInput.value = priceRange.minPrice;
+            maxPriceInput.max = priceRange.maxPrice;
+            maxPriceInput.value = priceRange.maxPrice;
+        }
     }
+
+    // Add function to update URL
+    function updateURL(params) {
+        const url = new URL(window.location.href);
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined && value !== '') {
+                url.searchParams.set(key, value);
+            } else {
+                url.searchParams.delete(key);
+            }
+        });
+        history.pushState({}, '', url);
+    }
+
+    // ... rest of your existing code ...
 });
 </script>
 
