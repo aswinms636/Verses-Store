@@ -19,44 +19,25 @@ const getDefaultPriceRange = async () => {
 
 const loadShopPage = async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = 8;
-        const search = req.query.search || '';
         const sortOption = req.query.sort || 'default';
         const category = req.query.category;
+        const minPrice = parseInt(req.query.minPrice) || 0;
+        const maxPrice = parseInt(req.query.maxPrice) || Number.MAX_SAFE_INTEGER;
         
-        // Update price handling with default 0
-        const minPrice = req.query.minPrice ? parseInt(req.query.minPrice) : 0;
-        const maxPrice = req.query.maxPrice ? parseInt(req.query.maxPrice) : await getMaxPrice();
-
         // Build query
         let query = { isBlocked: false };
         
-        // Add search filter
-        if (search) {
-            query.productName = { $regex: search, $options: 'i' };
-        }
-        
         // Add category filter
-        if (category && category !== 'all') {
+        if (category) {
             query.category = category;
         }
         
-        // Always add price filter with defaults
+        // Add price filter
         query.salePrice = {
             $gte: minPrice,
             $lte: maxPrice
         };
-
-        // Get max price for default max value
-        async function getMaxPrice() {
-            const maxPriceResult = await Product.aggregate([
-                { $match: { isBlocked: false } },
-                { $group: { _id: null, maxPrice: { $max: '$salePrice' } } }
-            ]);
-            return maxPriceResult[0]?.maxPrice || 10000;
-        }
-
+        
         // Build sort query
         let sortQuery = {};
         switch (sortOption) {
@@ -76,49 +57,25 @@ const loadShopPage = async (req, res) => {
                 sortQuery = { createdAt: -1 };
         }
 
-        // Get total count for pagination
-        const totalProducts = await Product.countDocuments(query);
-        const totalPages = Math.ceil(totalProducts / limit);
-
         // Get categories for filter
         const categories = await Category.find({ isListed: true });
 
-        // Get products with pagination
+        // Get products with filters and sorting
         const products = await Product.find(query)
             .sort(sortQuery)
-            .populate('category')
-            .skip((page - 1) * limit)
-            .limit(limit);
+            .populate('category');
 
-        // Add banner data
-        const bannerInfo = {
-            title: search ? `Search Results for "${search}"` : "Our Shop",
-            subtitle: search ? `${totalProducts} products found` : "Browse our latest products",
-            breadcrumbs: [
-                { label: "Home", url: "/" },
-                { label: "Shop", url: "/shop" },
-                ...(search ? [{ label: `Search: ${search}`, url: "#" }] : [])
-            ]
-        };
-
-        if (req.xhr) {
-            return res.json({
-                success: true,
-                products,
-                pagination: {
-                    currentPage: page,
-                    totalPages,
-                    hasNextPage: page < totalPages,
-                    hasPrevPage: page > 1
-                },
-                bannerInfo,
-                totalProducts,
-                priceRange: {
-                    minPrice: 0,
-                    maxPrice: await getMaxPrice()
+        // Get price range for filter
+        const priceRange = await Product.aggregate([
+            { $match: { isBlocked: false } },
+            {
+                $group: {
+                    _id: null,
+                    minPrice: { $min: '$salePrice' },
+                    maxPrice: { $max: '$salePrice' }
                 }
-            });
-        }
+            }
+        ]);
 
         res.render('shop', {
             products,
@@ -127,34 +84,24 @@ const loadShopPage = async (req, res) => {
             selectedCategory: category,
             currentMinPrice: minPrice,
             currentMaxPrice: maxPrice,
-            priceRange: {
-                minPrice: 0,
-                maxPrice: await getMaxPrice()
-            },
-            user: req.session.user,
-            pagination: {
-                currentPage: page,
-                totalPages,
-                hasNextPage: page < totalPages,
-                hasPrevPage: page > 1
-            },
-            searchQuery: search,
-            bannerInfo,
-            totalProducts
+            priceRange: priceRange[0] || { minPrice: 0, maxPrice: 10000 },
+            user: req.session.user
         });
 
     } catch (error) {
         console.error('Shop page error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to load products'
+        res.status(500).render('shop', {
+            error: 'Failed to load products',
+            products: [],
+            categories: [],
+            user: req.session.user
         });
     }
 };
 
 const loadProductDetails = async (req, res) => {    
     try {
-        const user = req.session.user
+        const user = req.session.user;
         const productId = req.params.id;
         const product = await Product.findById(productId).populate('category');
         
@@ -173,7 +120,7 @@ const loadProductDetails = async (req, res) => {
 
     } catch (error) {
         console.error("Product details error:", error);
-        res.status(500).render('productDetails', {
+        res.status(500).render('productDetails',{
             user: req.session.user,
             error: "Failed to load product details"
         });

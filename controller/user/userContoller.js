@@ -242,7 +242,7 @@ const signin = async (req, res) => {
       
       const user = await User.findOne({ email });
       if (!user) {
-        res.json({message:'User not found'})
+        res.json({message:'User not found'});
         return res.redirect('/signup');
       }
   
@@ -368,7 +368,7 @@ const changePassword=async(req,res)=>{
 
 const loadPasswordPage=async(req,res)=>{
     try {
-        res.render('newPassword')    
+        res.render('newPassword');  
     } catch (error) {
         res.status(500).json({ message: "Server error", error });
     }

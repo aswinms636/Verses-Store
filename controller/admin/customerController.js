@@ -29,7 +29,7 @@ const custermerInfo = async (req, res) => {
 
        
         res.render('customersPage', {
-            data: userData,
+            users: userData,
             totalPages: Math.ceil(count / limit),
             currentPage: page
         });

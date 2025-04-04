@@ -2,8 +2,6 @@
 
 <head>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
   <style>
     .col-md-3 {
       padding: 20px;
@@ -17,7 +15,7 @@
     }
 
     .form-control {
-      width: 100%;                          
+      width: 100%;
       padding: 8px;
       margin-bottom: 10px;
       border: 1px solid #ccc;
@@ -49,23 +47,6 @@
   <section class="content-main">
     <div class="content-header">
       <h2 class="content-title card-title">Category</h2>
-    </div>
-
-    <div class="card mb-4">
-      <div class="card-body">
-        <form action="" method="get" class="mb-3">
-          <div class="input-group">
-            <input 
-              type="text" 
-              class="form-control" 
-              placeholder="Search categories..." 
-              name="search"
-              value="<%= locals.search || '' %>"
-            >
-            <button class="btn btn-primary" type="submit">Search</button>
-          </div>
-        </form>
-      </div>
     </div>
 
     <div class="card">
@@ -113,6 +94,26 @@
                         <% } %>
                       </td>
                       <td class="text-start">
+                        <form onsubmit="addCategoryOffer(event, '<%= category._id %>')">
+                          <input type="number" name="percentage" placeholder="Offer %" class="form-control" required />
+                          <button type="submit" class="btn btn-primary btn-sm mt-2">Add Offer</button>
+                        </form>
+                        <% if (category.categoryOffer) { %>
+                          <button class="btn btn-danger btn-sm mt-2" onclick="removeCategoryOffer('<%= category._id %>')">Remove Offer</button>
+                        <% } %>
+                      </td>
+                      <td class="text-start">
+                        <% if(category.categoryOffer) { %>
+                          <button class="btn btn-danger" style="width: 70px" onclick="toggleCategory('<%=category._id %>', 'listCategory')">
+                            Unlist
+                          </button>
+                        <% } else { %>
+                          <button class="btn btn-success" style="width: 70px" onclick="toggleCategory('<%=category._id %>', 'unlistCategory')">
+                            List
+                          </button>
+                        <% } %>
+                      </td>
+                      <td class="text-start">
                         <% if (category.isListed) { %>
                           <span class="badge rounded-pill alert-success">Listed</span>
                         <% } else { %>
@@ -121,43 +122,25 @@
                       </td>
                       <td class="text-start">
                         <% if(category.isListed) { %>
-                          <button class="btn btn-danger" 
-                                  style="width: 70px" 
-                                  data-category-id="<%=category._id %>"
-                                  onclick="toggleCategory('<%=category._id %>', 'listCategory')">
-                              Unlist
+                          <button class="btn btn-danger" style="width: 70px" onclick="toggleCategory('<%=category._id %>', 'listCategory')">
+                            Unlist
                           </button>
                         <% } else { %>
-                          <button class="btn btn-success" 
-                                  style="width: 70px" 
-                                  data-category-id="<%=category._id %>"
-                                  onclick="toggleCategory('<%=category._id %>', 'unlistCategory')">
-                              List
+                          <button class="btn btn-success" style="width: 70px" onclick="toggleCategory('<%=category._id %>', 'unlistCategory')">
+                            List
                           </button>
                         <% } %>
                       </td>
+                      
+                      
                       <td class="text-start">
                         <a href="/admin/editCategory/<%= category._id %>" class="btn btn-info text-white">Edit</a>
                       </td>
-                    </tr>
+                    </tr>\\\\\\
                   <% }) %>
                 </tbody>
               </table>
             </div>
-            <% if (totalPages > 1) { %>
-              <nav aria-label="Page navigation">
-                <ul class="pagination justify-content-center">
-                  <% for(let i = 1; i <= totalPages; i++) { %>
-                    <li class="page-item <%= currentPage === i ? 'active' : '' %>">
-                      <a class="page-link" 
-                         href="?page=<%= i %>&search=<%= locals.search || '' %>">
-                        <%= i %>
-                      </a>
-                    </li>
-                  <% } %>
-                </ul>
-              </nav>
-            <% } %>
           </div>
         </div>
       </div>
@@ -194,57 +177,76 @@
 
     async function toggleCategory(id, action) {
     try {
-        const endpoint = `/admin/${action}`;
-        const response = await fetch(endpoint, {
+        console.log(`Sending request to /admin/${action} with id:`, id);
+
+        const response = await fetch(`/admin/${action}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id })
+            body: JSON.stringify({ id }) 
         });
-        
-        const data = await response.json();
-        if (response.ok && data.status) {
-            // Update the button directly without page reload
-            const button = document.querySelector(`button[data-category-id="${id}"]`);
-            if (button) {
-                if (action === 'listCategory') {
-                    button.classList.replace('btn-danger', 'btn-success');
-                    button.textContent = 'List';
-                    button.setAttribute('onclick', `toggleCategory('${id}', 'unlistCategory')`);
-                } else {
-                    button.classList.replace('btn-success', 'btn-danger');
-                    button.textContent = 'Unlist';
-                    button.setAttribute('onclick', `toggleCategory('${id}', 'listCategory')`);
-                }
-            }
-            
-            // Show success message
-            Swal.fire({
-                icon: "success",
-                title: "Success",
-                text: data.message,
-                showConfirmButton: false,
-                timer: 1500
-            });
+
+        const data = await response.json(); 
+
+        console.log("Response Status:", response.status);
+        console.log("Response Data:", data);
+
+        if (response.ok) {
+            alert(data.message); 
+            location.reload();                                                                                                          
         } else {
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: data.message || "An error occurred"
-            });
+            alert("Error: " + data.error);
         }
     } catch (error) {
         console.error("Network or server error:", error);
-        Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "Network error: " + error.message
-        });
+        alert("Network error: " + error.message);
     }
 }
+
+    async function addCategoryOffer(event, categoryId) {
+      event.preventDefault();
+      const percentage = event.target.percentage.value;
+
+      try {
+        const response = await fetch('/admin/addCategoryOffer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ categoryId, percentage }),
+        });
+
+        const data = await response.json();
+        if (data.status) {
+          alert('Offer added successfully');
+          location.reload();
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        console.error('Error adding offer:', error);
+        alert('Failed to add offer');
+      }
+    }
+
+    async function removeCategoryOffer(categoryId) {
+      try {
+        const response = await fetch('/admin/removeCategoryOffer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ categoryId }),
+        });
+
+        const data = await response.json();
+        if (data.status) {
+          alert('Offer removed successfully');
+          location.reload();
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        console.error('Error removing offer:', error);
+        alert('Failed to remove offer');
+      }
+    }
   </script>
-  <script src="/admin-assets/js/vendors/fontawesome.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <%- include("../../views/partials/admin/footer") %>
 
-</body>

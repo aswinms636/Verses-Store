@@ -22,6 +22,13 @@ const blockCheck = async (req, res, next) => {
         if (userData?.isBlocked) {
             delete req.session.user
             req.redirect('/')
+
+
+
+
+
+
+            
         }
   
         next();
