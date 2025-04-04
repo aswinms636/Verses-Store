@@ -1,7 +1,8 @@
 const Category=require('../../models/categorySchema');
 const Product = require('../../models/productSchema');
 const mongoose=require('mongoose')
-
+const bcrypt = require('bcrypt');
+const Admin = require('../../models/adminSchema');
 
 const categoryInfo = async (req, res) => {
     try {
@@ -67,39 +68,80 @@ const addCategory=async(req,res)=>{
 
 
 
-const addCategoryOffer=async(req,res)=>{
+const addCategoryOffer = async (req, res) => {
     try {
-        const percentage=parseInt(req.body.percentage);
-        const categoryId=req.body.categoryId
-        const category=await Category.findById(categoryId)
-        if(!category){
-            return res.status(404).json({status:false,messsage:"Category not found"})
+        const { percentage, categoryId, adminPassword } = req.body;
+        console.log(percentage, categoryId, adminPassword)
+        // Validate inputs
+        if (!percentage || !categoryId ) {
+            return res.status(400).json({
+                status: false,
+                message: "Missing required fields"
+            });
         }
 
-        const product =await Product.find({category:category._id})
-         const hasProductOffer=product.some((product)=>product.productOffer>percentage);
-         if(hasProductOffer){
-            return res.json({status:false,message:"Product within category already have product offer"})
-         }
+        // Verify admin password
+      
 
-         await Category.updateOne({_id:categoryId},{$set:{categoryOffer:percentage}});
+        // Validate percentage
+        if (percentage < 0 || percentage > 90) {
+            return res.status(400).json({
+                status: false,
+                message: "Offer percentage must be between 0 and 90"
+            });
+        }
 
-         for(const products of product){
-            products.productOffer=0;
-            products.salePice=products.regularPrice;
-            await products.save();
+        // Find category
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            return res.status(404).json({
+                status: false,
+                message: "Category not found"
+            });
+        }
 
-         }
-         res.json({status:true})
+        // Check for existing product offers
+        const products = await Product.find({ category: category._id });
+        const hasHigherProductOffer = products.some(
+            (product) => product.productOffer > percentage
+        );
 
+        if (hasHigherProductOffer) {
+            return res.status(400).json({
+                status: false,
+                message: "Some products in this category have higher product offers"
+            });
+        }
 
+        // Update category offer
+        await Category.updateOne(
+            { _id: categoryId },
+            { $set: { categoryOffer: percentage } }
+        );
+
+        // Update product prices
+        for (const product of products) {
+            if (!product.productOffer) {
+                product.salePrice = Math.floor(
+                    product.regularPrice * (1 - percentage / 100)
+                );
+                await product.save();
+            }
+        }
+
+        return res.json({
+            status: true,
+            message: "Category offer added successfully"
+        });
 
     } catch (error) {
-        res.status(500).json({status:false,message:"Internal server Error"})
-        
+        console.error('Error in addCategoryOffer:', error);
+        return res.status(500).json({
+            status: false,
+            message: "Internal server error"
+        });
     }
-}
-
+};
 
 
 
