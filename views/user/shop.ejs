@@ -830,7 +830,7 @@
                             <div class="sorting-wrapper">
                                 <div class="sorting-box d-flex justify-content-between align-items-center p-3 bg-white rounded shadow-sm">
                                     <div class="found-items">
-                                        <span class="text-muted"><i class="fas fa-tag me-2"></i> Showing <%= products ? products.length : 0 %> products</span>
+                                        <span class="text-muted"><i class="fas fa-tag me-2"></i> Showing <%= products.length %> products</span>
                                     </div>
                                     <div class="sorting-options d-flex align-items-center">
                                         <label class="me-2 text-muted">Sort by:</label>
@@ -840,6 +840,7 @@
                                             <input type="hidden" name="minPrice" value="<%= currentMinPrice %>">
                                             <input type="hidden" name="maxPrice" value="<%= currentMaxPrice === priceRange.maxPrice ? '' : currentMaxPrice %>">
                                             <input type="hidden" name="search" value="<%= searchQuery || '' %>">
+                                            <input type="hidden" name="page" value="<%= currentPage %>">
 
                                             <select class="form-select" name="sort" onchange="this.form.submit()">
                                                 <option value="default" <%= currentSort === 'default' ? 'selected' : '' %>>Featured</option>
@@ -908,6 +909,35 @@
                             <p>Try adjusting your filters or search term</p>
                         </div>
                     <% } %>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div class="col-12">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            <% if (currentPage > 1) { %>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=<%= currentPage - 1 %>&sort=<%= currentSort %>&category=<%= selectedCategory %>&minPrice=<%= currentMinPrice %>&maxPrice=<%= currentMaxPrice %>&search=<%= searchQuery %>" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            <% } %>
+
+                            <% for (let i = 1; i <= totalPages; i++) { %>
+                                <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                                    <a class="page-link" href="?page=<%= i %>&sort=<%= currentSort %>&category=<%= selectedCategory %>&minPrice=<%= currentMinPrice %>&maxPrice=<%= currentMaxPrice %>&search=<%= searchQuery %>"><%= i %></a>
+                                </li>
+                            <% } %>
+
+                            <% if (currentPage < totalPages) { %>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=<%= currentPage + 1 %>&sort=<%= currentSort %>&category=<%= selectedCategory %>&minPrice=<%= currentMinPrice %>&maxPrice=<%= currentMaxPrice %>&search=<%= searchQuery %>" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            <% } %>
+                        </ul>
+                    </nav>
                 </div>
             </div>
         </div>

@@ -24,6 +24,8 @@ const loadShopPage = async (req, res) => {
         const minPrice = Math.max(0, parseInt(req.query.minPrice) || 0); // Prevent negative prices
         const maxPrice = parseInt(req.query.maxPrice) || Number.MAX_SAFE_INTEGER;
         const searchQuery = req.query.search || "";
+        const page = parseInt(req.query.page) || 1;
+        const limit = 12; // Number of products per page
 
         // Build query
         let query = { isBlocked: false };
@@ -74,10 +76,16 @@ const loadShopPage = async (req, res) => {
         // Fetch categories for filter
         const categories = await Category.find({ isListed: true });
 
-        // Fetch products with filters and sorting
+        // Fetch products with filters, sorting, and pagination
         const products = await Product.find(query)
             .sort(sortQuery)
+            .skip((page - 1) * limit)
+            .limit(limit)
             .populate("category", "name"); // Only populate necessary fields
+
+        // Get total count of products for pagination
+        const totalProducts = await Product.countDocuments(query);
+        const totalPages = Math.ceil(totalProducts / limit);
 
         // Get price range for filter (reuse getDefaultPriceRange)
         const priceRange = await getDefaultPriceRange();
@@ -93,6 +101,8 @@ const loadShopPage = async (req, res) => {
             searchQuery,
             user: req.session.user,
             error: null,
+            currentPage: page,
+            totalPages,
         });
     } catch (error) {
         console.error("Shop page error:", error.message);
@@ -107,6 +117,8 @@ const loadShopPage = async (req, res) => {
             priceRange: { minPrice: 0, maxPrice: 10000 },
             searchQuery: "",
             user: req.session.user,
+            currentPage: 1,
+            totalPages: 1,
         });
     }
 };
