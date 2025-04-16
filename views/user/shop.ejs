@@ -509,11 +509,11 @@
         .banner-content h1 {
             font-size: 2.5rem;
         }
-        
+
         .features-inner {
             margin-top: 0;
         }
-        
+
         .exclusive-left, .exclusive-right {
             border-radius: 15px;
             margin-bottom: 20px;
@@ -524,29 +524,29 @@
         .banner-area {
             margin-top: 60px;
         }
-        
+
         .banner-content {
             left: 5%;
             max-width: 80%;
         }
-        
+
         .banner-content h1 {
             font-size: 2rem;
         }
-        
+
         .sorting-box {
             flex-direction: column;
             gap: 15px;
         }
-        
+
         .form-select {
             width: 100%;
         }
-        
+
         .clock-wrap {
             flex-wrap: wrap;
         }
-        
+
         .clockinner {
             flex: 0 0 calc(50% - 10px);
             margin-bottom: 10px;
@@ -563,11 +563,6 @@
 
 <div class="main-content">
 
-
-
-
-
-
     <!-- start banner Area -->
     <section class="banner-area">
 
@@ -581,7 +576,7 @@
                         <input type="hidden" name="maxPrice" value="<%= currentMaxPrice %>">
                         <input type="hidden" name="sort" value="<%= currentSort %>">
                         <input type="hidden" name="page" value="1">
-                        
+
                         <div class="search-input-group">
                             <input type="text" name="search" class="search-input" placeholder="Search products..." value="<%= searchQuery || '' %>">
                             <button type="submit" class="search-button">
@@ -599,7 +594,7 @@
                         <!-- single-slide -->
                         <div class="single-slide position-relative">
                             <div class="banner-img">
-                                <img class="img-fluid w-100" src="/img/banner.jpg" alt="Banner" 
+                                <img class="img-fluid w-100" src="/img/banner.jpg" alt="Banner"
                                      style="height: 80vh; object-fit: cover;">
                             </div>
                             <div class="banner-overlay"></div>
@@ -612,7 +607,7 @@
                         <!-- single-slide -->
                         <div class="single-slide position-relative">
                             <div class="banner-img">
-                                <img class="img-fluid w-100" src="/img/banner/banner-img.png" alt="Banner" 
+                                <img class="img-fluid w-100" src="/img/banner/banner-img.png" alt="Banner"
                                      style="height: 80vh; object-fit: cover;">
                             </div>
                             <div class="banner-overlay"></div>
@@ -755,151 +750,214 @@
     <!-- End category Area -->
 
     <!-- Add this before your products section -->
-<div class="container" id="products">
-    <div class="row">
-        <!-- Filter Sidebar -->
-        <div class="col-lg-3">
-            <div class="filter-wrapper bg-white p-4 rounded shadow-sm">
-                <h4 class="mb-4 fw-bold">Refine Results</h4>
-                
-                <form id="filterForm" method="GET">
-                    <!-- Category Filter -->
-                    <div class="mb-4">
-                        <h5 class="fw-semibold mb-3">Categories</h5>
-                        <div class="category-list">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" 
-                                       name="category" id="allCategories" 
-                                       value="" 
-                                       <%= !selectedCategory ? 'checked' : '' %>>
-                                <label class="form-check-label" for="allCategories">
-                                    All Categories
-                                </label>
-                            </div>
-                            <% categories.forEach(category => { %>
+    <div class="container" id="products">
+        <div class="row">
+            <!-- Filter Sidebar -->
+            <div class="col-lg-3">
+                <div class="filter-wrapper bg-white p-4 rounded shadow-sm">
+                    <h4 class="mb-4 fw-bold">Refine Results</h4>
+
+                    <form id="filterForm" method="GET" action="/shop">
+                        <!-- Category Filter -->
+                        <div class="mb-4">
+                            <h5 class="fw-semibold mb-3">Categories</h5>
+                            <div class="category-list">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" 
-                                           name="category" 
-                                           id="<%= category._id %>" 
-                                           value="<%= category._id %>"
-                                           <%= selectedCategory === category._id.toString() ? 'checked' : '' %>>
-                                    <label class="form-check-label" for="<%= category._id %>">
-                                        <%= category.name %>
+                                    <input class="form-check-input" type="radio"
+                                           name="category" id="allCategories"
+                                           value=""
+                                           <%= !selectedCategory ? 'checked' : '' %>>
+                                    <label class="form-check-label" for="allCategories">
+                                        All Categories
                                     </label>
                                 </div>
-                            <% }); %>
-                        </div>
-                    </div>
-
-                    <!-- Price Range Filter -->
-                    <div class="mb-4">
-                        <h5 class="fw-semibold mb-3">Price Range</h5>
-                        <div class="price-range">
-                            <div class="input-group mb-2">
-                                <span class="input-group-text">₹</span>
-                                <input type="number" class="form-control" 
-                                       name="minPrice" 
-                                       value="<%= currentMinPrice %>" 
-                                       min="<%= priceRange.minPrice %>" 
-                                       max="<%= priceRange.maxPrice %>">
-                            </div>
-                            <div class="input-group">
-                                <span class="input-group-text">₹</span>
-                                <input type="number" class="form-control" 
-                                       name="maxPrice" 
-                                       value="<%= currentMaxPrice %>" 
-                                       min="<%= priceRange.minPrice %>" 
-                                       max="<%= priceRange.maxPrice %>">
+                                <% categories.forEach(category => { %>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio"
+                                               name="category"
+                                               id="<%= category._id %>"
+                                               value="<%= category._id %>"
+                                               <%= selectedCategory === category._id.toString() ? 'checked' : '' %>>
+                                        <label class="form-check-label" for="<%= category._id %>">
+                                            <%= category.name %>
+                                        </label>
+                                    </div>
+                                <% }); %>
                             </div>
                         </div>
+
+                        <!-- Price Range Filter -->
+                        <div class="mb-4">
+                            <h5 class="fw-semibold mb-3">Price Range</h5>
+                            <div class="price-range">
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" class="form-control"
+                                           name="minPrice"
+                                           value="<%= currentMinPrice %>"
+                                           min="<%= priceRange.minPrice %>"
+                                           max="<%= priceRange.maxPrice %>"
+                                           placeholder="Min price">
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" class="form-control"
+                                           name="maxPrice"
+                                           value="<%= currentMaxPrice === priceRange.maxPrice ? '' : currentMaxPrice %>"
+                                           min="<%= priceRange.minPrice %>"
+                                           max="<%= priceRange.maxPrice %>"
+                                           placeholder="Max price">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Keep current sort value -->
+                        <input type="hidden" name="sort" value="<%= currentSort %>">
+
+                        <!-- Apply Filters Button -->
+                        <button type="submit" class="btn btn-primary w-100" style="background-color: var(--primary-color); border: none; border-radius: 30px; padding: 10px;">
+                            <i class="fas fa-filter me-2"></i> Apply Filters
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="col-lg-9">
+                <div class="container mb-5">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="sorting-wrapper">
+                                <div class="sorting-box d-flex justify-content-between align-items-center p-3 bg-white rounded shadow-sm">
+                                    <div class="found-items">
+                                        <span class="text-muted"><i class="fas fa-tag me-2"></i> Showing <%= products ? products.length : 0 %> products</span>
+                                    </div>
+                                    <div class="sorting-options d-flex align-items-center">
+                                        <label class="me-2 text-muted">Sort by:</label>
+                                        <form id="sortForm" method="GET" action="/shop" class="mb-0">
+                                            <!-- Preserve all filter values -->
+                                            <input type="hidden" name="category" value="<%= selectedCategory || '' %>">
+                                            <input type="hidden" name="minPrice" value="<%= currentMinPrice %>">
+                                            <input type="hidden" name="maxPrice" value="<%= currentMaxPrice === priceRange.maxPrice ? '' : currentMaxPrice %>">
+                                            <input type="hidden" name="search" value="<%= searchQuery || '' %>">
+
+                                            <select class="form-select" name="sort" onchange="this.form.submit()">
+                                                <option value="default" <%= currentSort === 'default' ? 'selected' : '' %>>Featured</option>
+                                                <option value="priceAsc" <%= currentSort === 'priceAsc' ? 'selected' : '' %>>Price: Low to High</option>
+                                                <option value="priceDesc" <%= currentSort === 'priceDesc' ? 'selected' : '' %>>Price: High to Low</option>
+                                                <option value="nameAsc" <%= currentSort === 'nameAsc' ? 'selected' : '' %>>Name: A to Z</option>
+                                                <option value="nameDesc" <%= currentSort === 'nameDesc' ? 'selected' : '' %>>Name: Z to A</option>
+                                            </select>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                </div>
 
-                    <!-- Keep current sort value -->
-                    <input type="hidden" name="sort" value="<%= currentSort %>">
-
-                    <!-- Apply Filters Button -->
-                    <button type="submit" class="btn btn-primary w-100" style="background-color: var(--primary-color); border: none; border-radius: 30px; padding: 10px;">
-                        <i class="fas fa-filter me-2"></i> Apply Filters
-                    </button>
-                </form>
+                <!-- Products will be rendered here -->
+                <div class="row">
+                    <% if (products && products.length > 0) { %>
+                        <% products.forEach(product => { %>
+                            <div class="col-lg-4 col-md-6 mb-4">
+                                <div class="single-product">
+                                    <div class="product-img">
+                                        <img class="img-fluid w-100" src="<%= product.images && product.images.length > 0 ? product.images[0] : '/img/default-product.jpg' %>" alt="<%= product.productName %>" style="height: 200px; object-fit: cover;">
+                                        <div class="p_icon">
+                                            <a href="/product/<%= product._id %>">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="product-details">
+                                        <a href="/product/<%= product._id %>">
+                                            <h6><%= product.productName %></h6>
+                                        </a>
+                                        <div class="price">
+                                            <h6>₹<%= product.salePrice %></h6>
+                                            <% if (product.regularPrice > product.salePrice) { %>
+                                                <h6 class="l-through">₹<%= product.regularPrice %></h6>
+                                            <% } %>
+                                        </div>
+                                        <div class="prd-bottom">
+                                            <a href="" class="social-info">
+                                                <span class="ti-bag"></span>
+                                                <p class="hover-text">Add to Bag</p>
+                                            </a>
+                                            <a href="" class="social-info">
+                                                <span class="lnr lnr-heart"></span>
+                                                <p class="hover-text">Wishlist</p>
+                                            </a>
+                                            <a href="" class="social-info">
+                                                <span class="lnr lnr-sync"></span>
+                                                <p class="hover-text">Compare</p>
+                                            </a>
+                                            <a href="" class="social-info">
+                                                <span class="lnr lnr-move"></span>
+                                                <p class="hover-text">View More</p>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <div class="col-12 text-center py-5">
+                            <h4>No products found matching your criteria</h4>
+                            <p>Try adjusting your filters or search term</p>
+                        </div>
+                    <% } %>
+                </div>
             </div>
         </div>
+    </div>
 
-        <!-- Products Grid -->
-        <div class="col-lg-9">
-            <!-- Replace the sorting section and script -->
-<div class="container mb-5">
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="sorting-wrapper">
-                <div class="sorting-box d-flex justify-content-between align-items-center p-3 bg-white rounded shadow-sm">
-                    <div class="found-items">
-                        <span class="text-muted"><i class="fas fa-tag me-2"></i> Showing <%= products ? products.length : 0 %> products</span>
-                    </div>
-                    <!-- Update the sorting form to preserve filter parameters -->
-<div class="sorting-options d-flex align-items-center">
-    <label class="me-2 text-muted">Sort by:</label>
-    <form id="sortForm" method="GET" class="mb-0">
-        <!-- Preserve existing filter values -->
-        <input type="hidden" name="category" value="<%= selectedCategory || '' %>">
-        <input type="hidden" name="minPrice" value="<%= currentMinPrice %>">
-        <input type="hidden" name="maxPrice" value="<%= currentMaxPrice %>">
-        
-        <select class="form-select" name="sort" onchange="submitSort(this.value)">
-            <option value="default" <%= currentSort === 'default' ? 'selected' : '' %>>Featured</option>
-            <option value="priceAsc" <%= currentSort === 'priceAsc' ? 'selected' : '' %>>Price: Low to High</option>
-            <option value="priceDesc" <%= currentSort === 'priceDesc' ? 'selected' : '' %>>Price: High to Low</option>
-            <option value="nameAsc" <%= currentSort === 'nameAsc' ? 'selected' : '' %>>Name: A to Z</option>
-            <option value="nameDesc" <%= currentSort === 'nameDesc' ? 'selected' : '' %>>Name: Z to A</option>
-        </select>
-    </form>
-</div>
+    <script>
+    // Handle form submissions with loading indicators
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filter form submission
+        const filterForm = document.getElementById('filterForm');
+        if (filterForm) {
+            filterForm.addEventListener('submit', function(e) {
+                // Validate price range
+                const minPrice = parseFloat(this.elements.minPrice.value) || 0;
+                const maxPrice = parseFloat(this.elements.maxPrice.value) || <%= priceRange.maxPrice %>;
 
-<script>
-function submitSort(value) {
-    // Get current URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    // Update sort value while preserving other parameters
-    urlParams.set('sort', value);
-    
-    // Show loading indicator
-    Swal.fire({
-        title: 'Sorting Products...',
-        text: 'Please wait...',
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
-            
-            // Submit form with all parameters
-            const form = document.getElementById('sortForm');
-            
-            // Preserve category filter if exists
-            const category = urlParams.get('category');
-            if (category) {
-                const categoryInput = form.querySelector('input[name="category"]');
-                categoryInput.value = category;
-            }
-            
-            // Preserve price filters if they exist
-            const minPrice = urlParams.get('minPrice');
-            const maxPrice = urlParams.get('maxPrice');
-            if (minPrice) form.querySelector('input[name="minPrice"]').value = minPrice;
-            if (maxPrice) form.querySelector('input[name="maxPrice"]').value = maxPrice;
-            
-            form.action = `/shop?${urlParams.toString()}`;
-            form.submit();
+                if (minPrice > maxPrice) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Price Range',
+                        text: 'Minimum price cannot be greater than maximum price'
+                    });
+                    return;
+                }
+
+                showLoading('Applying filters...');
+            });
+        }
+
+        // Sort form submission
+        const sortForm = document.getElementById('sortForm');
+        if (sortForm) {
+            sortForm.addEventListener('submit', function() {
+                showLoading('Sorting products...');
+            });
+        }
+
+        function showLoading(message) {
+            Swal.fire({
+                title: message,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
         }
     });
-}
 
-// Initialize all parameters on page load
-document.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    // Set sort value
-    const sortValue = urlParams.get('sort') || 'default';
-    document.querySelector('select[name="sort"]').value = sortValue;
-    
-    // Set category if exists
-    const category =
+    // Initialize price range slider if needed
+    // You can add a range slider implementation here if desired
+    </script>
+</div>
