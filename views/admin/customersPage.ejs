@@ -34,10 +34,10 @@
         <!-- Add search bar -->
         <div class="search-wrapper">
             <div class="input-group">
-                <input 
-                    type="text" 
-                    id="searchInput" 
-                    class="form-control" 
+                <input
+                    type="text"
+                    id="searchInput"
+                    class="form-control"
                     placeholder="Search by name, email or phone..."
                     onkeyup="debounceSearch()"
                 >
@@ -69,16 +69,14 @@
                                 <td><%= user.email %></td>
                                 <td><%= user.mobile %></td>
                                 <td>
-                                    <% if(user.isBlocked) { %>
-                                        <span class="badge bg-danger">Blocked</span>
-                                    <% } else { %>
-                                        <span class="badge bg-success">Active</span>
-                                    <% } %>
+                                    <span class="badge <%= user.isBlocked ? 'bg-danger' : 'bg-success' %>">
+                                        <%= user.isBlocked ? 'Blocked' : 'Active' %>
+                                    </span>
                                 </td>
                                 <td><%= new Date(user.createdAt).toLocaleDateString() %></td>
                                 <td>
-                                    <button 
-                                        onclick="toggleUserStatus('<%= user._id %>')"
+                                    <button
+                                        onclick="confirmToggleUserStatus('<%= user._id %>', <%= user.isBlocked %>, '<%= user.name %>')"
                                         class="btn btn-sm <%= user.isBlocked ? 'btn-success' : 'btn-danger' %>"
                                     >
                                         <%= user.isBlocked ? 'Unblock' : 'Block' %>
@@ -99,9 +97,7 @@ let debounceTimer;
 
 function debounceSearch() {
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-        handleSearch();
-    }, 300);
+    debounceTimer = setTimeout(handleSearch, 300);
 }
 
 function handleSearch() {
@@ -110,29 +106,29 @@ function handleSearch() {
 
     tableRows.forEach(row => {
         const text = row.textContent.toLowerCase();
-
-        if (text.includes(searchTerm)) {
-            row.style.display = '';
-            if (searchTerm.length > 0) {
-                row.classList.add('highlight');
-            } else {
-                row.classList.remove('highlight');
-            }
-        } else {
-            row.style.display = 'none';
-            row.classList.remove('highlight');
-        }
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+        row.classList.toggle('highlight', searchTerm.length > 0 && text.includes(searchTerm));
     });
-
-    // Clean highlight on all rows when search input is empty
-    if (searchTerm.length === 0) {
-        tableRows.forEach(row => {
-            row.classList.remove('highlight');
-        });
-    }
 }
 
-async function toggleUserStatus(userId) {
+function confirmToggleUserStatus(userId, isBlocked, userName) {
+    Swal.fire({
+        title: `Are you sure?`,
+        text: `Do you want to ${isBlocked ? 'unblock' : 'block'} ${userName}?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: `Yes, ${isBlocked ? 'unblock' : 'block'}!`,
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            toggleUserStatus(userId, isBlocked);
+        }
+    });
+}
+
+async function toggleUserStatus(userId, isBlocked) {
     try {
         const response = await fetch('/admin/toggleUserStatus', {
             method: 'POST',
@@ -144,22 +140,20 @@ async function toggleUserStatus(userId) {
 
         const data = await response.json();
 
+
+        console.log(data)
+        console.log(data.success)
+
         if (data.success) {
             const row = document.querySelector(`tr[data-user-id="${userId}"]`);
             const statusBadge = row.querySelector('.badge');
             const toggleButton = row.querySelector('button');
 
-            if (data.isBlocked) {
-                statusBadge.className = 'badge bg-danger';
-                statusBadge.textContent = 'Blocked';
-                toggleButton.className = 'btn btn-sm btn-success';
-                toggleButton.textContent = 'Unblock';
-            } else {
-                statusBadge.className = 'badge bg-success';
-                statusBadge.textContent = 'Active';
-                toggleButton.className = 'btn btn-sm btn-danger';
-                toggleButton.textContent = 'Block';
-            }
+            statusBadge.className = `badge ${data.isBlocked ? 'bg-danger' : 'bg-success'}`;
+            statusBadge.textContent = data.isBlocked ? 'Blocked' : 'Active';
+            toggleButton.className = `btn btn-sm ${data.isBlocked ? 'btn-success' : 'btn-danger'}`;
+            toggleButton.textContent = data.isBlocked ? 'Unblock' : 'Block';
+            toggleButton.onclick = () => confirmToggleUserStatus(userId, data.isBlocked, row.querySelector('td').textContent);
 
             Swal.fire({
                 icon: 'success',
@@ -172,7 +166,6 @@ async function toggleUserStatus(userId) {
             throw new Error(data.message || 'Unknown error');
         }
     } catch (error) {
-        console.error('Error:', error);
         Swal.fire({
             icon: 'error',
             title: 'Error',

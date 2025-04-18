@@ -74,11 +74,19 @@ const logout = async (req, res) => {
 const blockUser = async (req, res) => {
     try {
         const userId = req.query.id;
-        await User.findByIdAndUpdate(userId, { isBlocked: true });
-        res.redirect('/admin/users', { status: true, message: 'User blocked successfully' });
+        if (!userId || !/^[0-9a-fA-F]{24}$/.test(userId)) {
+            return res.status(400).send('Invalid user ID');
+        }
+
+        const user = await User.findByIdAndUpdate(userId, { isBlocked: true }, { new: true });
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
+
+        res.redirect('/admin/users?status=success&message=User blocked successfully');
     } catch (error) {
         console.error('Error blocking user:', error);
-        res.status(500).send('Internal Server Error');
+        res.status(500).send('Failed to block user');
     }
 };
 
@@ -86,11 +94,19 @@ const blockUser = async (req, res) => {
 const unblockUser = async (req, res) => {
     try {
         const userId = req.query.id;
-        await User.findByIdAndUpdate(userId, { isBlocked: false });
-        res.redirect('/admin/users');
+        if (!userId || !/^[0-9a-fA-F]{24}$/.test(userId)) {
+            return res.status(400).send('Invalid user ID');
+        }
+
+        const user = await User.findByIdAndUpdate(userId, { isBlocked: false }, { new: true });
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
+
+        res.redirect('/admin/users?status=success&message=User unblocked successfully');
     } catch (error) {
         console.error('Error unblocking user:', error);
-        res.status(500).send('Internal Server Error');
+        res.status(500).send('Failed to unblock user');
     }
 };
 
