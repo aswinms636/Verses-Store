@@ -47,10 +47,12 @@ const addCategory=async(req,res)=>{
     const{name,description}=req.body
 
     try {
-        const existingCategory=await Category.findOne({name})
+        const existingCategory = await Category.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
 
+
+        console.log("sadfsadf",existingCategory)
         if(existingCategory){
-            return res.status(400).json({error:'Category already exists'})
+            return res.json({ success:false,  message:'Category already exists'})
         }
 
         const newCategory=new Category({
@@ -59,7 +61,9 @@ const addCategory=async(req,res)=>{
         })   
         
         await newCategory.save()
-        return res.json({ message: 'Category added successfully' });
+
+        console.log("----------------------------")
+        return res.json({ success:true, message: 'Category added successfully' });
     } catch (error) {
         return res.status(500).json({error:'Internal server error'})
         
