@@ -20,7 +20,7 @@ router.get('/logout',adminController.logout)
 router.get('/blockCustomer', checkSession,adminController.blockUser);
 router.get('/unblockCustomer',checkSession, adminController.unblockUser);
 router.post('/toggleUserStatus',checkSession,adminController.toggleUserStatus);
-router.get('/users',checkSession,customerController.custermerInfo);
+router.get('/users',checkSession,customerController.customerInfo);
 
 
 //Category Management

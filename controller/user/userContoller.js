@@ -236,31 +236,32 @@ async function resetPasswordOtp(email, otp) {
 
 const signin = async (req, res) => {
     try {
-      const { email, password } = req.body;
-      console.log("Sign in request:", req.body);
-  
-      
-      const user = await User.findOne({ email });
-      if (!user) {
-        res.json({message:'User not found'});
-        return res.redirect('/signup');
-      }
-  
-      
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        res.json({message:'Invalid credentials'})
-        return res.redirect('/login');
-      }
-  
-      req.session.user = user;
-      return res.redirect('/')
-  
+        const { email, password } = req.body;
+        console.log("Sign in request:", req.body);
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (user.isBlocked) {
+            return res.status(403).json({ message: 'Your account is blocked. Please contact support.' });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Invalid credentials' });
+        }
+
+        req.session.user = user;
+        return res.status(200).json({ message: 'Login successful' });
+
     } catch (error) {
-      console.error('Error in sign in:', error);
-      return res.status(500).send('Server error');
+        console.error('Error in sign in:', error);
+        return res.status(500).json({ message: 'Server error' });
     }
-  };
+};
+
 
 
 

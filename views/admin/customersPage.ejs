@@ -25,6 +25,27 @@
         background-color: #fff3cd;
         transition: background-color 0.3s;
     }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    .pagination button {
+        margin: 0 5px;
+        padding: 5px 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: #fff;
+        cursor: pointer;
+    }
+
+    .pagination button.active {
+        background-color: #007bff;
+        color: #fff;
+        border-color: #007bff;
+    }
 </style>
 
 <div class="content-main">
@@ -41,7 +62,7 @@
                     placeholder="Search by name, email or phone..."
                     onkeyup="debounceSearch()"
                 >
-                <button class="btn btn-primary" onclick="handleSearch()">
+                <button class="btn btn-primary" onclick="handleSearch(1)">
                     <i class="fas fa-search"></i>
                 </button>
             </div>
@@ -87,6 +108,13 @@
                     </tbody>
                 </table>
             </div>
+            <div class="pagination">
+                <% for (let i = 1; i <= totalPages; i++) { %>
+                    <button onclick="handleSearch(<%= i %>)" class="<%= i === currentPage ? 'active' : '' %>">
+                        <%= i %>
+                    </button>
+                <% } %>
+            </div>
         </div>
     </div>
 </div>
@@ -97,18 +125,15 @@ let debounceTimer;
 
 function debounceSearch() {
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(handleSearch, 300);
+    debounceTimer = setTimeout(() => handleSearch(1), 300);
 }
 
-function handleSearch() {
+function handleSearch(page) {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const tableRows = document.querySelectorAll('#customersTable tbody tr');
-
-    tableRows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(searchTerm) ? '' : 'none';
-        row.classList.toggle('highlight', searchTerm.length > 0 && text.includes(searchTerm));
-    });
+    const url = new URL(window.location.href);
+    url.searchParams.set('search', searchTerm);
+    url.searchParams.set('page', page);
+    window.location.href = url.toString();
 }
 
 function confirmToggleUserStatus(userId, isBlocked, userName) {
@@ -139,10 +164,6 @@ async function toggleUserStatus(userId, isBlocked) {
         });
 
         const data = await response.json();
-
-
-        console.log(data)
-        console.log(data.success)
 
         if (data.success) {
             const row = document.querySelector(`tr[data-user-id="${userId}"]`);

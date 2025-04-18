@@ -1,33 +1,32 @@
 const User = require("../../models/userSchema");
 
-const custermerInfo = async (req, res) => {
+const customerInfo = async (req, res) => {
     try {
         let search = req.query.search || '';
         let page = parseInt(req.query.page) || 1;
         const limit = 3;
 
-       
         const userData = await User.find({
             isAdmin: false,
             $or: [
                 { name: { $regex: '.*' + search + '.*', $options: 'i' } },
-                { email: { $regex: '.*' + search + '.*', $options: 'i' } }
+                { email: { $regex: '.*' + search + '.*', $options: 'i' } },
+                { mobile: { $regex: '.*' + search + '.*', $options: 'i' } }
             ]
         })
         .limit(limit)
         .skip((page - 1) * limit)
         .exec();
 
-        
         const count = await User.countDocuments({
             isAdmin: false,
             $or: [
                 { name: { $regex: '.*' + search + '.*', $options: 'i' } },
-                { email: { $regex: '.*' + search + '.*', $options: 'i' } }
+                { email: { $regex: '.*' + search + '.*', $options: 'i' } },
+                { mobile: { $regex: '.*' + search + '.*', $options: 'i' } }
             ],
         });
 
-       
         res.render('customersPage', {
             users: userData,
             totalPages: Math.ceil(count / limit),
@@ -41,5 +40,5 @@ const custermerInfo = async (req, res) => {
 };
 
 module.exports = {
-    custermerInfo
+    customerInfo
 };
