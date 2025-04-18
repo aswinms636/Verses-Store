@@ -395,7 +395,8 @@ const editProduct = async (req, res, next) => {
             return res.status(400).json({ error: "Product with this name already exists. Please try with another name" });
         }
 
-        const images = [];
+        // Initialize images with existing images
+        let images = product.productImage || [];
 
         if (req.files && req.files.length > 0) {
             for (let i = 0; i < req.files.length; i++) {
@@ -403,13 +404,17 @@ const editProduct = async (req, res, next) => {
                 const resizedFilename = "resized-" + req.files[i].filename;
                 const resizedImagePath = path.join('public', 'Uploads', 'product-Images', resizedFilename);
                 await sharp(originalImagePath).resize({ width: 440, height: 440 }).toFile(resizedImagePath);
-                images.push(resizedFilename);
+
+                // Check for duplicate filenames
+                if (!images.includes(resizedFilename)) {
+                    images.push(resizedFilename);
+                }
             }
         }
 
         // Initialize sizes with predefined keys
         const validSizes = { 6: 0, 7: 0, 8: 0, 9: 0 };
-        
+
         if (Array.isArray(data.sizes)) {
             const sizeValues = data.sizes.slice(-4).map(size => parseInt(size));
             Object.keys(validSizes).forEach((key, index) => {
@@ -434,8 +439,6 @@ const editProduct = async (req, res, next) => {
             productImage: images
         };
 
-        
-
         console.log("updateFields", updateFields);
         await Product.findByIdAndUpdate(id, updateFields, { new: true });
         console.log("succ--------------------")
@@ -448,6 +451,9 @@ const editProduct = async (req, res, next) => {
         next(error);
     }
 };
+
+
+
 
 
 
