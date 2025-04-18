@@ -254,6 +254,8 @@
 
     async function toggleCategory(id, action) {
       try {
+        console.log(`Sending request to /admin/${action} with id:`, id);
+
         const response = await fetch(`/admin/${action}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -262,12 +264,15 @@
 
         const data = await response.json();
 
+        console.log("Response Status:", response.status);
+        console.log("Response Data:", data);
+
         if (response.ok) {
           Swal.fire({
             icon: 'success',
             title: 'Success',
             text: data.message,
-            timer: 3000,
+            timer: 1500,
             showConfirmButton: false
           });
           location.reload();

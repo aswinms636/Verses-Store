@@ -304,7 +304,7 @@ const otpVerify=async(req,res)=>{
     try {
         const {otp}=req.body
         console.log(otp)
-        if(req.session.Otp==otp){
+        if(req.session.otp==otp){
             return res.redirect('/newPassword')
         }
     } catch (error) {
@@ -329,37 +329,39 @@ const resendOtp=async (req,res)=>{
     }
     }
 
-const changePassword=async(req,res)=>{
-    try {
-        const {password, confirmPassword } = req.body;
-        const email=req.session.email
-        console.log(email)
-
-        if (password !== confirmPassword) {
-            return res.status(400).json({ message: "Passwords do not match" });
+    const changePassword = async (req, res) => {
+        try {
+            const { password, confirmPassword } = req.body;
+            const email = req.session.email;
+            console.log(email);
+    
+            if (password !== confirmPassword) {
+                return res.status(400).json({ message: "Passwords do not match" });
+            }
+    
+            const user = await User.findOne({ email });
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+    
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(password, salt);
+    
+            user.password = hashedPassword;
+            await user.save();
+            console.log('password changed successfully', password);
+            console.log(user);
+    
+            delete req.session.email;
+            delete req.session.otp;
+    
+            // Send a success message
+            return res.status(200).json({ message: "Password changed successfully" });
+        } catch (error) {
+            res.status(500).json({ message: "Server error", error });
         }
-
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        user.password = hashedPassword;
-        await user.save();
-        console.log('password changed successfully',password)
-        console.log(user)
-
-        delete req.session.email
-        delete req.session.otp
-
-        res.redirect('/signin')
-    } catch (error) {
-        res.status(500).json({ message: "Server error", error });
-    }
-}
+    };
+    
 
 
 
