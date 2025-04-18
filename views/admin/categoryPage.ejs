@@ -155,12 +155,12 @@
                         <% } %>
                       </td>
                       <td class="text-start">
-                        <% if(category.categoryOffer) { %>
-                          <button class="btn btn-danger" style="width: 70px" onclick="toggleCategory('<%=category._id %>', 'listCategory')">
+                        <% if(category.isListed) { %>
+                          <button class="btn btn-danger" style="width: 70px" onclick="toggleCategory('<%=category._id %>', 'unlistCategory')">
                             Unlist
                           </button>
                         <% } else { %>
-                          <button class="btn btn-success" style="width: 70px" onclick="toggleCategory('<%=category._id %>', 'unlistCategory')">
+                          <button class="btn btn-success" style="width: 70px" onclick="toggleCategory('<%=category._id %>', 'listCategory')">
                             List
                           </button>
                         <% } %>
@@ -172,9 +172,6 @@
                           <span class="badge rounded-pill alert-danger">Unlisted</span>
                         <% } %>
                       </td>
-                      <td class="text-start">
-                      
-
                       <td class="text-start">
                         <a href="/admin/editCategory/<%= category._id %>" class="btn btn-info text-white">Edit</a>
                       </td>
@@ -257,8 +254,6 @@
 
     async function toggleCategory(id, action) {
       try {
-        console.log(`Sending request to /admin/${action} with id:`, id);
-
         const response = await fetch(`/admin/${action}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -267,15 +262,12 @@
 
         const data = await response.json();
 
-        console.log("Response Status:", response.status);
-        console.log("Response Data:", data);
-
         if (response.ok) {
           Swal.fire({
             icon: 'success',
             title: 'Success',
             text: data.message,
-            timer: 1500,
+            timer: 3000,
             showConfirmButton: false
           });
           location.reload();
@@ -283,7 +275,7 @@
           Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: data.error,
+            text: data.message,
           });
         }
       } catch (error) {
