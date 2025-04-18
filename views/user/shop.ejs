@@ -1,5 +1,6 @@
 <%- include('../../views/partials/user/header') %>
 
+<<%- include('../../views/partials/user/header') %>
 <!-- Modernized CSS for better spacing and visual design -->
 <style>
     :root {
@@ -552,6 +553,64 @@
             margin-bottom: 10px;
         }
     }
+
+    /* Search Box Animation */
+    .search-bar-container {
+        position: relative;
+    }
+
+    .search-wrapper {
+        display: flex;
+        align-items: center;
+    }
+
+    .search-input-group {
+        position: absolute;
+        top: 0;
+        right: 0;
+        display: flex;
+        align-items: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .search-input-group.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .search-input {
+        border: 1px solid var(--border-color);
+        border-radius: 30px;
+        padding: 10px 20px;
+        width: 300px;
+        margin-right: 10px;
+        transition: width 0.3s ease;
+    }
+
+    .search-input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.1);
+    }
+
+    .search-button {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .search-button:hover {
+        background-color: var(--secondary-color);
+    }
 </style>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -569,21 +628,24 @@
         <div class="search-bar-container">
             <div class="container">
                 <div class="search-wrapper">
-                    <form action="/shop" method="GET" class="search-form">
-                        <!-- Preserve existing filters when searching -->
-                        <input type="hidden" name="category" value="<%= selectedCategory || '' %>">
-                        <input type="hidden" name="minPrice" value="<%= currentMinPrice %>">
-                        <input type="hidden" name="maxPrice" value="<%= currentMaxPrice %>">
-                        <input type="hidden" name="sort" value="<%= currentSort %>">
-                        <input type="hidden" name="page" value="1">
+                    <div class="search-icon" id="searchIcon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="search-input-group" id="searchInputGroup">
+                        <form action="/shop" method="GET" class="search-form">
+                            <!-- Preserve existing filters when searching -->
+                            <input type="hidden" name="category" value="<%= selectedCategory || '' %>">
+                            <input type="hidden" name="minPrice" value="<%= currentMinPrice %>">
+                            <input type="hidden" name="maxPrice" value="<%= currentMaxPrice %>">
+                            <input type="hidden" name="sort" value="<%= currentSort %>">
+                            <input type="hidden" name="page" value="1">
 
-                        <div class="search-input-group">
                             <input type="text" name="search" class="search-input" placeholder="Search products..." value="<%= searchQuery || '' %>">
                             <button type="submit" class="search-button">
                                 <i class="fas fa-search"></i>
                             </button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -594,8 +656,8 @@
                         <!-- single-slide -->
                         <div class="single-slide position-relative">
                             <div class="banner-img">
-                                <img class="img-fluid w-100" src="/img/banner.jpg" alt="Banner"
-                                     style="height: 80vh; object-fit: cover;">
+                                <!-- <img class="img-fluid w-100" src="/img/banner.jpg" alt="Banner"
+                                     style="height: 80vh; object-fit: cover;"> -->
                             </div>
                             <div class="banner-overlay"></div>
                             <div class="banner-content">
@@ -976,6 +1038,16 @@
             });
         }
 
+        // Search icon click event
+        const searchIcon = document.getElementById('searchIcon');
+        const searchInputGroup = document.getElementById('searchInputGroup');
+
+        if (searchIcon && searchInputGroup) {
+            searchIcon.addEventListener('click', function() {
+                searchInputGroup.classList.toggle('active');
+            });
+        }
+
         function showLoading(message) {
             Swal.fire({
                 title: message,
@@ -991,3 +1063,4 @@
     // You can add a range slider implementation here if desired
     </script>
 </div>
+

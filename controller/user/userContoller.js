@@ -266,7 +266,7 @@ const signin = async (req, res) => {
 
 
   
-const verifyEmail = async (req, res) => {
+  const verifyEmail = async (req, res) => {
     try {
         const { email } = req.body;
         console.log(email);
@@ -276,8 +276,7 @@ const verifyEmail = async (req, res) => {
         console.log(user);
 
         if (!user) {
-            res.json({message:'User not found'})
-            return res.redirect('/login');
+            return res.json({ success: false, message: 'Invalid email' });
         }
 
         const otp = generateOtp();
@@ -285,22 +284,19 @@ const verifyEmail = async (req, res) => {
 
         const emailSent = await resetPasswordOtp(email, otp);
         if (!emailSent) {
-            res.json({message:'Error sending OTP. Please try again.'})
-            return res.redirect('/login');
+            return res.json({ success: false, message: 'Error sending OTP. Please try again.' });
         }
 
-        req.session.Otp = otp;
-        req.session.email=email
+        req.session.otp = otp;
+        req.session.email = email;
 
-        return res.redirect('/otpVerify');
-        
+         res.json({ success: true, message: 'Check your email for the OTP.' })
+
     } catch (error) {
         console.error('Error in verifyEmail:', error);
-        res.json({message:'Server error'})
-        return res.redirect('/forgot-Password');
+        return res.json({ success: false, message: 'Server error' });
     }
 };
-
 
 
 const otpVerify=async(req,res)=>{
