@@ -1,9 +1,36 @@
 <%- include("../../views/partials/admin/header") %>
 
+<style>
+    .search-wrapper {
+        max-width: 400px;
+        margin-bottom: 20px;
+    }
+
+    .input-group {
+        display: flex;
+        gap: 10px;
+    }
+
+    .input-group input {
+        border-radius: 4px;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+    }
+
+    .input-group .btn {
+        border-radius: 4px;
+    }
+
+    .highlight {
+        background-color: #fff3cd;
+        transition: background-color 0.3s;
+    }
+</style>
+
 <div class="content-main">
     <div class="content-header">
         <h2 class="content-title">Customers</h2>
-        
+
         <!-- Add search bar -->
         <div class="search-wrapper">
             <div class="input-group">
@@ -66,33 +93,7 @@
     </div>
 </div>
 
-<style>
-.search-wrapper {
-    max-width: 400px;
-    margin-bottom: 20px;
-}
-
-.input-group {
-    display: flex;
-    gap: 10px;
-}
-
-.input-group input {
-    border-radius: 4px;
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-}
-
-.input-group .btn {
-    border-radius: 4px;
-}
-
-.highlight {
-    background-color: #fff3cd;
-    transition: background-color 0.3s;
-}
-</style>
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 let debounceTimer;
 
@@ -103,12 +104,13 @@ function debounceSearch() {
     }, 300);
 }
 
-async function handleSearch() {
+function handleSearch() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const tableRows = document.querySelectorAll('#customersTable tbody tr');
-    
+
     tableRows.forEach(row => {
         const text = row.textContent.toLowerCase();
+
         if (text.includes(searchTerm)) {
             row.style.display = '';
             if (searchTerm.length > 0) {
@@ -121,6 +123,13 @@ async function handleSearch() {
             row.classList.remove('highlight');
         }
     });
+
+    // Clean highlight on all rows when search input is empty
+    if (searchTerm.length === 0) {
+        tableRows.forEach(row => {
+            row.classList.remove('highlight');
+        });
+    }
 }
 
 async function toggleUserStatus(userId) {
@@ -134,12 +143,12 @@ async function toggleUserStatus(userId) {
         });
 
         const data = await response.json();
-        
+
         if (data.success) {
             const row = document.querySelector(`tr[data-user-id="${userId}"]`);
             const statusBadge = row.querySelector('.badge');
             const toggleButton = row.querySelector('button');
-            
+
             if (data.isBlocked) {
                 statusBadge.className = 'badge bg-danger';
                 statusBadge.textContent = 'Blocked';
@@ -159,6 +168,8 @@ async function toggleUserStatus(userId) {
                 timer: 1500,
                 showConfirmButton: false
             });
+        } else {
+            throw new Error(data.message || 'Unknown error');
         }
     } catch (error) {
         console.error('Error:', error);

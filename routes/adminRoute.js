@@ -19,6 +19,7 @@ router.get('/logout',adminController.logout)
 //Users Management
 router.get('/blockCustomer', checkSession,adminController.blockUser);
 router.get('/unblockCustomer',checkSession, adminController.unblockUser);
+router.post('/toggleUserStatus',checkSession,adminController.toggleUserStatus);
 router.get('/users',checkSession,customerController.custermerInfo);
 
 
