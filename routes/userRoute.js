@@ -4,6 +4,7 @@ const userController = require('../controller/user/userContoller');
 const { isLogin,checkSession,blockCheck }=require('../middlewares/userAuthentic')
  const shopController=require('../controller/user/shopController');
  const profileController=require('../controller/user/profileController')
+ const addressController=require('../controller/user/addressController')
 const passport=require('../config/passport')
 
 
@@ -49,6 +50,9 @@ router.get('/productDetails/:id',shopController.loadProductDetails);
 
 
 router.get('/profile',checkSession,profileController.loadProfilePage);
-router.post('/edit-profile',profileController.editProfile)
+router.post('/edit-profile',profileController.editProfile);
+router.post('/addAddress',addressController.addAddress)
+
+router.get('/myAddress',addressController.loadAddresses);
 
 module.exports = router;

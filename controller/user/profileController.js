@@ -1,6 +1,6 @@
 
 const User=require('../../models/userSchema');
-
+const Address=require("../../models/addressSchema")
 
 const loadProfilePage= (req, res) => {
     try {
@@ -54,8 +54,10 @@ const editProfile = async (req, res) => {
 
 
 
+
+
 module.exports = {  
     loadProfilePage,
     editProfile
-   
+  
 };
