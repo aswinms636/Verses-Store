@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controller/user/userContoller'); 
 const { isLogin,checkSession,blockCheck }=require('../middlewares/userAuthentic')
- const shopController=require('../controller/user/shopController')
+ const shopController=require('../controller/user/shopController');
+ const profileController=require('../controller/user/profileController')
 const passport=require('../config/passport')
 
 
@@ -44,5 +45,10 @@ router.get("/google/callback", passport.authenticate('google', { failureRedirect
 //sz
 router.get("/shop",shopController.loadShopPage);
 router.get('/productDetails/:id',shopController.loadProductDetails);
+
+
+
+router.get('/profile',checkSession,profileController.loadProfilePage);
+router.post('/edit-profile',profileController.editProfile)
 
 module.exports = router;

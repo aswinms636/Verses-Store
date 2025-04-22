@@ -16,6 +16,7 @@ router.get('/dashboard',checkSession,adminController.loadDashboard)
 router.get('/logout',adminController.logout)
 
 
+
 //Users Management
 router.get('/blockCustomer', checkSession,adminController.blockUser);
 router.get('/unblockCustomer',checkSession, adminController.unblockUser);
@@ -47,6 +48,6 @@ router.get('/blockProduct',checkSession,productController.blockProduct)
 router.get('/unblockProduct',checkSession,productController.unblockProduct)
 router.get('/editProduct',checkSession,productController.loadEditProduct)
 router.post('/editProduct/:id', upload.array('productImages', 4), productController.editProduct);
-router.post('/deleteImage',checkSession,productController.deleteSingleImg)
+router.post('/deleteImage',checkSession,productController.deleteSingleImg);
 
 module.exports = router;

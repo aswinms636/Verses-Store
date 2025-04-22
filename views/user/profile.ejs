@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+  <%- include('../../views/partials/user/sidebar') %>
+
+  <!-- Main Content -->
+  <div class="col-md-9 col-lg-10 p-4">
+    <div class="container">
+      <!-- Profile Header -->
+      <div class="profile-header mb-4 d-flex flex-column flex-md-row align-items-center">
+        <div class="me-md-4 mb-3 mb-md-0 text-center">
+          <img src="/api/placeholder/150/150" alt="Profile Picture" class="profile-img">
+        </div>
+        <div class="d-flex flex-column">
+          <h2 id="display-name"><%= user.name || "Not provided" %></h2>
+         
+          <button id="edit-profile-btn" class="btn btn-primary edit-btn align-self-start mt-2">
+            <i class="fas fa-edit me-2"></i> Edit Profile
+          </button>
+        </div>
+      </div>
+
+      <!-- Profile Info -->
+      <div class="profile-info mb-4">
+        <h4 class="p-3 bg-light">Personal Information</h4>
+        <div id="info-display">
+          <div class="info-item d-flex align-items-center">
+            <i class="fas fa-envelope text-primary me-3 fa-fw"></i>
+            <div>
+              <small class="text-muted d-block">Email</small>
+              <div id="display-email"><%= user.email || "Not provided" %></div>
+            </div>
+          </div>
+          <div class="info-item d-flex align-items-center">
+            <i class="fas fa-phone text-primary me-3 fa-fw"></i>
+            <div>
+              <small class="text-muted d-block">Phone</small>
+              <div id="display-phone"><%= user.phone || "Not provided" %></div>
+            </div>
+          </div>
+          
+        </div>
+
+        <!-- Edit Form (Hidden by default) -->
+        <form id="edit-form" class="p-3 border-top" style="display: none;">
+          <div class="mb-3">
+            <label for="name" class="form-label">Full Name</label>
+            <input type="text" class="form-control" id="name" name="name" value="<%= user.name %>">
+          </div>
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" value="<%= user.email %>">
+          </div>
+          <div class="mb-3">
+            <label for="phone" class="form-label">Phone</label>
+            <input type="tel" class="form-control" id="phone" name="phone" value="<%= user.phone %>">
+          </div>
+          
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <button type="button" id="cancel-edit" class="btn btn-outline-secondary">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap & JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Get elements
+      const editBtn = document.getElementById('edit-profile-btn');
+      const cancelBtn = document.getElementById('cancel-edit');
+      const infoDisplay = document.getElementById('info-display');
+      const editForm = document.getElementById('edit-form');
+      const form = document.getElementById('edit-form');
+
+      // Handle edit button click
+      editBtn.addEventListener('click', function() {
+        infoDisplay.style.display = 'none';
+        editForm.style.display = 'block';
+        editBtn.style.display = 'none';
+      });
+
+      // Handle cancel button click
+      cancelBtn.addEventListener('click', function() {
+        infoDisplay.style.display = 'block';
+        editForm.style.display = 'none';
+        editBtn.style.display = 'inline-block';
+      });
+
+      // Handle form submission
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        // Get form values
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const phone = document.getElementById('phone').value;
+        
+
+        try {
+          const response = await fetch('/edit-profile', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name, email, phone })
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            // Update display values
+            document.getElementById('display-name').textContent = data.user.name;
+            document.getElementById('display-email').textContent = data.user.email;
+            document.getElementById('display-phone').textContent = data.user.phone;
+            
+
+            // Show info display, hide form
+            infoDisplay.style.display = 'block';
+            editForm.style.display = 'none';
+            editBtn.style.display = 'inline-block';
+
+            // Show success message
+            Swal.fire({
+              icon: 'success',
+              title: 'Profile Updated',
+              text: data.message
+            });
+          } else {
+            // Show error message
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: data.message
+            });
+          }
+        } catch (error) {
+          console.error(error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text:'An error occurred while updating your profile.'
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

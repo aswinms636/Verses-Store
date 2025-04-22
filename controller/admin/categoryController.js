@@ -219,26 +219,26 @@ const unlistCategory = async (req, res) => {
 };
 
 
-const loadEditCategory = async (req, res) => {
-    try {
-        const id = req.params.id;
-        console.log(id)
+    const loadEditCategory = async (req, res) => {
+        try {
+            const id = req.params.id;
+            console.log(id)
 
-        const category = await Category.findById(id);
-        console.log(category)
+            const category = await Category.findById(id);
+            console.log(category)
 
-        if (!category) {
-            console.log("Category not found for ID:", id);
-            return res.render("admin/edit-Category", { category: null, error: "Category not found." });
+            if (!category) {
+                console.log("Category not found for ID:", id);
+                return res.render("admin/edit-Category", { category: null, error: "Category not found." });
+            }
+            console.log('rendered')
+            res.render("edit-Category", {category }); 
+
+        } catch (error) {
+            console.error("Error loading category:", error);
+            res.redirect("/pageNotfound");
         }
-        console.log('rendered')
-        res.render("edit-Category", {category }); 
-
-    } catch (error) {
-        console.error("Error loading category:", error);
-        res.redirect("/pageNotfound");
-    }
-};
+    };
 
 
 const editCategory = async (req, res) => {
@@ -276,6 +276,9 @@ const editCategory = async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 };
+
+
+
 
 
 
