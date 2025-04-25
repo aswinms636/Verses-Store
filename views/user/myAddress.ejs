@@ -182,6 +182,39 @@
 
             <div class="row g-4" id="addressContainer">
                 <!-- Address cards will be dynamically added here -->
+                <% addresses.forEach((address, index) => { %>
+                    <div class="col-lg-4 col-md-6 address-item">
+                        <div class="card address-card mb-3">
+                            <% if (address.isDefault) { %>
+                                <div class="default-badge">Default</div>
+                            <% } %>
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="address-icon">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="card-title mb-0"><%= address.name %></h5>
+                                    </div>
+                                </div>
+                                <p class="card-text"><%= address.landMark %><br>
+                                <%= address.city %>, <%= address.state %> <%= address.pincode %><br>
+                                <%= address.country %></p>
+                                <p class="card-text"><strong>Phone:</strong> <%= address.phone %><br>
+                                <strong>Alt Phone:</strong> <%= address.altPhone %></p>
+
+                                <div class="card-actions">
+                                    <span class="action-btn btn-edit" data-id="<%= address.id %>">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </span>
+                                    <span class="action-btn btn-delete" data-id="<%= address.id %>">
+                                        <i class="fas fa-trash"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% }) %>
             </div>
         </div>
     </div>
@@ -362,47 +395,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
         // Sample initial data
-        let addresses = [
-            {
-                id: 1,
-                name: 'Home',
-                street: '123 Main Street',
-                city: 'San Francisco',
-                state: 'CA',
-                zipCode: '94105',
-                country: 'United States',
-                phone: '1234567890',
-                altPhone: '0987654321',
-                isDefault: true
-            },
-            {
-                id: 2,
-                name: 'Work',
-                street: '456 Market Avenue',
-                city: 'San Francisco',
-                state: 'CA',
-                zipCode: '94103',
-                country: 'United States',
-                phone: '1234567890',
-                altPhone: '0987654321',
-                isDefault: false
-            },
-            {
-                id: 3,
-                name: 'Parent\'s House',
-                street: '789 Oak Drive',
-                city: 'Oakland',
-                state: 'CA',
-                zipCode: '94610',
-                country: 'United States',
-                phone: '1234567890',
-                altPhone: '0987654321',
-                isDefault: false
-            }
-        ];
+        const addresses = <%- JSON.stringify(addresses) %>;
 
         // Next ID for new addresses
-        let nextId = 4;
+        let nextId = addresses.length > 0 ? Math.max(...addresses.map(addr => addr.id)) + 1 : 1;
 
         // Current address ID for delete operation
         let currentDeleteId = null;
@@ -487,8 +483,8 @@
                                     <h5 class="card-title mb-0">${address.name}</h5>
                                 </div>
                             </div>
-                            <p class="card-text">${address.street}<br>
-                            ${address.city}, ${address.state} ${address.zipCode}<br>
+                            <p class="card-text">${address.landMark}<br>
+                            ${address.city}, ${address.state} ${address.pincode}<br>
                             ${address.country}</p>
                             <p class="card-text"><strong>Phone:</strong> ${address.phone}<br>
                             <strong>Alt Phone:</strong> ${address.altPhone}</p>
@@ -640,21 +636,22 @@
 
             // Update address
             const updatedAddress = {
-                id,
+                userId: 'user_id_here', // Replace with actual user ID
+                addressId: id,
+                addressType: 'Home', // You can dynamically set this based on user input
                 name,
-                street,
                 city,
+                landMark: street, // Assuming street is the landmark
                 state,
-                zipCode,
-                country,
+                pincode: zipCode,
                 phone,
                 altPhone,
                 isDefault
             };
 
             try {
-                // Simulate API call
-                await fetch(`/api/addresses/${id}`, {
+                // Send PUT request to the backend
+                const response = await fetch('/editAddress', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -662,18 +659,35 @@
                     body: JSON.stringify(updatedAddress)
                 });
 
-                // Update addresses array
-                addresses[index] = updatedAddress;
+                const result = await response.json();
 
-                // Rerender addresses
-                renderAddresses();
+                if (result.success) {
+                    // Update addresses array
+                    addresses[index] = {
+                        id,
+                        name,
+                        street,
+                        city,
+                        state,
+                        zipCode,
+                        country,
+                        phone,
+                        altPhone,
+                        isDefault
+                    };
 
-                // Close modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('editAddressModal'));
-                modal.hide();
+                    // Rerender addresses
+                    renderAddresses();
 
-                // Show success message
-                Swal.fire('Success', 'Address updated successfully!', 'success');
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editAddressModal'));
+                    modal.hide();
+
+                    // Show success message
+                    Swal.fire('Success', result.message, 'success');
+                } else {
+                    Swal.fire('Error', result.message, 'error');
+                }
             } catch (error) {
                 Swal.fire('Error', 'Failed to update address', 'error');
             }

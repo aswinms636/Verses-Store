@@ -51,8 +51,10 @@ router.get('/productDetails/:id',shopController.loadProductDetails);
 
 router.get('/profile',checkSession,profileController.loadProfilePage);
 router.post('/edit-profile',profileController.editProfile);
-router.post('/addAddress',addressController.addAddress)
 
-router.get('/myAddress',addressController.loadAddresses);
+
+router.get('/myAddress',checkSession,addressController.loadAddresses);
+router.post('/addAddress',addressController.addAddress)
+router.post('/editAddress',addressController.updateAddress)
 
 module.exports = router;
