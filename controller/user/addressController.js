@@ -1,106 +1,136 @@
-    const Address = require('../../models/addressSchema'); // Adjust the path as necessary
+const Address = require('../../models/addressSchema');
+const User = require('../../models/userSchema');
 
 
-    // Controller to add a new address
-    async function addAddress(req, res) {
-        try {
-            const { addressType, name, city, landMark, state, pincode, phone, altPhone } = req.body;
-            const userId = req.session.user._id;
-
-            console.log(landMark)
-
-            // Validate input data
-            if (!addressType || !name || !city || !landMark || !state || !pincode || !phone || !altPhone) {
-                return res.status(400).json({ success: false, message: 'All fields are required' });
-            }
 
 
-            console.log(addressType, name, city, landMark, state, pincode, phone, altPhone );
-            
+const getAddresses = async (req,res)=>{
+    try {
+        console.log(req.session.user);
+        const userId = req.session.user._id;
+      
+        const addresses = await Address.find({ userId });
+        console.log(addresses);
+        
 
-            const newAddress = {
-                addressType,
-                name,
-                city,
-                landMark,
-                state,
-                pincode,
-                phone,
-                altPhone
-            };
+        res.render('myAddress',{
+            addresses: addresses,
+        })
 
-            let addressDoc = await Address.findOne({ userId });
-            console.log(   "jhggg",addressDoc)
-
-            if (addressDoc) {
-                // If address document exists, push the new address to the array
-                addressDoc.address.push(newAddress);
-                console.log(addressDoc.address)
-            } else {
-                // If address document does not exist, create a new one
-                addressDoc = new Address({
-                    userId,
-                    address: [newAddress]
-                });
-                console.log("...................",   addressDoc.address)
-            }
-
-            await addressDoc.save();
-            res.json({ success: true, message: 'Address added successfully!' });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ success: false, message: 'Error adding address' });
-        }
+    } catch (error) {
+        
     }
+};
 
-    // Controller to update an existing address
-    async function updateAddress(req, res) {
-        try {
-            const { userId, addressId, addressType, name, city, landMark, state, pincode, phone, altPhone ,country } = req.body;
 
-            // Validate input data
-            if (!addressType || !name || !city || !landMark || !state || !pincode || !phone || !altPhone || country) {
-                return res.status(400).json({ success: false, message: 'All fields are required' });
-            }
 
-            const addressDoc = await Address.findOne({ userId });
-            if (!addressDoc) {
-                return res.status(404).json({ success: false, message: 'Address not found' });
-            }
+const addAddress = async (req, res) =>{
+    try {
+        console.log( req.session.user);
+        
+        const userId = req.session.user._id;
 
-            const addr = addressDoc.address.id(addressId);
-            if (!addr) {
-                return res.status(404).json({ success: false, message: 'Address not found' });
-            }
+        console.log(userId)
 
-            addr.addressType = addressType;
-            addr.name = name;
-            addr.city = city;
-            addr.landMark = landMark;
-            addr.country=country
-            addr.state = state;
-            addr.pincode = pincode;
-            addr.phone = phone;
-            addr.altPhone = altPhone;
-
-            await addressDoc.save();
-            res.json({ success: true, message: 'Address updated successfully!' });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ success: false, message: 'Error updating address' });
+        if (!userId) {
+            return res.json({ success: false, message: "User not authenticated" });
         }
-    }
+        console.log(req.body);
+        
+        
+        const {fullname,phone,street,city,landmark,state,zipCode} = req.body;
 
-    // Controller to load addresses for a user
-    async function loadAddresses(req, res) {
-        try {
-            const userId = req.session.user._id;
-            const addresses = await Address.findOne({ userId }).populate('address');
-            res.render('myAddress', { addresses: addresses ? addresses.address : [] });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ success: false, message: 'Error loading addresses' });
-        }
-    }
+        console.log(req.body);
+        
 
-    module.exports = { addAddress, updateAddress, loadAddresses };
+          console.log("2");
+          
+        const  newAddress = new Address({
+            userId:userId,
+            address:[
+
+                {fullname:fullname,
+                phone:phone,
+                street:street,
+                city:city,
+                landmark:landmark,
+                state:state,
+                zipCode:zipCode,
+                
+            }
+            ]
+
+        });
+        
+        
+
+        await newAddress.save();
+        console.log("22");
+        console.log(newAddress);
+        
+
+        
+        res.json({success: true , message: "Address added successfully"});
+
+    } catch (error) {
+        console.error("error adding adress", error);
+        res.json({success : false, message : "internal server error"});
+        
+    }
+};
+
+const editAddress = async (req, res) => {
+    try {
+      const { id, fullname, city, street, landmark, state, zipCode, phone } = req.body;
+
+      console.log('req.body-====================',req.body)
+  
+      
+      const addressDoc = await Address.findOne({ "address._id": id });
+
+      console.log(addressDoc)
+  
+      if (!addressDoc) {
+        return res.status(404).json({ success: false, message: "Address not found." });
+      }
+  
+     
+      const addressToUpdate = addressDoc.address.id(id);
+
+      console.log('-------',addressToUpdate)
+  
+      if (!addressToUpdate) {
+        return res.status(404).json({ success: false, message: "Address not found." });
+      }
+  
+      
+      addressToUpdate.fullname = fullname;
+      addressToUpdate.city = city;
+      addressToUpdate.street = street;
+      addressToUpdate.landmark = landmark;
+      addressToUpdate.state = state;
+      addressToUpdate.zipCode = zipCode;
+      addressToUpdate.phone = phone;
+  
+      
+      await addressDoc.save();
+
+
+      console.log("-------------------------------");
+      
+  
+      res.status(200).json({ success: true, message: "Address updated successfully!" });
+    } catch (error) {
+      console.error("Error updating address:", error);
+      res.status(500).json({ success: false, message: "Failed to update address." });
+    }
+  };
+  
+
+
+
+module.exports = {
+    getAddresses,
+    addAddress,
+    editAddress,
+}

@@ -1,734 +1,376 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Addresses</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+  <title>My Address</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
 
-        /* Layout styles */
-        .main-container {
-            display: flex;
-        }
-
-        /* Content area styles - this will be on the right side */
-        .content-area {
-            flex: 1;
-            padding-left: 15px;
-            padding-right: 15px;
-        }
-
-        /* Address Card Styles */
-        .address-card {
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s, box-shadow 0.2s;
-            position: relative;
-            overflow: hidden;
-            border: none;
-        }
-
-        .address-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-        }
-
-        .default-badge {
-            position: absolute;
-            top: 0;
-            right: 0;
-            background-color: #0d6efd;
-            color: white;
-            padding: 4px 10px;
-            font-size: 0.75rem;
-            border-radius: 0 0 0 8px;
-        }
-
-        .card-actions {
-            position: absolute;
-            right: 15px;
-            bottom: 15px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .action-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            cursor: pointer;
-            transition: transform 0.1s;
-        }
-
-        .action-btn:hover {
-            transform: scale(1.1);
-        }
-
-        .btn-edit {
-            background-color: #17a2b8;
-        }
-
-        .btn-delete {
-            background-color: #dc3545;
-        }
-
-        .address-icon {
-            background-color: #f1f5ff;
-            width: 50px;
-            height: 50px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #0d6efd;
-            margin-right: 15px;
-            font-size: 1.5rem;
-        }
-
-        .add-address-card {
-            border: 2px dashed #ced4da;
-            border-radius: 10px;
-            height: 100%;
-            min-height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .add-address-card:hover {
-            border-color: #0d6efd;
-            background-color: #f1f5ff;
-        }
-
-        .add-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background-color: #e9ecef;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #0d6efd;
-            font-size: 1.8rem;
-            margin-bottom: 10px;
-        }
-
-        .modal-header {
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #eaeaea;
-        }
-
-        .modal-footer {
-            border-top: 1px solid #eaeaea;
-        }
-
-        .form-switch .form-check-input {
-            width: 3em;
-        }
-
-        .page-title {
-            border-left: 4px solid #0d6efd;
-            padding-left: 15px;
-        }
-
-        /* Animation for cards */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .address-item {
-            animation: fadeIn 0.4s ease-out forwards;
-        }
-
-        .form-floating > label {
-            padding-left: 15px;
-        }
-
-        .modal-content {
-            border-radius: 15px;
-            border: none;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-    </style>
+    body {
+      background-color: #f8f9fa;
+      display: flex;
+      font-family: 'Poppins', sans-serif;
+    }
+    .sidebar {
+      width: 260px;
+      height: 100vh;
+      background: #ffffff;
+      padding: 20px;
+      box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.1);
+      position: fixed;
+      border-radius: 10px 0 0 10px;
+    }
+    .sidebar h2 {
+      font-size: 1.6em;
+      color: #333;
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: 600;
+      border-bottom: 2px solid #e0e0e0;
+      padding-bottom: 10px;
+    }
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+    }
+    .sidebar ul li {
+      margin: 15px 0;
+    }
+    .sidebar ul li a {
+      text-decoration: none;
+      color: #333;
+      font-size: 1em;
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border-radius: 8px;
+      transition: all 0.3s ease-in-out;
+      background: #f1f1f1;
+      box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.08);
+    }
+    .sidebar ul li a:hover {
+      background: #007bff;
+      color: #ffffff;
+      transform: translateX(5px);
+    }
+    .sidebar ul li a .icon {
+      margin-right: 12px;
+      font-size: 1.2em;
+      color: #007bff;
+      transition: color 0.3s ease;
+    }
+    .sidebar ul li a:hover .icon {
+      color: #ffffff;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      padding-top: 30px;
+      margin-left: 280px;
+    }
+    h2 {
+      text-align: center;
+      font-weight: 600;
+      color: #333;
+    }
+    #addAddressBtn {
+      display: block;
+      margin: 20px auto;
+      background-color: white;
+      color: black;
+      border: 2px solid black;
+      transition: 0.3s;
+      font-weight: 600;
+    }
+    #addAddressBtn:hover {
+      background-color: black;
+      color: white;
+    }
+    .card {
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 2px 2px 15px rgba(0, 0, 0, 0.1);
+      background: white;
+      margin-bottom: 20px;
+    }
+    .card-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+    .btn-edit {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+    }
+    .btn-delete {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+    }
+    .modal-content {
+      border-radius: 10px;
+    }
+    .modal-header {
+      background: black;
+      color: white;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+    }
+    .modal-footer button {
+      background: black;
+      color: white;
+    }
+    .form-control {
+      border-radius: 5px;
+    }
+  </style>
 </head>
 <body>
-    <div class="main-container">
-        <!-- Sidebar - included via EJS partials -->
-        <%- include('../../views/partials/user/sidebar') %>
 
-        <!-- Content area for address management -->
-        <div class="content-area py-5">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="page-title">My Addresses</h1>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAddressModal">
-                    <i class="fas fa-plus me-2"></i>Add New Address
-                </button>
+    <%- include('../../views/partials/user/sidebar') %>
+
+<div class="container">
+  <h2>My Addresses</h2>
+
+  <button id="addAddressBtn" class="btn">Add Address</button>
+
+  <div id="addressList" class="mt-3">
+    <% if (addresses.length > 0) { %>
+      <% addresses.forEach(userAddress => { %>
+        <% userAddress.address.forEach(addr => { %>
+          <div class="card" data-id="<%= addr.id %>" data-fullname="<%= addr.fullname %>" data-phone="<%= addr.phone %>" data-street="<%= addr.street %>" data-city="<%= addr.city %>" data-landmark="<%= addr.landmark %>" data-state="<%= addr.state %>" data-zipcode="<%= addr.zipCode %>">
+            <p><strong>Full Name:</strong> <%= addr.fullname %></p>
+            <p><strong>Phone:</strong> <%= addr.phone %></p>
+            <p><strong>Street:</strong> <%= addr.street %></p>
+            <p><strong>City:</strong> <%= addr.city %></p>
+            <p><strong>State:</strong> <%= addr.state %></p>
+            <p><strong>Zip Code:</strong> <%= addr.zipCode %></p>
+            <div class="card-buttons">
+              <button class="btn-edit">Edit</button>
+              <button class="btn-delete">Delete</button>
             </div>
+          </div>
+        <% }) %>
+      <% }); %>
+    <% } else { %>
+      <p class="text-center mt-3">No addresses found.</p>
+    <% } %>
+  </div>
+</div>
 
-            <div class="row g-4" id="addressContainer">
-                <!-- Address cards will be dynamically added here -->
-                <% addresses.forEach((address, index) => { %>
-                    <div class="col-lg-4 col-md-6 address-item">
-                        <div class="card address-card mb-3">
-                            <% if (address.isDefault) { %>
-                                <div class="default-badge">Default</div>
-                            <% } %>
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="address-icon">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                    </div>
-                                    <div>
-                                        <h5 class="card-title mb-0"><%= address.name %></h5>
-                                    </div>
-                                </div>
-                                <p class="card-text"><%= address.landMark %><br>
-                                <%= address.city %>, <%= address.state %> <%= address.pincode %><br>
-
-                                <p class="card-text"><strong>Phone:</strong> <%= address.phone %><br>
-                                <strong>Alt Phone:</strong> <%= address.altPhone %></p>
-
-                                <div class="card-actions">
-                                    <button data-id="<%= address.id %>" class="btn-edit"><span class="action-btn btn-edit">
-                                        <i class="fas fa-pencil-alt"></i>
-                                    </span></button>
-                                    <button data-id="<%= address.id %>" class="btn-delete"><span class="action-btn btn-delete">
-                                        <i class="fas fa-trash"></i>
-                                    </span></button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                <% }) %>
-            </div>
-        </div>
+<!-- Add Address Modal -->
+<div id="addAddressModal" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Address</h5>
+        <button type="button" class="close" data-dismiss="modal">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="addressForm">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" class="form-control" id="fullName">
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="text" class="form-control" id="phone">
+          </div>
+          <div class="form-group">
+            <label>Street</label>
+            <input type="text" class="form-control" id="street">
+          </div>
+          <div class="form-group">
+            <label>City</label>
+            <input type="text" class="form-control" id="city">
+          </div>
+          <div class="form-group">
+            <label>Landmark</label>
+            <input type="text" class="form-control" id="landmark">
+          </div>
+          <div class="form-group">
+            <label>State</label>
+            <input type="text" class="form-control" id="state">
+          </div>
+          <div class="form-group">
+            <label>Zip Code</label>
+            <input type="text" class="form-control" id="zipCode">
+          </div>
+          <button type="submit" class="btn btn-success btn-block">Save Address</button>
+        </form>
+      </div>
     </div>
+  </div>
+</div>
 
-    <!-- Add Address Modal -->
-    <div class="modal fade" id="addAddressModal" tabindex="-1" aria-labelledby="addAddressModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addAddressModalLabel">Add New Address</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="addAddressForm">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="addName" placeholder="Home, Work, etc.">
-                                    <label for="addName">Address Name</label>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="addStreet" placeholder="Street address">
-                                    <label for="addStreet">Street Address</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="addCity" placeholder="City">
-                                    <label for="addCity">City</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="addState" placeholder="State/Province">
-                                    <label for="addState">State/Province</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="addZip" placeholder="ZIP/Postal Code">
-                                    <label for="addZip">Zip/Postal Code</label>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="addPhone" placeholder="Phone Number">
-                                    <label for="addPhone">Phone Number</label>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="addAltPhone" placeholder="Alternate Phone Number">
-                                    <label for="addAltPhone">Alternate Phone Number</label>
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <div class="form-check form-switch mt-2">
-                                    <input class="form-check-input" type="checkbox" id="addDefault">
-                                    <label class="form-check-label" for="addDefault">Set as default address</label>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="saveAddressBtn">Save Address</button>
-                </div>
-            </div>
-        </div>
+<!-- Edit Address Modal -->
+<div id="editAddressModal" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Address</h5>
+        <button type="button" class="close" data-dismiss="modal">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="editAddressForm">
+          <input type="hidden" id="editAddressId">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" class="form-control" id="editFullName">
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="text" class="form-control" id="editPhone">
+          </div>
+          <div class="form-group">
+            <label>Street</label>
+            <input type="text" class="form-control" id="editStreet">
+          </div>
+          <div class="form-group">
+            <label>City</label>
+            <input type="text" class="form-control" id="editCity">
+          </div>
+          <div class="form-group">
+            <label>Landmark</label>
+            <input type="text" class="form-control" id="editLandmark">
+          </div>
+          <div class="form-group">
+            <label>State</label>
+            <input type="text" class="form-control" id="editState">
+          </div>
+          <div class="form-group">
+            <label>Zip Code</label>
+            <input type="text" class="form-control" id="editZipCode">
+          </div>
+          <button type="submit" class="btn btn-success btn-block">Update Address</button>
+        </form>
+      </div>
     </div>
+  </div>
+</div>
 
-    <!-- Edit Address Modal -->
-    <div class="modal fade" id="editAddressModal" tabindex="-1" aria-labelledby="editAddressModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editAddressModalLabel">Edit Address</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="editAddressForm">
-                        <input type="hidden" id="editId">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="editName" placeholder="Home, Work, etc.">
-                                    <label for="editName">Address Name</label>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="editStreet" placeholder="Street address">
-                                    <label for="editStreet">Street Address</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="editCity" placeholder="City">
-                                    <label for="editCity">City</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="editState" placeholder="State/Province">
-                                    <label for="editState">State/Province</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="editZip" placeholder="ZIP/Postal Code">
-                                    <label for="editZip">Zip/Postal Code</label>
-                                </div>
-                            </div>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+  
+  document.getElementById('addAddressBtn').addEventListener('click', function () {
+    $('#addAddressModal').modal('show');
+  });
 
-                            <div class="col-md-6">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="editPhone" placeholder="Phone Number">
-                                    <label for="editPhone">Phone Number</label>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="editAltPhone" placeholder="Alternate Phone Number">
-                                    <label for="editAltPhone">Alternate Phone Number</label>
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <div class="form-check form-switch mt-2">
-                                    <input class="form-check-input" type="checkbox" id="editDefault">
-                                    <label class="form-check-label" for="editDefault">Set as default address</label>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="updateAddressBtn">Update Address</button>
-                </div>
-            </div>
-        </div>
-    </div>
+  
+  document.getElementById('addressForm').addEventListener('submit', async function (event) {
+    event.preventDefault();
 
-    <!-- Delete Confirmation Modal -->
-    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to delete this address?</p>
-                    <p id="deleteAddressInfo" class="text-muted"></p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    const addressData = {
+      fullname: document.getElementById('fullName').value,
+      phone: document.getElementById('phone').value,
+      street: document.getElementById('street').value,
+      city: document.getElementById('city').value,
+      landmark: document.getElementById('landmark').value,
+      state: document.getElementById('state').value,
+      zipCode: document.getElementById('zipCode').value
+    };
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Sample initial data
-        const addresses = <%- JSON.stringify(addresses) %>;
+    try {
+      const response = await fetch('/add-address', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(addressData)
+      });
+      const result = await response.json();
 
-        // Next ID for new addresses
-        let nextId = addresses.length > 0 ? Math.max(...addresses.map(addr => addr.id)) + 1 : 1;
+      if (result.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Address added successfully!'
+        }).then(() => {
+          location.reload();
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: result.message || 'Failed to add address!'
+        });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  });
 
-        // Current address ID for delete operation
-        let currentDeleteId = null;
+  // Edit Address Modal
+  document.addEventListener('DOMContentLoaded', function () {
+    const editButtons = document.querySelectorAll('.btn-edit');
 
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', function() {
-            // Load and display addresses
-            renderAddresses();
+    editButtons.forEach(button => {
+      button.addEventListener('click', function () {
+        const card = button.closest('.card');
+        document.getElementById('editAddressId').value = card.getAttribute('data-id');
+        document.getElementById('editFullName').value = card.getAttribute('data-fullname');
+        document.getElementById('editPhone').value = card.getAttribute('data-phone');
+        document.getElementById('editStreet').value = card.getAttribute('data-street');
+        document.getElementById('editCity').value = card.getAttribute('data-city');
+        document.getElementById('editLandmark').value = card.getAttribute('data-landmark');
+        document.getElementById('editState').value = card.getAttribute('data-state');
+        document.getElementById('editZipCode').value = card.getAttribute('data-zipcode');
 
-            // Event listeners for add/edit/delete operations
-            document.getElementById('saveAddressBtn').addEventListener('click', addAddress);
-            document.getElementById('updateAddressBtn').addEventListener('click', updateAddress);
-            document.getElementById('confirmDeleteBtn').addEventListener('click', deleteAddress);
+        $('#editAddressModal').modal('show');
+      });
+    });
 
-            // Initialize Bootstrap modals
-            const addModal = new bootstrap.Modal(document.getElementById('addAddressModal'));
-            const editModal = new bootstrap.Modal(document.getElementById('editAddressModal'));
-            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    
+    document.getElementById('editAddressForm').addEventListener('submit', async function (event) {
+      event.preventDefault();
 
-            // Clean forms when modals are closed
-            document.getElementById('addAddressModal').addEventListener('hidden.bs.modal', function () {
-                document.getElementById('addAddressForm').reset();
-            });
+      const addressData = {
+        fullname: document.getElementById('editFullName').value,
+        phone: document.getElementById('editPhone').value,
+        street: document.getElementById('editStreet').value,
+        city: document.getElementById('editCity').value,
+        state: document.getElementById('editState').value,
+        zipCode: document.getElementById('editZipCode').value,
+        landmark: document.getElementById('editLandmark').value, 
+      };
 
-            document.getElementById('editAddressModal').addEventListener('hidden.bs.modal', function () {
-                document.getElementById('editAddressForm').reset();
-            });
+      try {
+        const response = await fetch('/edit-address', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(addressData)
         });
 
-        // Render all addresses
-        function renderAddresses() {
-            const container = document.getElementById('addressContainer');
-            container.innerHTML = '';
+        console.log(addressData);
+        
+        const result = await response.json();
 
-            // Add each address card
-            addresses.forEach((address, index) => {
-                setTimeout(() => {
-                    container.innerHTML += createAddressCard(address);
-                }, index * 100); // Staggered animation
-            });
-
-            // Add the "Add New Address" card
-            setTimeout(() => {
-                container.innerHTML += `
-                    <div class="col-lg-4 col-md-6 address-item">
-                        <div class="add-address-card" data-bs-toggle="modal" data-bs-target="#addAddressModal">
-                            <div class="add-icon">
-                                <i class="fas fa-plus"></i>
-                            </div>
-                            <p class="text-center mb-0">Add New Address</p>
-                        </div>
-                    </div>
-                `;
-
-                // Add event listeners for edit and delete buttons
-                document.querySelectorAll('.btn-edit').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        openEditModal(parseInt(this.getAttribute('data-id')));
-                    });
-                });
-
-                document.querySelectorAll('.btn-delete').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        openDeleteModal(parseInt(this.getAttribute('data-id')));
-                    });
-                });
-            }, addresses.length * 100);
+        if (result.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'Address updated successfully!'
+          }).then(() => {
+            location.reload();
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: result.message || 'Failed to update address!'
+          });
         }
-
-        // Create HTML for an address card
-        function createAddressCard(address) {
-            return `
-                <div class="col-lg-4 col-md-6 address-item">
-                    <div class="card address-card mb-3">
-                        ${address.isDefault ? '<div class="default-badge">Default</div>' : ''}
-                        <div class="card-body">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="address-icon">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                </div>
-                                <div>
-                                    <h5 class="card-title mb-0">${address.name}</h5>
-                                </div>
-                            </div>
-                            <p class="card-text">${address.landMark}<br>
-                            ${address.city}, ${address.state} ${address.pincode}<br>
-                            ${address.country}</p>
-                            <p class="card-text"><strong>Phone:</strong> ${address.phone}<br>
-                            <strong>Alt Phone:</strong> ${address.altPhone}</p>
-
-                            <div class="card-actions">
-                                <button data-id="${address.id}" class="btn-edit"><span class="action-btn btn-edit">
-                                    <i class="fas fa-pencil-alt"></i>
-                                </span></button>
-                                <button data-id="${address.id}" class="btn-delete"><span class="action-btn btn-delete">
-                                    <i class="fas fa-trash"></i>
-                                </span></button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Add a new address
-        async function addAddress() {
-            const name = document.getElementById('addName').value;
-            const street = document.getElementById('addStreet').value;
-            const city = document.getElementById('addCity').value;
-            const state = document.getElementById('addState').value;
-            const zipCode = document.getElementById('addZip').value;
-
-            const phone = document.getElementById('addPhone').value;
-            const altPhone = document.getElementById('addAltPhone').value;
-            const isDefault = document.getElementById('addDefault').checked;
-
-            // Validate inputs
-            if (!name || !street || !city || !state || !zipCode || !phone || !altPhone) {
-                Swal.fire('Error', 'Please fill in all required fields', 'error');
-                return;
-            }
-
-            // Create new address object
-            const newAddress = {
-                addressType: 'Home', // You can dynamically set this based on user input
-                name,
-                city,
-                landMark: street, // Assuming street is the landmark
-                state,
-                pincode: zipCode,
-                phone,
-                altPhone
-            };
-
-            try {
-                // Send POST request to the backend
-                const response = await fetch('/addAddress', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(newAddress)
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    // Update other addresses if this one is set as default
-
-                    Swal.fire('Success', result.message, 'success');
-
-                    if (isDefault) {
-                        addresses.forEach(address => {
-                            address.isDefault = false;
-                        });
-                    }
-
-                    // Add to addresses array
-                    addresses.push({
-                        id: nextId++,
-                        name,
-                        street,
-                        city,
-                        state,
-                        zipCode,
-                        phone,
-                        altPhone,
-                        isDefault
-                    });
-
-                    // Rerender addresses
-                    renderAddresses();
-
-                    // Close modal
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('addAddressModal'));
-                    modal.hide();
-
-                    // Show success message
-
-                } else {
-                    Swal.fire('Error', result.message, 'error');
-                }
-            } catch (error) {
-                Swal.fire('Error', 'Failed to add address', 'error');
-            }
-        }
-
-        // Open edit modal with address data
-        function openEditModal(id) {
-            const address = addresses.find(addr => addr.id === id);
-            if (!address) return;
-
-            document.getElementById('editId').value = address.id;
-            document.getElementById('editName').value = address.name;
-            document.getElementById('editStreet').value = address.street;
-            document.getElementById('editCity').value = address.city;
-            document.getElementById('editState').value = address.state;
-            document.getElementById('editZip').value = address.zipCode;
-            document.getElementById('editPhone').value = address.phone;
-            document.getElementById('editAltPhone').value = address.altPhone;
-            document.getElementById('editDefault').checked = address.isDefault;
-
-            const modal = new bootstrap.Modal(document.getElementById('editAddressModal'));
-            modal.show();
-        }
-
-        // Update an existing address
-        async function updateAddress() {
-            const id = parseInt(document.getElementById('editId').value);
-            const name = document.getElementById('editName').value;
-            const street = document.getElementById('editStreet').value;
-            const city = document.getElementById('editCity').value;
-            const state = document.getElementById('editState').value;
-            const zipCode = document.getElementById('editZip').value;
-
-            const phone = document.getElementById('editPhone').value;
-            const altPhone = document.getElementById('editAltPhone').value;
-            const isDefault = document.getElementById('editDefault').checked;
-
-            // Validate inputs
-            if (!name || !street || !city || !state || !zipCode ||  !phone || !altPhone) {
-                Swal.fire('Error', 'Please fill in all required fields', 'error');
-                return;
-            }
-
-            // Find address index
-            const index = addresses.findIndex(addr => addr.id === id);
-            if (index === -1) return;
-
-            // Update other addresses if this one is set as default
-            if (isDefault) {
-                addresses.forEach(address => {
-                    address.isDefault = false;
-                });
-            }
-
-            // Update address
-            const updatedAddress = {
-                userId: 'user_id_here', // Replace with actual user ID
-                addressId: id,
-                addressType: 'Home', // You can dynamically set this based on user input
-                name,
-                city,
-                landMark: street, // Assuming street is the landmark
-                state,
-                pincode: zipCode,
-                phone,
-                altPhone,
-                isDefault
-            };
-
-            try {
-                // Send PUT request to the backend
-                const response = await fetch('/editAddress', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(updatedAddress)
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    // Update addresses array
-                    addresses[index] = {
-                        id,
-                        name,
-                        street,
-                        city,
-                        state,
-                        zipCode,
-                        phone,
-                        altPhone,
-                        isDefault
-                    };
-
-                    // Rerender addresses
-                    renderAddresses();
-
-                    // Close modal
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('editAddressModal'));
-                    modal.hide();
-
-                    // Show success message
-                    Swal.fire('Success', result.message, 'success');
-                } else {
-                    Swal.fire('Error', result.message, 'error');
-                }
-            } catch (error) {
-                Swal.fire('Error', 'Failed to update address', 'error');
-            }
-        }
-
-        // Open delete confirmation modal
-        function openDeleteModal(id) {
-            const address = addresses.find(addr => addr.id === id);
-            if (!address) return;
-
-            currentDeleteId = id;
-
-            // Set address info in the modal
-            document.getElementById('deleteAddressInfo').textContent =
-                `${address.name}: ${address.street}, ${address.city}, ${address.state} ${address.zipCode}`;
-
-            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            modal.show();
-        }
-
-        // Delete an address
-        async function deleteAddress() {
-            // Check if trying to delete default address
-            const address = addresses.find(addr => addr.id === currentDeleteId);
-            if (address && address.isDefault) {
-                Swal.fire('Error', 'You cannot delete your default address. Please set another address as default first.', 'error');
-                return;
-            }
-
-            try {
-                // Simulate API call
-                await fetch(`/api/addresses/${currentDeleteId}`, {
-                    method: 'DELETE'
-                });
-
-                // Remove address
-                addresses = addresses.filter(addr => addr.id !== currentDeleteId);
-
-                // Rerender addresses
-                renderAddresses();
-
-                // Close modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
-                modal.hide();
-
-                // Show success message
-                Swal.fire('Success', 'Address deleted successfully!', 'success');
-            } catch (error) {
-                Swal.fire('Error', 'Failed to delete address', 'error');
-            }
-        }
-    </script>
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    });
+  });
+</script>
 </body>
 </html>
