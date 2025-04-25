@@ -214,6 +214,9 @@ const decrementOrRemoveCartItem = async (req, res) => {
         const product = item.productId;
         if (!product) return res.status(404).json({ message: "Product not found" });
 
+
+        console.log('product',product)
+
         
         if (item.quantity > 1) {
             item.quantity -= 1;
