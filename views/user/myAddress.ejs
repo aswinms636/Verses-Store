@@ -199,7 +199,7 @@
                                 </div>
                                 <p class="card-text"><%= address.landMark %><br>
                                 <%= address.city %>, <%= address.state %> <%= address.pincode %><br>
-                                <%= address.country %></p>
+                                
                                 <p class="card-text"><strong>Phone:</strong> <%= address.phone %><br>
                                 <strong>Alt Phone:</strong> <%= address.altPhone %></p>
 
@@ -260,12 +260,7 @@
                                     <label for="addZip">Zip/Postal Code</label>
                                 </div>
                             </div>
-                            <div class="col-12">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="addCountry" placeholder="Country">
-                                    <label for="addCountry">Country</label>
-                                </div>
-                            </div>
+                           
                             <div class="col-md-6">
                                 <div class="form-floating">
                                     <input type="text" class="form-control" id="addPhone" placeholder="Phone Number">
@@ -337,12 +332,7 @@
                                     <label for="editZip">Zip/Postal Code</label>
                                 </div>
                             </div>
-                            <div class="col-12">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control" id="editCountry" placeholder="Country">
-                                    <label for="editCountry">Country</label>
-                                </div>
-                            </div>
+                            
                             <div class="col-md-6">
                                 <div class="form-floating">
                                     <input type="text" class="form-control" id="editPhone" placeholder="Phone Number">
@@ -510,13 +500,13 @@
             const city = document.getElementById('addCity').value;
             const state = document.getElementById('addState').value;
             const zipCode = document.getElementById('addZip').value;
-            const country = document.getElementById('addCountry').value;
+       
             const phone = document.getElementById('addPhone').value;
             const altPhone = document.getElementById('addAltPhone').value;
             const isDefault = document.getElementById('addDefault').checked;
 
             // Validate inputs
-            if (!name || !street || !city || !state || !zipCode || !country || !phone || !altPhone) {
+            if (!name || !street || !city || !state || !zipCode || !phone || !altPhone) {
                 Swal.fire('Error', 'Please fill in all required fields', 'error');
                 return;
             }
@@ -547,6 +537,9 @@
 
                 if (result.success) {
                     // Update other addresses if this one is set as default
+
+                    Swal.fire('Success', result.message, 'success');
+                    
                     if (isDefault) {
                         addresses.forEach(address => {
                             address.isDefault = false;
@@ -560,8 +553,7 @@
                         street,
                         city,
                         state,
-                        zipCode,
-                        country,
+                        zipCode,      
                         phone,
                         altPhone,
                         isDefault
@@ -575,7 +567,7 @@
                     modal.hide();
 
                     // Show success message
-                    Swal.fire('Success', result.message, 'success');
+                   
                 } else {
                     Swal.fire('Error', result.message, 'error');
                 }
@@ -612,13 +604,13 @@
             const city = document.getElementById('editCity').value;
             const state = document.getElementById('editState').value;
             const zipCode = document.getElementById('editZip').value;
-            const country = document.getElementById('editCountry').value;
+           
             const phone = document.getElementById('editPhone').value;
             const altPhone = document.getElementById('editAltPhone').value;
             const isDefault = document.getElementById('editDefault').checked;
 
             // Validate inputs
-            if (!name || !street || !city || !state || !zipCode || !country || !phone || !altPhone) {
+            if (!name || !street || !city || !state || !zipCode ||  !phone || !altPhone) {
                 Swal.fire('Error', 'Please fill in all required fields', 'error');
                 return;
             }
