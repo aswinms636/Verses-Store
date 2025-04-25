@@ -97,7 +97,7 @@ const incrementCartItem = async (req, res) => {
         try {
             console.log('-----------------------------------')
             const { cartItemId } = req.body; 
-            const userId = req.session.user.id; 
+            const userId = req.session.user._id; 
 
             console.log(userId)
     
@@ -108,13 +108,17 @@ const incrementCartItem = async (req, res) => {
             let cart = await Cart.findOne({ userId }).populate('items.productId');
             if (!cart) return res.status(404).json({ message: "Cart not found" });
     
-            
+            console.log('cart',cart)
             const item = cart.items.find(i => i._id.equals(cartItemId));
             if (!item) return res.status(404).json({ message: "Item not found in cart" });
+
+            console.log('item',item)
+            
     
             const product = item.productId;
             if (!product) return res.status(404).json({ message: "Product not found" });
-    
+            
+            console.log("product" ,product)
             
             if (item.quantity + 1 > product.sizes[item.size]) {
                 return res.status(400).json({ message: "Stock limit exceeded" });
@@ -124,6 +128,7 @@ const incrementCartItem = async (req, res) => {
             item.quantity += 1;
             cart.totalPrice = cart.items.reduce((acc, curr) => acc + curr.quantity * curr.price, 0);
     
+            console.log('saving')
             await cart.save();
             res.json({ message: "Quantity updated", cart });
     
@@ -139,7 +144,7 @@ const decrementCartItem = async (req, res) => {
     try {
         console.log('-----------------------------------')
         const { cartItemId } = req.body; 
-        const userId = req.session.user.id; 
+        const userId = req.session.user._id; 
 
         console.log(userId)
 
@@ -150,12 +155,16 @@ const decrementCartItem = async (req, res) => {
         let cart = await Cart.findOne({ userId }).populate('items.productId');
         if (!cart) return res.status(404).json({ message: "Cart not found" });
 
+        console.log("cart",cart)
+
         const item = cart.items.find(i => i._id.equals(cartItemId));
         if (!item) return res.status(404).json({ message: "Item not found in cart" });
 
+        console.log('item',item)
         const product = item.productId;
         if (!product) return res.status(404).json({ message: "Product not found" });
 
+        console.log('product',product)
         
         if (item.quantity <= 1) {
             return res.status(400).json({ message: "Quantity cannot be less than 1" });
@@ -165,6 +174,7 @@ const decrementCartItem = async (req, res) => {
         item.quantity -= 1;
         cart.totalPrice = cart.items.reduce((acc, curr) => acc + curr.quantity * curr.price, 0);
 
+        console.log('saving')
         await cart.save();
         res.json({ message: "Quantity decremented", cart });
 
@@ -184,7 +194,8 @@ const decrementOrRemoveCartItem = async (req, res) => {
     try {
         console.log('-----------------------------------')
         const { cartItemId } = req.body; 
-        const userId = req.session.user.id; 
+        console.log(req.body)
+        const userId = req.session.user._id; 
 
         console.log(userId)
 
@@ -214,6 +225,7 @@ const decrementOrRemoveCartItem = async (req, res) => {
         
         cart.totalPrice = cart.items.reduce((acc, curr) => acc + curr.quantity * curr.price, 0);
 
+        console.log('removed')
         await cart.save();
         res.json({ message: "Cart updated", cart });
 

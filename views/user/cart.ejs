@@ -83,7 +83,7 @@
             <div class="cart-items">
                 <% cart.items.forEach(item => { %>
                     <div class="cart-item">
-                        <img src="<%= item.productId.productImage[0] %>" alt="Product Image" class="cart-item-image">
+                        <img src="/Uploads/product-Images/<%= item.productId.productImage[0] %>" alt="Product Image" class="cart-item-image">
                         <div class="cart-item-details">
                             <h3><%= item.productId.productName %></h3>
                             <p>Size: <%= item.size %></p>
