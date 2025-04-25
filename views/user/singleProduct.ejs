@@ -568,46 +568,30 @@
             selectedSize = size;
         }
 
-        async function addToCart(productId) {
-            if (!selectedSize) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Please select a size',
-                    text: 'You must select a size before adding to cart'
-                });
-                return;
-            }
+        function addToCart(productId) {
+    const selectedSizeBtn = document.querySelector('.size-btn.selected');
+    if (!selectedSizeBtn) {
+        alert("Please select a size.");
+        return;
+    }
 
-            try {
-                const response = await fetch('/addToCart', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        productId,
-                        size: selectedSize
-                    })
-                });
+    
 
-                const data = await response.json();
-                if (data.status) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Added to Cart!',
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Something went wrong!'
-                });
-            }
+    fetch("/cart/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId, size: selectedSize })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert("Product added to cart!");
+        } else {
+            alert(data.message);
         }
+    })
+    .catch(error => console.error("Error:", error));
+}
 
         // Add this to your existing script section
         let isZoomed = false;

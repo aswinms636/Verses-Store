@@ -5,6 +5,7 @@ const { isLogin,checkSession,blockCheck }=require('../middlewares/userAuthentic'
  const shopController=require('../controller/user/shopController');
  const profileController=require('../controller/user/profileController')
  const addressController=require('../controller/user/addressController')
+ const cartController=require('../controller/user/cartController')
 const passport=require('../config/passport')
 
 
@@ -56,5 +57,20 @@ router.post('/edit-profile',profileController.editProfile);
 router.get('/myAddress',checkSession,addressController.loadAddresses);
 router.post('/addAddress',addressController.addAddress)
 router.post('/editAddress',addressController.updateAddress)
+
+
+
+// router.get('/cart',checkSession,cartController.loadCart);
+// router.post('/addToCart',cartController.addToCart);
+
+
+
+router.post("/cart/add", cartController.addToCart);
+router.post("/cart/increment", cartController.incrementCartItem);
+router.post("/cart/decrement", cartController.decrementCartItem);
+router.post("/cart/remove", cartController.decrementOrRemoveCartItem);
+router.get("/cart", cartController.getCart);
+
+
 
 module.exports = router;

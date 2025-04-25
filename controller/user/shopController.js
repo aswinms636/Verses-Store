@@ -19,6 +19,7 @@ const getDefaultPriceRange = async () => {
 
 const loadShopPage = async (req, res) => {
     try {
+        const user=req.session.user
         const sortOption = req.query.sort || "default";
         const category = req.query.category || "";
         const minPrice = Math.max(0, parseInt(req.query.minPrice) || 0); // Prevent negative prices
@@ -103,6 +104,7 @@ const loadShopPage = async (req, res) => {
             error: null,
             currentPage: page,
             totalPages,
+            user
         });
     } catch (error) {
         console.error("Shop page error:", error.message);
@@ -125,12 +127,13 @@ const loadShopPage = async (req, res) => {
 
 const loadProductDetails = async (req, res) => {
     try {
-        const user = req.session.user;
+        const user= req.session.user;
+        console.log(user)
         const productId = req.params.id;
         const product = await Product.findById(productId).populate("category", "name");
 
         if (!product || product.isBlocked) {
-            return res.status(404).render("productDetails", {
+            return res.status(404).render("singleProduct", {
                 user,
                 error: "Product not found or unavailable",
             });
@@ -143,10 +146,7 @@ const loadProductDetails = async (req, res) => {
         });
     } catch (error) {
         console.error("Product details error:", error.message);
-        res.status(500).render("productDetails", {
-            user: req.session.user,
-            error: "Failed to load product details",
-        });
+        
     }
 };
 

@@ -199,17 +199,17 @@
                                 </div>
                                 <p class="card-text"><%= address.landMark %><br>
                                 <%= address.city %>, <%= address.state %> <%= address.pincode %><br>
-                                
+
                                 <p class="card-text"><strong>Phone:</strong> <%= address.phone %><br>
                                 <strong>Alt Phone:</strong> <%= address.altPhone %></p>
 
                                 <div class="card-actions">
-                                    <span class="action-btn btn-edit" data-id="<%= address.id %>">
+                                    <button data-id="<%= address.id %>" class="btn-edit"><span class="action-btn btn-edit">
                                         <i class="fas fa-pencil-alt"></i>
-                                    </span>
-                                    <span class="action-btn btn-delete" data-id="<%= address.id %>">
+                                    </span></button>
+                                    <button data-id="<%= address.id %>" class="btn-delete"><span class="action-btn btn-delete">
                                         <i class="fas fa-trash"></i>
-                                    </span>
+                                    </span></button>
                                 </div>
                             </div>
                         </div>
@@ -260,7 +260,7 @@
                                     <label for="addZip">Zip/Postal Code</label>
                                 </div>
                             </div>
-                           
+
                             <div class="col-md-6">
                                 <div class="form-floating">
                                     <input type="text" class="form-control" id="addPhone" placeholder="Phone Number">
@@ -332,7 +332,7 @@
                                     <label for="editZip">Zip/Postal Code</label>
                                 </div>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <div class="form-floating">
                                     <input type="text" class="form-control" id="editPhone" placeholder="Phone Number">
@@ -480,12 +480,12 @@
                             <strong>Alt Phone:</strong> ${address.altPhone}</p>
 
                             <div class="card-actions">
-                                <span class="action-btn btn-edit" data-id="${address.id}">
+                                <button data-id="${address.id}" class="btn-edit"><span class="action-btn btn-edit">
                                     <i class="fas fa-pencil-alt"></i>
-                                </span>
-                                <span class="action-btn btn-delete" data-id="${address.id}">
+                                </span></button>
+                                <button data-id="${address.id}" class="btn-delete"><span class="action-btn btn-delete">
                                     <i class="fas fa-trash"></i>
-                                </span>
+                                </span></button>
                             </div>
                         </div>
                     </div>
@@ -500,7 +500,7 @@
             const city = document.getElementById('addCity').value;
             const state = document.getElementById('addState').value;
             const zipCode = document.getElementById('addZip').value;
-       
+
             const phone = document.getElementById('addPhone').value;
             const altPhone = document.getElementById('addAltPhone').value;
             const isDefault = document.getElementById('addDefault').checked;
@@ -539,7 +539,7 @@
                     // Update other addresses if this one is set as default
 
                     Swal.fire('Success', result.message, 'success');
-                    
+
                     if (isDefault) {
                         addresses.forEach(address => {
                             address.isDefault = false;
@@ -553,7 +553,7 @@
                         street,
                         city,
                         state,
-                        zipCode,      
+                        zipCode,
                         phone,
                         altPhone,
                         isDefault
@@ -567,7 +567,7 @@
                     modal.hide();
 
                     // Show success message
-                   
+
                 } else {
                     Swal.fire('Error', result.message, 'error');
                 }
@@ -587,7 +587,6 @@
             document.getElementById('editCity').value = address.city;
             document.getElementById('editState').value = address.state;
             document.getElementById('editZip').value = address.zipCode;
-            document.getElementById('editCountry').value = address.country;
             document.getElementById('editPhone').value = address.phone;
             document.getElementById('editAltPhone').value = address.altPhone;
             document.getElementById('editDefault').checked = address.isDefault;
@@ -604,7 +603,7 @@
             const city = document.getElementById('editCity').value;
             const state = document.getElementById('editState').value;
             const zipCode = document.getElementById('editZip').value;
-           
+
             const phone = document.getElementById('editPhone').value;
             const altPhone = document.getElementById('editAltPhone').value;
             const isDefault = document.getElementById('editDefault').checked;
@@ -662,7 +661,6 @@
                         city,
                         state,
                         zipCode,
-                        country,
                         phone,
                         altPhone,
                         isDefault
