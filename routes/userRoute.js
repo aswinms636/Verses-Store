@@ -7,6 +7,7 @@ const { isLogin,checkSession,blockCheck }=require('../middlewares/userAuthentic'
  const addressController=require('../controller/user/addressController')
  const cartController=require('../controller/user/cartController')
  const checkoutController=require('../controller/user/checkoutController')
+ const orderController=require('../controller/user/orderController')
 const passport=require('../config/passport')
 
 
@@ -80,6 +81,11 @@ router.post("/order/place", checkoutController.placeOrder);
 router.post("/address/add",checkoutController.addAddress);
 router.post("/place",checkoutController.placedOrder);
 router.get("/order/view/:orderId",checkoutController.viewOrder);
+
+
+
+
+router.get('/orders',checkSession,orderController.getUserOrders);
 
 
 
