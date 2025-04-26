@@ -13,7 +13,7 @@ const getCheckoutPage = async (req, res) => {
             return res.redirect("/signin"); 
         }
 
-        const userId = req.session.user.id;
+        const userId = req.session.user._id;
 
        
         const cart = await Cart.findOne({ userId }).populate("items.productId");
@@ -67,7 +67,7 @@ const getCheckoutPage = async (req, res) => {
 const placeOrder = async (req, res) => {
     try {
         const { addressId, payment } = req.body;
-        const userId = req.session.user.id;
+        const userId = req.session.user._id;
 
         if (!addressId || !payment) return res.status(400).json({ success: false, message: "Select an address and payment method" });
 
@@ -102,7 +102,7 @@ const placeOrder = async (req, res) => {
 
 const addAddress = async (req, res) => {
     try {
-        const userId = req.session.user.id;
+        const userId = req.session.user._id;
 
         console.log(userId);
         
@@ -171,7 +171,7 @@ const placedOrder = async (req, res) => {
 
     try {
         const { addressId, paymentMethod } = req.body;
-        const userId = req.session.user.id;
+        const userId = req.session.user._id;
 
         if (!userId) {
             return res.status(401).json({ success: false, message: "User not authenticated" });
