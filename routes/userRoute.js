@@ -55,7 +55,7 @@ router.get('/profile',checkSession,profileController.loadProfilePage);
 router.post('/edit-profile',profileController.editProfile);
 
 
-router.get('/my-address',addressController.getAddresses);
+router.get('/my-address', checkSession,addressController.getAddresses);
 router.post('/add-address',addressController.addAddress);
 router.post("/edit-address", addressController.editAddress);
 
