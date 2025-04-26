@@ -79,6 +79,7 @@ router.get("/checkout", checkoutController.getCheckoutPage);
 router.post("/order/place", checkoutController.placeOrder);
 router.post("/address/add",checkoutController.addAddress);
 router.post("/place",checkoutController.placedOrder);
+router.get("/order/view/:orderId",checkoutController.viewOrder);
 
 
 

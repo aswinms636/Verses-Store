@@ -295,7 +295,7 @@ const viewOrder = async (req, res) => {
 
         console.log('Formatted Order:', formattedOrder);
 
-        res.render('orderdetails', {
+        res.render('orderDetails', {
             order: formattedOrder,
             error: null
         });
