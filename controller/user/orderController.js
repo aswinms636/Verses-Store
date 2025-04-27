@@ -54,7 +54,112 @@ const getUserOrders = async (req, res) => {
     }
 };
 
+const viewOrderDetails = async (req, res) => {
+    try {
+        const orderId = req.params.id;
+        const order = await Order.findById(orderId).populate('orderItems.product') .exec();
 
-module.exports={
-    getUserOrders
+        console.log('orderID',orderId)
+
+        if (!order) {
+            return res.status(404).send('Order not found');
+        }
+
+        
+        if (order.userId.toString() !== req.session.user._id.toString()) {
+            return res.status(403).send('Unauthorized');
+        }
+
+        res.render('orderFullDetails', { order });
+    } catch (err) {
+        console.error('Error loading order details:', err);
+        res.status(500).send('Internal Server Error');
+    }
+};
+
+const cancelOrder = async (req, res) => {
+    try {
+        const orderId = req.params.id;
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            return res.status(404).send('Order not found');
+        }
+
+    
+        if (['Pending', 'Processing'].includes(order.status)) {
+            order.status = 'Cancelled';
+            await order.save();
+            return res.redirect('/order-details/' + orderId);
+        } else {
+            return res.status(400).send('Order cannot be cancelled at this stage');
+        }
+    } catch (err) {
+        console.error('Error cancelling order:', err);
+        res.status(500).send('Internal Server Error');
+    }
+};
+
+
+const submitReturnRequest = async (req, res) => {
+    try {
+        const { orderId, itemId, returnReason } = req.body;
+        console.log(req.body)
+        
+        
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            return res.status(404).json({ 
+                success: false,
+                message: "Order Not Found" 
+            });
+        }
+
+        
+        if (order.userId.toString() !== req.session.user.id.toString()) {
+            return res.status(403).json({ 
+                success: false,
+                message: "Unauthorized" 
+            });
+        }
+
+        
+        const orderItem = order.orderItems.find(item => item._id.toString() === itemId);
+        
+        if (!orderItem) {
+            return res.status(404).json({ 
+                success: false,
+                message: "Order item not found" 
+            });
+        }
+
+       
+        orderItem.returnRequest = true;
+        orderItem.returnReason = returnReason;
+        orderItem.returnStatus = 'Pending';
+        orderItem.returnRequestDate = new Date();
+
+        await order.save();
+
+        res.json({ 
+            success: true,
+            message: "Return request submitted successfully"
+        });
+
+    } catch (error) {
+        console.error('Return request error:', error);
+        res.status(500).json({ 
+            success: false,
+            message: 'Something went wrong', 
+            error: error.message 
+        });
+    }
+};
+
+module.exports = {
+    getUserOrders,
+    viewOrderDetails,
+    cancelOrder,
+    submitReturnRequest,
 }

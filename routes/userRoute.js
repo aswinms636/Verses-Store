@@ -86,6 +86,8 @@ router.get("/order/view/:orderId",checkoutController.viewOrder);
 
 
 router.get('/orders',checkSession,orderController.getUserOrders);
+router.get('/order-details/:id',checkSession,orderController.viewOrderDetails);
+
 
 
 
