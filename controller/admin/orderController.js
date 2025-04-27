@@ -66,7 +66,40 @@ const getOrderDetails = async(req,res)=>{
     }
 }
 
+
+
+const updateOrderStatus = async(req,res)=>{
+    try {
+        
+        const orderId = req.params.orderId;
+        const { status } = req.body;
+
+        const validStatuses = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Return Request', 'Returned'];
+
+        if(!validStatuses.includes(status)){
+            return res.status(400).json({ error: 'Invalid status' });
+        }
+
+        const order = await Order.findOneAndUpdate(
+            {orderId},
+            {status},
+            {new : true}
+        );
+
+        if(!order){
+            return res.status(404).json({ error: 'Order not found' });
+        }
+
+        res.json({ success: true, message: 'Order status updated successfully', status: order.status });
+
+    } catch (error) {
+        console.error('Error updating order status:', error);
+        res.status(500).json({ error: 'Failed to update status' });
+    }
+};
+
 module.exports={
     getAllOrders,
-    getOrderDetails
+    getOrderDetails,
+    updateOrderStatus
 }

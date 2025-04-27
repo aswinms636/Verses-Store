@@ -59,5 +59,6 @@ router.post('/deleteImage',checkSession,productController.deleteSingleImg);
 
 router.get('/orders',checkSession,orderController.getAllOrders);
 router.get('/order-details/:orderId',checkSession,orderController.getOrderDetails);
+router.post('/orders/:orderId/update-status',orderController.updateOrderStatus);
 
 module.exports = router;
