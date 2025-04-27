@@ -4,6 +4,7 @@ const adminController = require('../controller/admin/adminController');
 const customerController = require('../controller/admin/customerController');
 const categoryController = require('../controller/admin/categoryController');
 const productController = require('../controller/admin/productController');
+const orderController = require('../controller/admin/orderController');
 const { isLogin,checkSession }=require('../middlewares/adminAuthetic');
 const upload= require('../middlewares/multer');
 
@@ -49,5 +50,13 @@ router.get('/unblockProduct',checkSession,productController.unblockProduct)
 router.get('/editProduct',checkSession,productController.loadEditProduct)
 router.post('/editProduct/:id', upload.array('productImages', 4), productController.editProduct);
 router.post('/deleteImage',checkSession,productController.deleteSingleImg);
+
+
+
+
+
+
+
+router.get('/orders',checkSession,orderController.getAllOrders);
 
 module.exports = router;

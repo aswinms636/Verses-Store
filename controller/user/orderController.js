@@ -83,20 +83,43 @@ const cancelOrder = async (req, res) => {
         const order = await Order.findById(orderId);
 
         if (!order) {
-            return res.status(404).send('Order not found');
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found'
+            });
         }
 
-    
-        if (['Pending', 'Processing'].includes(order.status)) {
-            order.status = 'Cancelled';
-            await order.save();
-            return res.redirect('/order-details/' + orderId);
-        } else {
-            return res.status(400).send('Order cannot be cancelled at this stage');
+        // Check if order belongs to user
+        if (order.userId.toString() !== req.session.user._id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: 'Unauthorized to cancel this order'
+            });
         }
-    } catch (err) {
-        console.error('Error cancelling order:', err);
-        res.status(500).send('Internal Server Error');
+
+        // Check if order can be cancelled
+        if (!['Pending', 'Processing'].includes(order.status)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Order cannot be cancelled at this stage'
+            });
+        }
+
+        // Update order status
+        order.status = 'Cancelled';
+        await order.save();
+
+        return res.json({
+            success: true,
+            message: 'Order cancelled successfully'
+        });
+
+    } catch (error) {
+        console.error('Error cancelling order:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal Server Error'
+        });
     }
 };
 

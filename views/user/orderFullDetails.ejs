@@ -489,28 +489,9 @@
         <!-- Update the action-buttons section -->
         <div class="action-buttons">
             <% if(order.status === 'Pending' || order.status === 'Processing') { %>
-                <a href="/cancel-order/<%= order._id %>" class="action-button cancel-button">
+                <button onclick="confirmCancelOrder('<%= order._id %>')" class="action-button cancel-button">
                     <i class="fas fa-times-circle"></i> Cancel Order
-                </a>
-            <% } else if(order.status === 'Delivered') { %>
-                <% const returnItem = order.orderItems[0]; %>
-                <% if(!returnItem.returnRequest) { %>
-                    <button class="action-button return-button" onclick="openReturnModal('<%= order._id %>', '<%= returnItem._id %>')">
-                        <i class="fas fa-undo"></i> Return Order
-                    </button>
-                <% } else { %>
-                    <span class="return-status <%= returnItem.returnStatus?.toLowerCase() %>">
-                        <i class="fas <%= 
-                            returnItem.returnStatus === 'Pending' ? 'fa-clock' : 
-                            returnItem.returnStatus === 'Accepted' ? 'fa-check-circle' : 
-                            returnItem.returnStatus === 'Returned' ? 'fa-box-check' : 'fa-times-circle' 
-                        %>"></i>
-                        <%= returnItem.returnStatus === 'Pending' ? 'Return Requested' :
-                            returnItem.returnStatus === 'Accepted' ? 'Return Accepted' :
-                            returnItem.returnStatus === 'Returned' ? 'Order Returned' : 'Return Rejected'
-                        %>
-                    </span>
-                <% } %>
+                </button>
             <% } %>
         </div>
         <!-- Update the return modal -->
@@ -552,7 +533,7 @@
             const modal = document.getElementById('returnModal');
             document.getElementById('orderId').value = orderId;     
             document.getElementById('itemId').value = itemId;
-            modal.style.display = 'flex';
+           
             setTimeout(() => modal.classList.add('show'), 10);
             document.body.style.overflow = 'hidden';
         }
@@ -631,6 +612,62 @@
                     icon: 'error',
                     title: 'Error!',
                     text: error.message || 'Something went wrong',
+                    confirmButtonColor: '#dc3545'
+                });
+            }
+        }
+
+        // Add this to your existing script section
+        async function confirmCancelOrder(orderId) {
+            try {
+                const result = await Swal.fire({
+                    title: 'Cancel Order?',
+                    text: 'Are you sure you want to cancel this order?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, cancel it!',
+                    cancelButtonText: 'No, keep it',
+                    showLoaderOnConfirm: true,
+                    preConfirm: async () => {
+                        try {
+                            const response = await fetch(`/cancel-order/${orderId}`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+                            
+                            if (!response.ok) {
+                                const error = await response.text();
+                                throw new Error(error || 'Failed to cancel order');
+                            }
+                            
+                            return response.json();
+                        } catch (error) {
+                            Swal.showValidationMessage(error.message);
+                        }
+                    },
+                    allowOutsideClick: () => !Swal.isLoading()
+                });
+
+                if (result.isConfirmed) {
+                    await Swal.fire({
+                        title: 'Cancelled!',
+                        text: 'Your order has been cancelled successfully.',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    window.location.reload();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Failed to cancel order. Please try again.',
                     confirmButtonColor: '#dc3545'
                 });
             }

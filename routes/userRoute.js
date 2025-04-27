@@ -87,7 +87,8 @@ router.get("/order/view/:orderId",checkoutController.viewOrder);
 
 router.get('/orders',checkSession,orderController.getUserOrders);
 router.get('/order-details/:id',checkSession,orderController.viewOrderDetails);
-router.get('/cancel-order/:id', orderController.cancelOrder);
+router.post('/cancel-order/:id', orderController.cancelOrder);
+router.post('/submit-return', orderController.submitReturnRequest);
 
 
 
