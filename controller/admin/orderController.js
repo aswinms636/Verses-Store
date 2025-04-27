@@ -98,8 +98,26 @@ const updateOrderStatus = async(req,res)=>{
     }
 };
 
+const getReturnOrders = async(req,res)=>{
+    try {
+        
+        const returnOrders = await Order.find({
+            "orderItems.returnRequest": true,
+            "orderItems.returnStatus":"Pending"
+        }).populate('orderItems.product').populate('userId');
+
+        res.render("returnOrders",{
+            returnOrders
+        })
+
+    } catch (error) {
+        res.status(500).send('Server Error');
+    }
+};
+
 module.exports={
     getAllOrders,
     getOrderDetails,
-    updateOrderStatus
+    updateOrderStatus,
+    getReturnOrders
 }

@@ -489,22 +489,33 @@
         <!-- Update the action-buttons section -->
         <div class="action-buttons">
             <% if(order.status === 'Pending' || order.status === 'Processing') { %>
-                <button onclick="confirmCancelOrder('<%= order._id %>')" class="action-button cancel-button">
+                <a href="/cancel-order/<%= order._id %>" class="action-button cancel-button">
                     <i class="fas fa-times-circle"></i> Cancel Order
-                </button>
+                </a>
+            <% } else if(order.status === 'Delivered') { %>
+                <% const returnItem = order.orderItems[0]; %>
+                <% console.log(returnItem); %>
+                <% if(!returnItem.returnRequest) { %>
+                    <button type="button" 
+                            class="action-button return-button" 
+                            onclick="openReturnModal('<%= order._id %>', '<%= returnItem._id %>')">
+                        <i class="fas fa-undo"></i> Return Order
+                    </button>
+                <% } %>
             <% } %>
         </div>
-        <!-- Update the return modal -->
+        <!-- Replace the existing return modal code -->
         <div id="returnModal" class="return-modal">
             <div class="modal-content">
-                <span class="close-modal" onclick="closeReturnModal()">&times;</span>
+                <button type="button" class="close-modal" onclick="closeReturnModal()">
+                    <i class="fas fa-times"></i>
+                </button>
                 <div class="modal-header">
                     <h3>Request Return</h3>
                     <p>Please tell us why you want to return this item</p>
                 </div>
                 <div class="return-form">
-                    <form action="/submit-return" method="POST" onsubmit="return submitReturn(event)">
-                        <!-- Moved inside the form -->
+                    <form id="returnForm" onsubmit="submitReturn(event)">
                         <input type="hidden" name="orderId" id="orderId">
                         <input type="hidden" name="itemId" id="itemId">
                         <textarea 
@@ -515,8 +526,12 @@
                             required
                         ></textarea>
                         <div class="modal-buttons">
-                            <button type="button" class="modal-button cancel-return" onclick="closeReturnModal()">Cancel</button>
-                            <button type="submit" class="modal-button submit-return">Submit Return</button>
+                            <button type="button" class="modal-button cancel-return" onclick="closeReturnModal()">
+                                Cancel
+                            </button>
+                            <button type="submit" class="modal-button submit-return">
+                                Submit Return
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -529,12 +544,18 @@
     
     <!-- Then add your scripts -->
     <script>
+        // Update the openReturnModal function
         function openReturnModal(orderId, itemId) {
             const modal = document.getElementById('returnModal');
             document.getElementById('orderId').value = orderId;     
             document.getElementById('itemId').value = itemId;
-           
-            setTimeout(() => modal.classList.add('show'), 10);
+            
+            // Set display to flex before adding show class
+            modal.style.display = 'flex';
+            // Use requestAnimationFrame to ensure display is set before adding show class
+            requestAnimationFrame(() => {
+                modal.classList.add('show');
+            });
             document.body.style.overflow = 'hidden';
         }
 
@@ -548,25 +569,23 @@
             }, 300);
         }
 
-        async function submitReturn() {
+        // Update the submitReturn function
+        async function submitReturn(event) {
+            event.preventDefault(); // Add this line
+            
             try {
                 const orderId = document.getElementById('orderId').value;
                 const itemId = document.getElementById('itemId').value;
                 const reason = document.getElementById('returnReason').value.trim();
 
-                console.log(orderId)
-
-                // Validation check for empty reason
                 if (!reason) {
                     Swal.fire({
                         icon: 'warning',
                         title: 'Required Field',
                         text: 'Please provide a reason for return',
-                        confirmButtonColor: '#ffa502',
-                        showConfirmButton: true,
-                        confirmButtonText: 'OK'
+                        confirmButtonColor: '#ffa502'
                     });
-                    return;
+                    return false;
                 }
 
                 // Show loading state
@@ -581,7 +600,7 @@
                     }
                 });
 
-                const response = await fetch('/user/return-request', {
+                const response = await fetch('/submit-return', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -614,6 +633,7 @@
                     text: error.message || 'Something went wrong',
                     confirmButtonColor: '#dc3545'
                 });
+                return false;
             }
         }
 

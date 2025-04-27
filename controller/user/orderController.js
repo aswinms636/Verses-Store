@@ -131,6 +131,7 @@ const submitReturnRequest = async (req, res) => {
         
         
         const order = await Order.findById(orderId);
+        console.log('orderId',orderId)
 
         if (!order) {
             return res.status(404).json({ 
@@ -140,7 +141,7 @@ const submitReturnRequest = async (req, res) => {
         }
 
         
-        if (order.userId.toString() !== req.session.user.id.toString()) {
+        if (order.userId.toString() !== req.session.user._id.toString()) {
             return res.status(403).json({ 
                 success: false,
                 message: "Unauthorized" 
