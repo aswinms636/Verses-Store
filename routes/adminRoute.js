@@ -58,5 +58,6 @@ router.post('/deleteImage',checkSession,productController.deleteSingleImg);
 
 
 router.get('/orders',checkSession,orderController.getAllOrders);
+router.get('/order-details/:orderId',checkSession,orderController.getOrderDetails);
 
 module.exports = router;

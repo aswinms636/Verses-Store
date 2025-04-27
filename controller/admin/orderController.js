@@ -43,6 +43,30 @@ const getAllOrders = async (req, res) => {
     }
 };
 
+const getOrderDetails = async(req,res)=>{
+    try {
+        
+        const orderId = req.params.orderId;
+        const order = await Order.findOne({ orderId })
+        .populate('userId','name email')
+        .populate('orderItems.product','productName productImage');
+
+        if(!order){
+            return res.status(404).send('Order Not Found ');
+        }
+
+
+        res.render('orderDetailsAdmin',
+            {order}
+        )
+
+    } catch (error) {
+        console.error('Error fetching order details:', error);
+        res.status(500).send('Server Error');
+    }
+}
+
 module.exports={
-    getAllOrders
+    getAllOrders,
+    getOrderDetails
 }
