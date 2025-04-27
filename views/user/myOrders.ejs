@@ -233,7 +233,7 @@
                 <div class="order-card">
                     <div class="order-image">
                         <% if (order.items && order.items.length > 0) { %>
-                            <img src="<%= order.items[0].image %>" 
+                            <img src="/Uploads/product-Images/<%= order.items[0].image %>" 
                                  alt="<%= order.items[0].name %>" 
                                  class="product-image"
                                  onerror="this.src='/images/default-product.jpg'">
