@@ -397,6 +397,7 @@
             color: var(--amazon-text);
         }
     </style>
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -421,10 +422,7 @@
                                 <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
                                     aria-expanded="false">Shop</a>
                             </li>
-                            <li class="nav-item submenu dropdown">
-                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                                    aria-expanded="false">Wishlist</a>
-                            </li>
+                            
 
                             <% if (typeof user !== 'undefined' && user) { %>
                                 <li class="nav-item submenu dropdown">
@@ -443,6 +441,11 @@
                         </ul>
                         <ul class="nav navbar-nav navbar-right">
                             <li class="nav-item"><a href="/cart" class="cart"><span class="ti-bag"></span></a></li>
+                            <li class="nav-item">
+								<a href="/wishlist" class="wishlist" title="Wishlist">
+									<span class="ti-heart"></span>
+								</a>
+							</li>
                             <li class="nav-item">
                                 <button class="search"><span class="lnr lnr-magnifier" id="search"></span></button>
                             </li>
@@ -578,7 +581,13 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert("Product added to wishlist!");
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Success',
+                  text: 'Address deleted successfully!'
+                }).then(() => {
+                  location.reload();
+                });
             } else {
                 alert(data.message);
             }
@@ -603,7 +612,13 @@
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert("Product added to cart!");
+            Swal.fire({
+                  icon: 'success',
+                  title: 'Success',
+                  text: 'Address deleted successfully!'
+                }).then(() => {
+                  location.reload();
+                });
         } else {
             alert(data.message);
         }

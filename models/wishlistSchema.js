@@ -23,7 +23,7 @@ const wishlistItemSchema = new Schema({
 const wishlistSchema = new Schema({
     userId: {
         type: Schema.Types.ObjectId,
-        ref: 'User', // Reference to the User model
+        ref: 'User',       
         required: true,
     },
     items: [wishlistItemSchema], // Array of wishlist items

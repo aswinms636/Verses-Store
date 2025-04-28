@@ -75,7 +75,35 @@ const addToWishlist = async (req, res) => {
 };
 
 
+
+ const removeFromWishlist = async (req, res) => {
+    try {
+        const { productId } = req.body;
+        const userId = req.session.user._id; // Assuming you have user authentication middleware
+
+        // Find the wishlist for the user
+        const wishlist = await Wishlist.findOne({ userId });
+
+        if (!wishlist) {
+            return res.status(404).json({ message: 'Wishlist not found' });
+        }
+
+        // Remove the item from the wishlist
+        wishlist.items = wishlist.items.filter(item => item.productId.toString() !== productId);
+
+        // Save the updated wishlist
+        await wishlist.save();
+
+        res.json({ success : true,message: 'Item removed from wishlist', wishlist });
+    } catch (error) {
+        console.error(error);
+        res.json({ success : false, message: 'Server error' });
+    }
+};
+
+
 module.exports = {
     addToWishlist,
     getWishlist,
+    removeFromWishlist
 };
