@@ -157,6 +157,9 @@
             color: #0056b3;
         }
     </style>
+    <!-- Include SweetAlert CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.20/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.20/dist/sweetalert2.all.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -167,16 +170,16 @@
                 <% wishlist.items.forEach(item => { %>
                     <li>
                         <div class="wishlist-item">
-                            <a href="/product?id=<%= item.productId.id %>">
-                                <img src="/Uploads/product-Images/<%= item.productId.productImage[0] %>" alt="<%= item.productId.name %>" class="wishlist-item-image">
+                            <a href="/product?id=<%= item.productId._id %>">
+                                <img src="/Uploads/product-Images/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>" class="wishlist-item-image">
                                 <div class="wishlist-item-info">
                                     <h3><%= item.productId.productName %></h3>
                                     <p><%= item.productId.description %></p>
                                     <p><strong>Price:</strong> $<%= item.productId.salePrice %></p>
                                 </div>
                             </a>
-                            <form action="/wishlist/remove" method="POST">
-                                <input type="hidden" name="productId" value="<%= item.productId._id %>">
+                            <form onsubmit="showRemoveAlert(event, '<%= item.productId._id %>')">
+                                <input type="hidden" name="productId" id="productId" value="<%= item.productId._id %>">
                                 <button type="submit" class="remove-btn">Remove from Wishlist</button>
                             </form>
                         </div>
@@ -192,6 +195,54 @@
         <a href="/">Back to Home</a>
     </div>
 
+    <script>
+        function showRemoveAlert(event, productId) {
+            event.preventDefault(); // Prevent the form from submitting immediately
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, remove it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Submit the form if the user confirms
+                    wishlistRemove(productId);
+                }
+            });
+        }
+
+        async function wishlistRemove(productId) {
+            try {
+                const response = await fetch('/wishlist/remove', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId: productId })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: result.message
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: result.message || 'Failed to remove item!'
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    </script>
     <script src="/script.js"></script> <!-- Link to your JavaScript file if needed -->
 </body>
 </html>
