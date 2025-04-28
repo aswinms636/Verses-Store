@@ -8,6 +8,7 @@ const { isLogin,checkSession,blockCheck }=require('../middlewares/userAuthentic'
  const cartController=require('../controller/user/cartController')
  const checkoutController=require('../controller/user/checkoutController')
  const orderController=require('../controller/user/orderController')
+ const wishlistController=require('../controller/user/wishlistController')
 const passport=require('../config/passport')
 
 
@@ -89,6 +90,11 @@ router.get('/orders',checkSession,orderController.getUserOrders);
 router.get('/order-details/:id',checkSession,orderController.viewOrderDetails);
 router.post('/cancel-order/:id', orderController.cancelOrder);
 router.post('/submit-return', orderController.submitReturnRequest);
+
+
+
+router.get('/wishlist',wishlistController.getWishlist)
+router.post('/wishlist-add',wishlistController.addToWishlist);
 
 
 

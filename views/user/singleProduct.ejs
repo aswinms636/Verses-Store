@@ -568,6 +568,24 @@
             selectedSize = size;
         }
 
+
+        function addToWishlist(productId) {
+        fetch("/wishlist-add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ productId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Product added to wishlist!");
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => console.error("Error:", error));
+    }
+
         function addToCart(productId) {
     const selectedSizeBtn = document.querySelector('.size-btn.selected');
     if (!selectedSizeBtn) {

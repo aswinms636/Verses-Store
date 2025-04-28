@@ -115,9 +115,84 @@ const getReturnOrders = async(req,res)=>{
     }
 };
 
+const acceptReturn = async (req, res) => {
+    try {
+        const { orderId, itemId } = req.params;
+        const order = await Order.findOne({ _id: orderId });
+        const item = order.orderItems.id(itemId);
+
+        if (item) {
+            
+            item.returnStatus = 'Accepted';
+            item.status = 'Returned';
+
+            
+            const allReturnedOrCancelled = order.orderItems.every(
+                (i) => i.status === 'Returned' || i.status === 'Cancelled'
+            );
+
+            if (allReturnedOrCancelled) {
+                order.status = 'Returned';
+            }
+
+            
+            const user = await User.findById(order.userId);
+            console.log("user",user);
+            
+            user.wallet = (user.wallet || 0) + item.price * item.quantity;
+            console.log('--------------------');
+            
+            await user.save();
+            console.log('--=-==------=-=-=-=-=----==-=',user);
+            
+
+            // Restore stock in the product model
+            const product = await Product.findById(item.product);
+            if (product) {
+                product.sizes[item.size] += item.quantity;
+                await product.save();
+            } else {
+                console.error("Product not found for ID:", item.product);
+                return res.status(404).json({ message: "Product not found" });
+            }
+
+            await order.save();
+            res.json({  success:true,  message: "Return accepted and order updated successfully" });
+        } else {
+            res.status(404).json({ success:false,message: "Order item not found" });
+        }
+    } catch (error) {
+        console.error("error in returnaccept", error);
+        res.status(500).json({success:false, message: "Internal server error" });
+    }
+};
+
+
+
+const rejectReturn = async(req,res)=>{
+    try {
+        
+        const{orderId ,itemId } = req.params;
+        const order = await Order.findById({_id:orderId});
+        const item = order.orderItems.id(itemId);
+
+        if(item){
+            item.returnStatus="Rejected";
+            await order.save();
+            res.json({success:false,message: "Return rejected and order updated successfully "})
+        }
+
+    } catch (error) {
+        res.json({success:false,message:"something went wrong !!!!!!!!!!!!!!!"})
+        console.error('error in returnreject ',error);
+    }
+};
+
 module.exports={
     getAllOrders,
     getOrderDetails,
     updateOrderStatus,
-    getReturnOrders
+    getReturnOrders,
+    acceptReturn,
+    rejectReturn
 }

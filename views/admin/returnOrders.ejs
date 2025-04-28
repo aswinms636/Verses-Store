@@ -111,13 +111,13 @@
                                 <td><%= item.returnReason %></td>
                                 <td>
                                     <span class="status-badge" style="
-                                        background: <%= 
-                                            item.returnStatus === 'Pending' ? '#fff3cd' : 
+                                        background: <%=
+                                            item.returnStatus === 'Pending' ? '#fff3cd' :
                                             item.returnStatus === 'Accepted' ? '#d4edda' :
                                             item.returnStatus === 'Returned' ? '#cce5ff' : '#f8d7da'
                                         %>;
-                                        color: <%= 
-                                            item.returnStatus === 'Pending' ? '#856404' : 
+                                        color: <%=
+                                            item.returnStatus === 'Pending' ? '#856404' :
                                             item.returnStatus === 'Accepted' ? '#155724' :
                                             item.returnStatus === 'Returned' ? '#004085' : '#721c24'
                                         %>;">
@@ -148,3 +148,54 @@
         </table>
     </div>
 </div>
+
+<!-- Include SweetAlert Library -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Frontend Script to Handle Form Submission -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const forms = document.querySelectorAll('form');
+
+        forms.forEach(form => {
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                const formData = new FormData(form);
+                const action = form.action;
+                const method = form.method;
+
+                fetch(action, {
+                    method: method,
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: data.message
+                        }).then(() => {
+                            
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: data.message || 'Something went wrong!'
+                        });
+                    }
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'An error occurred while processing your request.'
+                    });
+                });
+            });
+        });
+    });
+</script>
