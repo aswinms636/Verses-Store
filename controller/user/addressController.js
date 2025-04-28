@@ -127,10 +127,42 @@ const editAddress = async (req, res) => {
   };
   
 
+  const deleteAddress = async (req, res) => {
+    try {
+      const {  addressId } = req.body;
+      const userId=req.session.user._id
+     
+      console.log("=------=", userId, addressId);
+
+      const user = await Address.findOne({ userId });
+      if (!user) {
+        return res.json({ success: false, message: 'User not found' });
+      }
+  
+      
+      const addressIndex = user.address.findIndex(addr => addr._id.toString() === addressId);
+      if (addressIndex === -1) {
+        return res.json({ success: false, message: 'Address not found' });
+      }
+  
+      user.address.splice(addressIndex, 1);
+  
+     
+      await user.save();
+      res.json({ success: true, message: 'Address deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting address:', error);
+      res.json({ success: false, message: 'Internal Server Error' });
+    }
+  };
+  
+  
+
 
 
 module.exports = {
     getAddresses,
     addAddress,
     editAddress,
+    deleteAddress
 }

@@ -60,6 +60,7 @@ router.post('/edit-profile',profileController.editProfile);
 router.get('/my-address', checkSession,addressController.getAddresses);
 router.post('/add-address',addressController.addAddress);
 router.post("/edit-address", addressController.editAddress);
+router.post("/delete-address", addressController.deleteAddress);
 
 
 

@@ -25,19 +25,19 @@
       position: fixed;
       width: 260px;
     }
-    
+
     .sidebar .nav-link {
       color: rgba(255, 255, 255, 0.8);
       padding: 10px 20px;
       margin-bottom: 5px;
       border-radius: 5px;
     }
-    
+
     .sidebar .nav-link:hover, .sidebar .nav-link.active {
       background-color: rgba(255, 255, 255, 0.1);
       color: white;
     }
-    
+
     .sidebar .nav-link i {
       margin-right: 10px;
       width: 20px;
@@ -193,7 +193,7 @@
       <!-- Main Content -->
       <div class="col-md-9 col-lg-10 main-content">
         <h2 class="mb-4">My Addresses</h2>
-        
+
         <button id="addAddressBtn" class="btn btn-dark mb-4">
           <i class="fas fa-plus"></i> Add New Address
         </button>
@@ -202,23 +202,23 @@
           <% if (addresses && addresses.length > 0) { %>
             <% addresses.forEach(userAddress => { %>
               <% userAddress.address.forEach(addr => { %>
-                <div class="card" 
-                    data-id="<%= addr.id %>" 
-                    data-fullname="<%= addr.fullname %>" 
-                    data-phone="<%= addr.phone %>" 
-                    data-street="<%= addr.street %>" 
-                    data-city="<%= addr.city %>" 
-                    data-landmark="<%= addr.landmark %>" 
-                    data-state="<%= addr.state %>" 
+                <div class="card"
+                    data-id="<%= addr.id %>"
+                    data-fullname="<%= addr.fullname %>"
+                    data-phone="<%= addr.phone %>"
+                    data-street="<%= addr.street %>"
+                    data-city="<%= addr.city %>"
+                    data-landmark="<%= addr.landmark %>"
+                    data-state="<%= addr.state %>"
                     data-zipcode="<%= addr.zipCode %>">
-                    
+
                     <p><strong>Full Name:</strong> <%= addr.fullname %></p>
                     <p><strong>Phone:</strong> <%= addr.phone %></p>
                     <p><strong>Street:</strong> <%= addr.street %></p>
                     <p><strong>City:</strong> <%= addr.city %></p>
                     <p><strong>State:</strong> <%= addr.state %></p>
                     <p><strong>Zip Code:</strong> <%= addr.zipCode %></p>
-                    
+
                     <div class="card-buttons">
                       <button class="btn-edit">
                         <i class="fas fa-edit"></i> Edit
@@ -334,12 +334,10 @@
 
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
-  
   document.getElementById('addAddressBtn').addEventListener('click', function () {
     $('#addAddressModal').modal('show');
   });
 
-  
   document.getElementById('addressForm').addEventListener('submit', async function (event) {
     event.preventDefault();
 
@@ -381,9 +379,9 @@
     }
   });
 
-  // Edit Address Modal
   document.addEventListener('DOMContentLoaded', function () {
     const editButtons = document.querySelectorAll('.btn-edit');
+    const deleteButtons = document.querySelectorAll('.btn-delete');
 
     editButtons.forEach(button => {
       button.addEventListener('click', function () {
@@ -401,19 +399,64 @@
       });
     });
 
-    
+    deleteButtons.forEach(button => {
+      button.addEventListener('click', async function () {
+        const card = button.closest('.card');
+        const addressId = card.getAttribute('data-id');
+
+        Swal.fire({
+          title: 'Are you sure?',
+          text: "You won't be able to revert this!",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Yes, delete it!'
+        }).then(async (result) => {
+          if (result.isConfirmed) {
+            try {
+              const response = await fetch(`/delete-address`, {
+                method: 'post',
+                headers: { 'Content-Type': 'application/json' },
+                body:JSON.stringify({ addressId })
+              });
+              const result = await response.json();
+
+              if (result.success) {
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Success',
+                  text: 'Address deleted successfully!'
+                }).then(() => {
+                  location.reload();
+                });
+              } else {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: result.message || 'Failed to delete address!'
+                });
+              }
+            } catch (error) {
+              console.error('Error:', error);
+            }
+          }
+        });
+      });
+    });
+
     document.getElementById('editAddressForm').addEventListener('submit', async function (event) {
       event.preventDefault();
 
       const addressData = {
-        id:document.getElementById('editAddressId').value,
+        id: document.getElementById('editAddressId').value,
         fullname: document.getElementById('editFullName').value,
         phone: document.getElementById('editPhone').value,
         street: document.getElementById('editStreet').value,
         city: document.getElementById('editCity').value,
         state: document.getElementById('editState').value,
         zipCode: document.getElementById('editZipCode').value,
-        landmark: document.getElementById('editLandmark').value, 
+        landmark: document.getElementById('editLandmark').value,
       };
 
       try {
@@ -423,8 +466,6 @@
           body: JSON.stringify(addressData)
         });
 
-        console.log(addressData);
-        
         const result = await response.json();
 
         if (result.success) {
