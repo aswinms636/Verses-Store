@@ -247,13 +247,10 @@ const editCategory = async (req, res) => {
         const { categoryName, description } = req.body;
 
         
-        const existingCategory = await Category.findOne({
-            name: categoryName,
-            _id: { $ne: id }, 
-        });
+        const existingCategory = await Category.findOne({ name: { $regex: new RegExp(`^${categoryName}$`, 'i') } });
 
         if (existingCategory) {
-            return res.status(400).json({ error: "Category name already exists, please choose another name" });
+            return res.status(400).json({ success:false,message: "Category name already exists, please choose another name" });
         }
 
         
@@ -265,15 +262,15 @@ const editCategory = async (req, res) => {
 
         if (updatedCategory) {
 
-            res.redirect('/admin/category');
+            res.json({ success:true, message: "Category updated successfully" });
             
         } else {
-            res.status(404).json({ error: "Category not found" });
+            res.json({ success:false, message: "Category not found" });
         }
 
     } catch (error) {
         console.error("Error updating category:", error);
-        res.status(500).json({ error: "Internal server error" });
+        res.json({ success:false, message: "Internal server error" });
     }
 };
 

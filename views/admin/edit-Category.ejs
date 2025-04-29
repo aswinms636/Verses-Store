@@ -1,26 +1,100 @@
 <%- include("../../views/partials/admin/header") %>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-6 mt-60">
-            <form method="post" action="/admin/editCategory/<%= category ? category._id : '' %>">
-
+            <form id="editCategoryForm" method="post">
                 <div class="d-grid text-end mt-30 col-md-5">
-                    <button class="btn btn-primary" type="submit">Update category</button>
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-save"></i> Update Category
+                    </button>
                 </div>
                 <div class="mb-4 mt-30">
-                    <label for="product_name" class="form-label">Name</label>
-                    <input type="text" name="categoryName" value="<%=category.name%>" class="form-control border" />
+                    <label for="categoryName" class="form-label">Name</label>
+                    <input type="text" 
+                           id="categoryName"
+                           name="categoryName" 
+                           value="<%=category.name%>" 
+                           class="form-control border" 
+                           required />
                 </div>
                 
                 <div class="mb-4">
-                    <label class="form-label">Description</label>
-                    <textarea name="description" class="form-control border"><%= category.description %></textarea>
-
+                    <label for="description" class="form-label">Description</label>
+                    <textarea id="description"
+                            name="description" 
+                            class="form-control border" 
+                            required><%= category.description %></textarea>
                 </div>
-                
-                
             </form>
         </div>
     </div>
 </div>
+
+<script>
+document.getElementById('editCategoryForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const categoryName = document.getElementById('categoryName').value.trim();
+    const description = document.getElementById('description').value.trim();
+
+    // Validation
+    if (!categoryName || !description) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Required Fields',
+            text: 'Please fill in all fields',
+            confirmButtonColor: '#3085d6'
+        });
+        return;
+    }
+
+    try {
+        // Show loading state
+        Swal.fire({
+            title: 'Updating...',
+            text: 'Please wait',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        const response = await fetch('/admin/editCategory/<%= category._id %>', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                categoryName,
+                description
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            await Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: data.message,
+                confirmButtonColor: '#3085d6'
+            });
+            window.location.href = '/admin/category';
+        } else {
+            throw new Error(data.message || 'Failed to update category');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: error.message || 'Something went wrong',
+            confirmButtonColor: '#3085d6'
+        });
+    }
+});
+</script>
+
 <%- include("../../views/partials/admin/footer") %>
