@@ -47,16 +47,16 @@ router.get("/google/callback", passport.authenticate('google', { failureRedirect
 );
 
 
-//sz
+//shop manegement
 router.get("/shop",shopController.loadShopPage);
 router.get('/productDetails/:id',shopController.loadProductDetails);
 
 
-
+// profile manegement
 router.get('/profile',checkSession,profileController.loadProfilePage);
 router.post('/edit-profile',profileController.editProfile);
 
-
+// address manegement
 router.get('/my-address', checkSession,addressController.getAddresses);
 router.post('/add-address',addressController.addAddress);
 router.post("/edit-address", addressController.editAddress);
@@ -67,7 +67,7 @@ router.post("/delete-address", addressController.deleteAddress);
 
 
 
-
+// cart manegement
 router.post("/cart/add", cartController.addToCart);
 router.post("/cart/increment", cartController.incrementCartItem);
 router.post("/cart/decrement", cartController.decrementCartItem);
@@ -77,7 +77,7 @@ router.get("/cart", checkSession,cartController.getCart);
 
 
 
-
+// checkout manegement
 router.get("/checkout", checkoutController.getCheckoutPage);
 router.post("/order/place", checkoutController.placeOrder);
 router.post("/address/add",checkoutController.addAddress);
@@ -86,6 +86,7 @@ router.get("/order/view/:orderId",checkoutController.viewOrder);
 
 
 
+// order manegement
 
 router.get('/orders',checkSession,orderController.getUserOrders);
 router.get('/order-details/:id',checkSession,orderController.viewOrderDetails);
@@ -93,6 +94,7 @@ router.post('/cancel-order/:id', orderController.cancelOrder);
 router.post('/submit-return', orderController.submitReturnRequest);
 
 
+// wishlist manegement
 
 router.get('/wishlist', checkSession,  wishlistController.getWishlist)
 router.post('/wishlist-add',wishlistController.addToWishlist);
