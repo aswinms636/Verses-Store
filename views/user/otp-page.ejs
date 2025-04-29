@@ -36,8 +36,34 @@
   </div>
   
   <script>
-    
     const otpInputs = document.querySelectorAll('.otp-input');
+    let timerInterval;
+    
+    function startTimer(duration = 60) {
+        let resendBtn = document.getElementById("resendOtpBtn");
+        let timerText = document.getElementById("resendTimer");
+        let timeLeft = duration;
+
+        // Clear any existing timer
+        if (timerInterval) clearInterval(timerInterval);
+
+        resendBtn.disabled = true;
+        timerText.textContent = `(${timeLeft}s)`;
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            timerText.textContent = `(${timeLeft}s)`;
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                resendBtn.disabled = false;
+                timerText.textContent = "";
+            }
+        }, 1000);
+    }
+
+    // Start initial timer
+    startTimer();
 
     otpInputs.forEach((input, index) => {
       input.addEventListener('input', (e) => {
@@ -63,39 +89,111 @@
       });
     });
 
-    document.getElementById('otpForm').addEventListener('submit', function(e) {
-      let combinedOtp = '';
-      otpInputs.forEach(input => combinedOtp += input.value);
-      document.getElementById('otp').value = combinedOtp;
+    document.getElementById('otpForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        let combinedOtp = '';
+        otpInputs.forEach(input => combinedOtp += input.value);
+        document.getElementById('otp').value = combinedOtp;
+
+        // Validate OTP length
+        if (combinedOtp.length !== 6) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Invalid OTP',
+                text: 'Please enter all 6 digits',
+                confirmButtonColor: '#3085d6'
+            });
+            return;
+        }
+
+        try {
+            const response = await fetch('/otpVerify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ otp: combinedOtp })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: data.message,
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                window.location.href = '/newPassword';
+            } else {
+                // Clear OTP inputs
+                otpInputs.forEach(input => input.value = '');
+                otpInputs[0].focus();
+
+                // Reset timer if specified
+                if (data.resetTimer) {
+                    startTimer();
+                }
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Verification Failed',
+                    text: data.message,
+                    confirmButtonColor: '#3085d6'
+                });
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Something went wrong. Please try again.',
+                confirmButtonColor: '#3085d6'
+            });
+        }
     });
 
-    function resendOtp() {
-      let resendBtn = document.getElementById("resendOtpBtn");
-      let timerText = document.getElementById("resendTimer");
+    async function resendOtp() {
+        try {
+            const response = await fetch("/resend-otp", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
 
-      resendBtn.disabled = true;
-      let timeLeft = 60;
-      timerText.textContent = `(${timeLeft}s)`;
+            const data = await response.json();
 
-      let countdown = setInterval(() => {
-        timeLeft--;
-        timerText.textContent = `(${timeLeft}s)`;
-
-        if (timeLeft <= 0) {
-          clearInterval(countdown);
-          resendBtn.disabled = false;
-          timerText.textContent = "";
+            if (data.success) {
+                startTimer();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'OTP Resent!',
+                    text: data.message,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message,
+                    confirmButtonColor: '#3085d6'
+                });
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to resend OTP. Please try again.',
+                confirmButtonColor: '#3085d6'
+            });
         }
-      }, 1000);
-
-      // Call backend API to resend OTP (Replace with actual API request)
-      fetch("/resend-otp")
-        .then(response => response.json())
-        .then(data => alert(data.message)) 
-        .catch(error => console.error("Error:", error));
     }
-
-  </script>
+</script>
   
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

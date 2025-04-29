@@ -300,34 +300,61 @@ const signin = async (req, res) => {
 };
 
 
-const otpVerify=async(req,res)=>{
+const otpVerify = async(req, res) => {
     try {
-        const {otp}=req.body
-        console.log(otp)
-        if(req.session.otp==otp){
-            return res.redirect('/newPassword')
+        const {otp} = req.body;
+        console.log(otp);
+        
+        if(req.session.otp == otp) {
+            return res.json({
+                success: true,
+                message: 'OTP verified successfully'
+            });
+        } else {
+            return res.json({
+                success: false,
+                message: 'Invalid OTP. Please try again.',
+                resetTimer: true
+            });
         }
     } catch (error) {
-        res.status(500).json({ message: "Server error", error });
+        console.error('Error in OTP verification:', error);
+        return res.json({
+            success: false,
+            message: 'Server error occurred',
+            resetTimer: true
+        });
     }
 }
 
-
-const resendOtp=async (req,res)=>{
+const resendOtp = async(req, res) => {
     try {
-        const email=req.session.email
-        console.log('resend',email)
-    
-       const otp= generateOtp()
-        otpSend(email,otp)
+        const email = req.session.email;
+        console.log('resend', email);
 
-        req.session.Otp=otp
-    
-        res.redirect('otpVerify')
+        const otp = generateOtp();
+        const sent = await otpSend(email, otp);
+
+        if (sent) {
+            req.session.otp = otp;
+            return res.json({
+                success: true,
+                message: 'OTP has been resent to your email'
+            });
+        } else {
+            return res.json({
+                success: false,
+                message: 'Failed to send OTP. Please try again.'
+            });
+        }
     } catch (error) {
-        res.status(500).json({ message: "Server error", error });
+        console.error('Error in resend OTP:', error);
+        return res.json({
+            success: false,
+            message: 'Server error occurred'
+        });
     }
-    }
+}
 
     const changePassword = async (req, res) => {
         try {
