@@ -335,6 +335,7 @@ const resendOtp = async(req, res) => {
         const otp = generateOtp();
         const sent = await otpSend(email, otp);
 
+        console.log('sent',sent)
         if (sent) {
             req.session.otp = otp;
             return res.json({

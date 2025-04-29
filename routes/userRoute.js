@@ -28,7 +28,7 @@ router.get("/pageNotFound",userController.loadPageNotFound);
 //Forgot Password
 router.post('/verifyEmail',userController.verifyEmail)
 router.get('/forgot-Password',userController.loadForgotPasswordPage);
-router.get('/resend-otp',userController.resendOtp)
+router.post('/resend-otp',userController.resendOtp)
 router.get("/otpVerify",userController.loadFFOtpPage)
 router.post('/otpVerify',userController.otpVerify)
 router.get('/newPassword',userController.loadPasswordPage)
