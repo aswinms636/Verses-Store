@@ -11,10 +11,10 @@ const upload= require('../middlewares/multer');
 
 
 //Authentication manegement
-router.get('/login',isLogin,adminController.loadlogin)
-router.post('/adminLogin',adminController.adminLogin)
-router.get('/dashboard',checkSession,adminController.loadDashboard)
-router.get('/logout',adminController.logout)
+router.get('/login',isLogin,adminController.loadlogin);
+router.post('/adminLogin',adminController.adminLogin);
+router.get('/dashboard',checkSession,adminController.loadDashboard);
+router.get('/logout',adminController.logout);
 
 
 
@@ -40,8 +40,7 @@ router.post('/editCategory/:id',categoryController.editCategory)
 
 //Product Management
 router.get('/addProducts',checkSession,productController.loadAddProduct)
-router.post('/addProducts', upload.array('productImages', 4),productController.addProducts
-);
+router.post('/addProducts', upload.array('productImages', 4),productController.addProducts);
 router.get('/products',checkSession,productController.getAllProducts);
 router.post('/addProductOffer',productController.addProductOffer)
 router.post("/removeProductOffer",productController.removeProductOffer)
@@ -55,14 +54,17 @@ router.post('/deleteImage',checkSession,productController.deleteSingleImg);
 
 
 
-
+// order manegement
 
 router.get('/orders',checkSession,orderController.getAllOrders);
 router.get('/order-details/:orderId',checkSession,orderController.getOrderDetails);
 router.post('/orders/:orderId/update-status',orderController.updateOrderStatus);
 
+// return order 
+
 router.get('/returnOrders',checkSession,orderController.getReturnOrders);
 router.post('/returns/accept/:orderId/:itemId', orderController.acceptReturn);
 router.post('/returns/reject/:orderId/:itemId', orderController.rejectReturn);
+
 
 module.exports = router;

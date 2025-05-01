@@ -1,4 +1,5 @@
 const Order = require('../../models/orderSchema');
+const Product = require('../../models/productSchema');
 
 const getUserOrders = async (req, res) => {
     try {
@@ -91,11 +92,14 @@ const cancelOrder = async (req, res) => {
 
         // Check if order belongs to user
         if (order.userId.toString() !== req.session.user._id.toString()) {
-            return res.status(403).json({
+            return res.json({
                 success: false,
                 message: 'Unauthorized to cancel this order'
             });
         }
+
+
+
 
         // Check if order can be cancelled
         if (!['Pending', 'Processing'].includes(order.status)) {
@@ -104,6 +108,17 @@ const cancelOrder = async (req, res) => {
                 message: 'Order cannot be cancelled at this stage'
             });
         }
+
+        for(const item of order.orderItems) {
+            const product=await Product.findById(item.product._id);
+            product.quantity+=item.quantity;
+            product.sizes[item.size]+=item.quantity;
+            console.log('product',product)
+            await product.save();
+        }
+
+
+        
 
         // Update order status
         order.status = 'Cancelled';

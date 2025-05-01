@@ -30,7 +30,7 @@ const addAddress = async (req, res) =>{
         
         const userId = req.session.user._id;
 
-        console.log(userId)
+        console.log(userId);
 
         if (!userId) {
             return res.json({ success: false, message: "User not authenticated" });
@@ -83,7 +83,7 @@ const editAddress = async (req, res) => {
     try {
       const { id, fullname, city, street, landmark, state, zipCode, phone } = req.body;
 
-      console.log('req.body-====================',req.body)
+      console.log('req.body-====================',req.body);
   
       
       const addressDoc = await Address.findOne({ "address._id": id });
@@ -141,12 +141,14 @@ const editAddress = async (req, res) => {
   
       
       const addressIndex = user.address.findIndex(addr => addr._id.toString() === addressId);
+
       if (addressIndex === -1) {
         return res.json({ success: false, message: 'Address not found' });
       }
   
       user.address.splice(addressIndex, 1);
   
+
      
       await user.save();
       res.json({ success: true, message: 'Address deleted successfully' });
@@ -166,3 +168,30 @@ module.exports = {
     editAddress,
     deleteAddress
 }
+
+
+
+
+  // try {
+  //   const {name,description}=req.body
+
+  //   const existingCatogory=Category.findOne(name)
+
+  //   if(existingCatogory){
+  //     res.json({message:"Category already existing"})
+  //   }
+
+
+  //  const category= new Category{
+  //   name:name,
+  //   description:description
+  //  }
+
+
+  //  category.save()
+
+  //  res.json({message:" category added successfully"})
+    
+  // } catch (error) {
+  //   res.json({message:"server errror"})
+  // }

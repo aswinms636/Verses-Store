@@ -26,6 +26,7 @@ router.get("/pageNotFound",userController.loadPageNotFound);
 
 
 //Forgot Password
+
 router.post('/verifyEmail',userController.verifyEmail)
 router.get('/forgot-Password',userController.loadForgotPasswordPage);
 router.post('/resend-otp',userController.resendOtp)
@@ -36,6 +37,7 @@ router.post('/changePassword',userController.changePassword)
 
 
 //google Signin
+
 router.get("/auth/google",passport.authenticate('google',{scope:['profile','email']}));
 router.get("/google/callback", passport.authenticate('google', { failureRedirect: '/signin' }), 
     (req, res) => {
@@ -48,16 +50,19 @@ router.get("/google/callback", passport.authenticate('google', { failureRedirect
 
 
 //shop manegement
+
 router.get("/shop",shopController.loadShopPage);
 router.get('/productDetails/:id',shopController.loadProductDetails);
 
 
 // profile manegement
+
 router.get('/profile',checkSession,profileController.loadProfilePage);
 router.post('/edit-profile',profileController.editProfile);
 
 // address manegement
-router.get('/my-address', checkSession,addressController.getAddresses);
+
+router.get('/my-address',checkSession,addressController.getAddresses);
 router.post('/add-address',addressController.addAddress);
 router.post("/edit-address", addressController.editAddress);
 router.post("/delete-address", addressController.deleteAddress);
@@ -67,7 +72,10 @@ router.post("/delete-address", addressController.deleteAddress);
 
 
 
+
+
 // cart manegement
+
 router.post("/cart/add", cartController.addToCart);
 router.post("/cart/increment", cartController.incrementCartItem);
 router.post("/cart/decrement", cartController.decrementCartItem);
@@ -78,6 +86,7 @@ router.get("/cart", checkSession,cartController.getCart);
 
 
 // checkout manegement
+
 router.get("/checkout", checkoutController.getCheckoutPage);
 router.post("/order/place", checkoutController.placeOrder);
 router.post("/address/add",checkoutController.addAddress);
@@ -90,15 +99,15 @@ router.get("/order/view/:orderId",checkoutController.viewOrder);
 
 router.get('/orders',checkSession,orderController.getUserOrders);
 router.get('/order-details/:id',checkSession,orderController.viewOrderDetails);
-router.post('/cancel-order/:id', orderController.cancelOrder);
+router.get('/cancel-order/:id', orderController.cancelOrder);
 router.post('/submit-return', orderController.submitReturnRequest);
 
 
 // wishlist manegement
 
-router.get('/wishlist', checkSession,  wishlistController.getWishlist)
+router.get('/wishlist', checkSession,  wishlistController.getWishlist);
 router.post('/wishlist-add',wishlistController.addToWishlist);
-router.post('/wishlist/remove',wishlistController.removeFromWishlist)
+router.post('/wishlist/remove',wishlistController.removeFromWishlist);
 
 
 

@@ -106,6 +106,7 @@ const loadShopPage = async (req, res) => {
             totalPages,
             user
         });
+        
     } catch (error) {
         console.error("Shop page error:", error.message);
         res.status(500).render("shop", {

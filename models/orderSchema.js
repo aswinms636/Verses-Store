@@ -66,7 +66,7 @@ const orderSchema = new Schema({
     razorpayOrderId: {
         type: String,
         unique: true,
-        sparse: true // Allows null values for COD orders
+        sparse: true
     },
     razorpayPaymentId: {
         type: String,
