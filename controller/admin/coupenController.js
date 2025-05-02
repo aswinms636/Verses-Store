@@ -90,9 +90,22 @@ const unlistCoupon = async (req, res, next) => {
     }
 };
 
+const loadEditCoupon = async (req, res, next) => {
+    try {
+        const id = req.query.id;
+        const findCoupon = await Coupon.findOne({ _id: id });
+        res.render("editCoupon", {
+            findCoupon: findCoupon,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     loadCoupon,
     createCoupon,
     unlistCoupon,
-    listCoupon
+    listCoupon,
+    loadEditCoupon,
 };
