@@ -10,6 +10,7 @@ const { isLogin,checkSession,blockCheck }=require('../middlewares/userAuthentic'
  const orderController=require('../controller/user/orderController')
  const wishlistController=require('../controller/user/wishlistController')
  const razorpayController=require('../controller/user/razopayController')
+ const walletController=require('../controller/user/walletController')
 
 const passport=require('../config/passport')
 
@@ -116,6 +117,8 @@ router.post('/create-order',checkSession,razorpayController.createOrder);
 router.post('/verify-payment',checkSession,razorpayController.verifyPayment);
 
 
+
+router.get('/wallet',checkSession,walletController.getWallet);
 
 
 module.exports = router;

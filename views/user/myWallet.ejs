@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wallet</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Sidebar styles - kept the same as reference */
+        .sidebar {
+            min-height: 100vh;
+            background-color: #343a40;
+            color: white;
+            position: fixed;
+            width: 260px;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+        }
+
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+        }
+
+        /* Content styles */
+        .content {
+            margin-left: 260px;
+            padding: 40px;
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        /* Wallet card style */
+        .wallet-card {
+            background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .wallet-balance {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .wallet-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .wallet-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .wallet-btn {
+            background-color: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .wallet-btn:hover {
+            background-color: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .wallet-bg-icon {
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            font-size: 8rem;
+            opacity: 0.1;
+        }
+
+        /* Transaction card style */
+        .transaction-card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .transaction-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .credit {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+        }
+
+        .debit {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .transaction-details {
+            flex-grow: 1;
+        }
+
+        .transaction-title {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .transaction-date {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .transaction-amount {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .credit-amount {
+            color: #28a745;
+        }
+
+        .debit-amount {
+            color: #dc3545;
+        }
+
+        .transaction-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .filter-btn.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .filter-btn:hover:not(.active) {
+            background-color: #f1f3f5;
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .content {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .wallet-card {
+                padding: 20px;
+            }
+
+            .wallet-balance {
+                font-size: 2rem;
+            }
+
+            .transaction-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .transaction-icon {
+                margin-bottom: 10px;
+            }
+
+            .transaction-amount {
+                margin-top: 10px;
+                align-self: flex-end;
+            }
+
+            .transaction-filters {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar - using the same structure as the reference page -->
+    <div class="sidebar">
+        <div class="d-flex flex-column p-3">
+            <div class="text-center mb-4">
+                <h4>Account</h4>
+            </div>
+            <ul class="nav nav-pills flex-column mb-auto">
+                <li class="nav-item">
+                    <a href="/profile" class="nav-link">
+                        <i class="fas fa-user"></i> Profile
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/my-address" class="nav-link">
+                        <i class="fas fa-map-marker-alt"></i> My Address
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/my-orders" class="nav-link">
+                        <i class="fas fa-shopping-bag"></i> My Orders
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/wallet" class="nav-link active">
+                        <i class="fas fa-wallet"></i> My Wallet
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="/settings" class="nav-link">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                </li>
+                <li class="nav-item mt-5">
+                    <a href="/logout" class="nav-link text-danger">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <h2 class="page-title mb-4">My Wallet</h2>
+
+        <!-- Wallet Balance Card -->
+        <div class="wallet-card">
+            <div class="wallet-bg-icon">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <div class="wallet-label">Available Balance</div>
+            <div class="wallet-balance">₹<%= wallet.balance ? wallet.balance.toFixed(2) : '0.00' %></div>
+            <div class="wallet-actions">
+                <button class="wallet-btn">
+                    <i class="fas fa-plus"></i> Add Money
+                </button>
+                <button class="wallet-btn">
+                    <i class="fas fa-arrow-right"></i> Transfer
+                </button>
+            </div>
+        </div>
+
+        <!-- Transaction History Section -->
+        <div class="section-title mt-5">
+            <h4>Transaction History</h4>
+            <a href="#" class="text-primary">Export</a>
+        </div>
+
+        <!-- Transaction Filters -->
+        <div class="transaction-filters">
+            <button class="filter-btn active">All</button>
+            <button class="filter-btn">Credits</button>
+            <button class="filter-btn">Debits</button>
+            <div class="ms-auto">
+                <select class="form-select">
+                    <option>Last 30 days</option>
+                    <option>Last 90 days</option>
+                    <option>This year</option>
+                    <option>Custom range</option>
+                </select>
+            </div>
+        </div>
+
+        <% if (wallet.history && wallet.history.length > 0) { %>
+            <% wallet.history.forEach(transaction => { %>
+                <div class="transaction-card">
+                    <div class="d-flex align-items-center">
+                        <div class="transaction-icon <%= transaction.status.toLowerCase() %>">
+                            <% if (transaction.status === 'credit') { %>
+                                <i class="fas fa-arrow-down"></i>
+                            <% } else if (transaction.status === 'debit') { %>
+                                <i class="fas fa-arrow-up"></i>
+                            <% } %>
+                        </div>
+                        <div class="transaction-details">
+                            <div class="transaction-title"><%= transaction.description %></div>
+                            <div class="transaction-date"><%= new Date(transaction.date).toLocaleDateString() %>, <%= new Date(transaction.date).toLocaleTimeString() %></div>
+                        </div>
+                    </div>
+                    <div class="transaction-amount <%= transaction.status.toLowerCase() %>-amount">
+                        <% if (transaction.status === 'credit') { %>+<% } else { %>-<% } %>
+                        ₹<%= transaction.amount.toFixed(2) %>
+                    </div>
+                </div>
+            <% }) %>
+
+            <!-- Pagination -->
+            <nav aria-label="Transaction history pagination">
+                <ul class="pagination">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        <% } else { %>
+            <div class="text-center mt-5">
+                <i class="fas fa-exchange-alt fa-3x text-muted mb-3"></i>
+                <p class="lead text-muted">No transactions found.</p>
+                <button class="btn btn-primary mt-3">Add Money to Wallet</button>
+            </div>
+        <% } %>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.min.js"></script>
+    <script>
+        // Simple JavaScript for toggling filter buttons
+        document.querySelectorAll('.filter-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                button.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
