@@ -1,5 +1,6 @@
 const Order = require('../../models/orderSchema');
 const Product = require('../../models/productSchema');
+const Wallet = require('../../models/walletSchema'); 
 
 const getUserOrders = async (req, res) => {
     try {
@@ -78,10 +79,13 @@ const viewOrderDetails = async (req, res) => {
     }
 };
 
+// Import the Wallet model
+
 const cancelOrder = async (req, res) => {
     try {
         const orderId = req.params.id;
         const order = await Order.findById(orderId);
+        const userId = req.session.user._id;
 
         if (!order) {
             return res.status(404).json({
@@ -98,9 +102,6 @@ const cancelOrder = async (req, res) => {
             });
         }
 
-
-
-
         // Check if order can be cancelled
         if (!['Pending', 'Processing'].includes(order.status)) {
             return res.status(400).json({
@@ -109,20 +110,52 @@ const cancelOrder = async (req, res) => {
             });
         }
 
-        for(const item of order.orderItems) {
-            const product=await Product.findById(item.product._id);
-            product.quantity+=item.quantity;
-            product.sizes[item.size]+=item.quantity;
-            console.log('product',product)
+        for (const item of order.orderItems) {
+            const product = await Product.findById(item.product._id);
+            product.quantity += item.quantity;
+            product.sizes[item.size] += item.quantity;
+            console.log('product', product);
             await product.save();
         }
-
-
-        
 
         // Update order status
         order.status = 'Cancelled';
         await order.save();
+
+        // Check if payment method is online
+        if (order.paymentMethod === 'Online Payment') {
+            const wallet = await Wallet.findOne({ user: userId });
+
+            console.log('wallet', wallet);
+
+            if (!wallet) {
+                // Create a new wallet if it doesn't exist
+                const newWallet = new Wallet({
+                    user: userId,
+                    balance: order.totalPrice,
+                    history: [
+                        {
+                            amount: order.totalPrice,
+                            status: 'credit',
+                            description: `Refund for cancelled order ${orderId}`
+                        }
+                    ]
+                });
+                await newWallet.save();
+            } else {
+                // Update existing wallet
+                wallet.balance += order.totalPrice;
+                wallet.history.push({
+                    amount: order.totalPrice,
+                    status: 'credit',
+                    description: `Refund for cancelled order ${orderId}`
+                });
+                await wallet.save();
+            }
+        }
+
+
+        console.log('wallet updated', wallet);
 
         return res.json({
             success: true,
@@ -137,6 +170,7 @@ const cancelOrder = async (req, res) => {
         });
     }
 };
+
 
 
 const submitReturnRequest = async (req, res) => {
