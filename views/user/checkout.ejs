@@ -122,7 +122,6 @@
             background: linear-gradient(90deg, #ff4d4d, #e63946);
         }
 
-        /* Right section tweaks */
         .order-summary p {
             margin-bottom: 15px;
             font-size: 1rem;
@@ -143,14 +142,12 @@
             margin-bottom: 20px;
         }
 
-        /* Responsive */
         @media (max-width: 1024px) {
             .container {
                 grid-template-columns: 1fr;
             }
         }
 
-        /* Add these styles to your existing <style> section */
         .error-message {
             color: #dc3545;
             font-size: 0.8rem;
@@ -290,7 +287,7 @@
                         <p><strong><%= item.productName %></strong></p>
                         <p>Size: <%= item.size %></p>
                         <p>Qty: <%= item.quantity %></p>
-                        <p><strong>$<%= (item.quantity * item.price).toFixed(2) %></strong></p>
+                        <p><strong>₹<%= (item.quantity * item.price).toFixed(2) %></strong></p>
                     </div>
                 </div>
                 <% }) %>
@@ -375,13 +372,13 @@
             <div class="card order-summary">
                 <h2>Order Summary</h2>
                 <p class="total-amount">Total: ₹<%= (totalAmount + 5).toFixed(2) %></p>
-                
+
                 <label>Payment Method:</label>
                 <select id="paymentMethod" class="dropdown">
                     <option value="Cash on Delivery">Cash on Delivery</option>
                     <option value="Online Payment">Online Payment</option>
                 </select>
-        
+
                 <button class="button" onclick="placeOrder()">Place Order</button>
             </div>
         </div>
@@ -411,109 +408,107 @@
             select.selectedIndex = 0;
         }
 
+        async function placeOrder() {
+            const addressId = document.getElementById("addressSelect").value;
+            const paymentMethod = document.getElementById("paymentMethod").value;
 
+            if (!addressId) {
+                return Swal.fire("Error", "Please select an address", "error");
+            }
 
-    async function placeOrder() {
-        const addressId = document.getElementById("addressSelect").value;
-        const paymentMethod = document.getElementById("paymentMethod").value;
-
-        if (!addressId) {
-            return Swal.fire("Error", "Please select an address", "error");
-        }
-
-        if (paymentMethod === "Online Payment") {
-            // Handle Razorpay payment
-            await handleRazorpayPayment(addressId);
-        } else {
-            // Existing COD logic
-            const response = await fetch("/place", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ addressId, paymentMethod })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                Swal.fire("Order Placed!", "Your order has been placed successfully", "success")
-                    .then(() => location.href = `/order/view/${data.orderId}`);
+            if (paymentMethod === "Online Payment") {
+                // Handle Razorpay payment
+                await handleRazorpayPayment(addressId);
             } else {
-                Swal.fire("Error", "Order placement failed", "error");
-            }
-        }
-    }
+                // Existing COD logic
+                const response = await fetch("/place", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ addressId, paymentMethod })
+                });
 
+                const data = await response.json();
 
-    async function handleRazorpayPayment(addressId) {
-        try {
-            // First create an order on your backend
-            const response = await fetch("/create-order", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
-                    addressId,
-                    paymentMethod: "Online Payment",
-                    // Include any other necessary data
-                    totalAmount: parseFloat("<%= totalAmount %>")
-                })
-            });
-            
-            
-            
-            const data = await response.json();
-            console.log(data);
-            
-            if (!data.success) {
-                throw new Error("Failed to create payment order");
-            }
-            
-            // Razorpay options
-            const options = {
-                key: "rzp_test_FPcddXuOor5zgx", // Make sure this is passed from your backend
-                amount: data.amount,
-                currency: data.currency || "INR",
-                order_id: data.orderId,
-                name: "Your Store Name",
-                description: "Order Payment",
-                handler: async function(response) {
-                    // Payment successful, verify payment
-                    const verifyResponse = await fetch("/verify-payment", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_signature: response.razorpay_signature,
-                            addressId: addressId
-                        })
-                    });
-                    
-                    const verifyData = await verifyResponse.json();
-                    
-                    if (verifyData.success) {
-                        Swal.fire("Success!", "Payment successful and order placed!", "success")
-                            .then(() => {
-                                window.location.href = `/order/view/${verifyData.orderId}`;
-                            });
-                    } else {
-                        Swal.fire("Error", "Payment verification failed", "error");
-                    }
-                },
-                theme: {
-                    color: "#3399cc"
+                if (data.success) {
+                    Swal.fire("Order Placed!", "Your order has been placed successfully", "success")
+                        .then(() => location.href = `/order/view/${data.orderId}`);
+                } else {
+                    Swal.fire("Error", "Order placement failed", "error");
                 }
-            };
-            
-            const rzp = new Razorpay(options);
-            rzp.open();
-            
-        } catch (error) {
-            console.error("Payment error:", error);
-            Swal.fire("Error", "Payment processing failed", "error");
+            }
         }
-    }
 
-        
+        async function handleRazorpayPayment(addressId) {
+            try {
+                // First create an order on your backend
+                const response = await fetch("/create-order", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        addressId,
+                        paymentMethod: "Online Payment",
+                        totalAmount: parseFloat("<%= totalAmount %>")
+                    })
+                });
+
+                const data = await response.json();
+                console.log(data);
+
+
+                if (!data.success) {
+                    console.error("Order creation failed:", data.message);
+                    return Swal.fire("Error", "Failed to create order", "error");
+                }
+
+                
+
+                // Razorpay options
+                const options = {
+                    key: data.key, // Make sure this is passed from your backend
+                    amount: data.amount,
+                    currency: data.currency || "INR",
+                    order_id: data.orderId,
+                    name: "Verses Store",
+                    description: "Order Payment",
+                    handler: async function(response) {
+                        // Payment successful, verify payment
+                        const verifyResponse = await fetch("/verify-payment", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                dbOrderId: data.dbOrderId // Include dbOrderId in the verification request
+                            })
+                        });
+
+                        const verifyData = await verifyResponse.json();
+
+                        console.log( 'verifyyyyyyyyyyyy',verifyData);
+
+                        if (verifyData.success) {
+                            Swal.fire("Success!", verifyData.message || "Payment successful and order placed!", "success")
+                                .then(() => {
+                                    window.location.href = `/order/view/${verifyData.orderId}`;
+                                });
+                        } else {
+                            Swal.fire("Error", verifyData.message || "Payment verification failed", "error");
+                        }
+                    },
+                    theme: {
+                        color: "#3399cc"
+                    }
+                };
+
+                const rzp = new Razorpay(options);
+                rzp.open();
+
+            } catch (error) {
+                console.error("Payment error:", error);
+                Swal.fire("Error", "Payment processing failed", "error");
+            }
+        }
 
         document.getElementById('saveAddressBtn').addEventListener('click', async (e) => {
             e.preventDefault();
@@ -633,8 +628,7 @@
 
             Array.from(errorMessages).forEach(span => span.textContent = '');
             Array.from(inputs).forEach(input => input.classList.remove('error'));
-}
-
+        }
     </script>
 </body>
 

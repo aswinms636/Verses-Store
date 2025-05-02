@@ -112,7 +112,8 @@ router.post('/wishlist-add',wishlistController.addToWishlist);
 router.post('/wishlist/remove',wishlistController.removeFromWishlist);
 
 
-router.post('/create-order',razorpayController.createOrder);
+router.post('/create-order',checkSession,razorpayController.createOrder);
+router.post('/verify-payment',checkSession,razorpayController.verifyPayment);
 
 
 
