@@ -135,9 +135,15 @@ const verifyPayment = async (req, res) => {
                 message: "Payment verified successfully",
                 orderId: razorpay_order_id
             });
-        } 
+        } else{
+            console.log("Signature Verification Failed");
+            res.json({
+                success: false,
+                message: "Payment verification failed"
+            });
+        }
 
-        console.log("Signature Mismatch");
+        
 
     } catch (error) {
         console.error(error);
