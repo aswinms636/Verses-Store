@@ -1,4 +1,3 @@
-
 const Coupon = require("../../models/coupenSchema");
 const mongoose = require("mongoose");
 
@@ -11,15 +10,29 @@ const loadCoupon = async (req, res, next) => {
     }
 };
 
-const createCoupon = async (req, res, next) => {
+const createCoupon = async (req, res) => {
     try {
         const data = {
             couponName: req.body.couponName,
-            startDate: new Date(req.body.startDate + "T00:00:00"),
-            endDate: new Date(req.body.endDate + "T00:00:00"),
+            startDate: new Date(req.body.startDate),
+            endDate: new Date(req.body.endDate),
             offerPrice: parseInt(req.body.offerPrice),
             minimumPrice: parseInt(req.body.minimumPrice),
         };
+
+        console.log("Coupon Data:", data);
+
+        // Additional server-side validation
+        if (data.startDate <= new Date() || 
+            data.endDate <= data.startDate || 
+            data.offerPrice >= data.minimumPrice) {
+            return res.json({
+                success: false,
+                message: "Invalid coupon data"
+            });
+        }
+
+        console.log("Coupon Data after validation:", data);
 
         const newCoupon = new Coupon({
             name: data.couponName,
@@ -27,12 +40,24 @@ const createCoupon = async (req, res, next) => {
             expireOn: data.endDate,
             offerPrice: data.offerPrice,
             minimumPrice: data.minimumPrice,
-            isList: true 
+            isList: true
         });
+
         await newCoupon.save();
-        return res.redirect("/admin/coupon");
+
+        console.log("New Coupon Created:", newCoupon);
+
+        res.json({
+            success: true,
+            message: "Coupon created successfully",
+            coupon: newCoupon
+        });
     } catch (error) {
-        next(error);
+        console.error("Error creating coupon:", error);
+        res.json({
+            success: false,
+            message:  "Failed to create coupon",
+        });
     }
 };
 

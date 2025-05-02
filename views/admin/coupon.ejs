@@ -182,6 +182,11 @@
   }
 </style>
 
+<!-- Add these in the head section, after your existing CSS -->
+<link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-material-ui/material-ui.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <section class="content-main">
   <h2 class="content-title">Coupons</h2>
 
@@ -190,7 +195,7 @@
       <div class="layout-container">
         <!-- Form Section -->
         <div class="coupon-form">
-          <form method="post" action="/admin/createCoupon" onsubmit="return validateForm()">
+          <form id="couponForm" onsubmit="return handleSubmit(event)">
             <div class="form-group">
               <label for="coupon-name" class="form-label">Coupon Name</label>
               <input type="text" id="coupon-name" name="couponName" placeholder="Type here" class="form-control" />
@@ -211,13 +216,13 @@
 
             <div class="form-group">
               <label for="offer-price" class="form-label">Offer Price</label>
-              <input type="text" name="offerPrice" placeholder="Type here" class="form-control" />
+              <input type="number" name="offerPrice" placeholder="Type here" class="form-control" />
               <div id="error-offer-price" class="error-message"></div>
             </div>
 
             <div class="form-group">
               <label for="minimum-price" class="form-label">Minimum Price</label>
-              <input type="text" name="minimumPrice" placeholder="Type here" class="form-control" />
+              <input type="number" name="minimumPrice" placeholder="Type here" class="form-control" />
               <div id="error-minimum-price" class="error-message"></div>
             </div>
 
@@ -278,8 +283,6 @@
   </div>
 </section>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   function validateForm() {
     document.querySelectorAll(".error-message").forEach((element) => (element.innerHTML = ""));
@@ -324,6 +327,29 @@
       return false;
     }
 
+    return true;
+  }
+
+  // Add this function after validateForm
+  function validatePrices() {
+    const offerPrice = parseFloat(document.getElementsByName('offerPrice')[0].value);
+    const minimumPrice = parseFloat(document.getElementsByName('minimumPrice')[0].value);
+    
+    if (isNaN(offerPrice) || offerPrice <= 0) {
+        document.getElementById('error-offer-price').textContent = 'Please enter a valid offer price';
+        return false;
+    }
+    
+    if (isNaN(minimumPrice) || minimumPrice <= 0) {
+        document.getElementById('error-minimum-price').textContent = 'Please enter a valid minimum price';
+        return false;
+    }
+    
+    if (offerPrice >= minimumPrice) {
+        document.getElementById('error-offer-price').textContent = 'Offer price must be less than minimum price';
+        return false;
+    }
+    
     return true;
   }
 
@@ -390,6 +416,7 @@
       }
     });
   }
+
   function deleteCoupon(couponId) {
     Swal.fire({
       title: "Are you sure?",
@@ -411,31 +438,101 @@
                 window.location.reload();
               });
             } else {
-              Swal.fire("Error", "Failed to unlist coupon", "error");
+              Swal.fire("Error", "Failed to delete coupon", "error");
             }
           },
           error: function () {
-            Swal.fire("Error", "An error occurred while unlisting the coupon", "error");
+            Swal.fire("Error", "An error occurred while deleting the coupon", "error");
           }
         });
       }
     });
   }
 
-
   function setDefaultStartDate() {
     const today = new Date();
-    const year = today.getFullYear();
-    let month = (today.getMonth() + 1).toString().padStart(2, "0");
-    let day = today.getDate().toString().padStart(2, "0");
-    document.getElementById("startingDate").value = `${year}-${month}-${day}`;
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const year = tomorrow.getFullYear();
+    const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+    const day = String(tomorrow.getDate()).padStart(2, '0');
+    document.getElementById('startingDate').value = `${year}-${month}-${day}`;
+    // Set minimum date for both date inputs
+    document.getElementById('startingDate').min = `${year}-${month}-${day}`;
+    document.getElementById('expiringDate').min = `${year}-${month}-${day}`;
   }
 
   document.addEventListener("DOMContentLoaded", function() {
     setDefaultStartDate();
   });
 
-  
+  async function handleSubmit(event) {
+    event.preventDefault();
+    if (!validateForm()) {
+        return false;
+    }
+    
+    const formData = new FormData(event.target);
+    const formDataObject = {};
+    formData.forEach((value, key) => {
+        formDataObject[key] = value;
+    });
+    
+    try {
+        const response = await fetch('/admin/createCoupon', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formDataObject)
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            Swal.fire({
+                title: 'Success!',
+                text: result.message,
+                icon: 'success'
+            }).then(() => {
+                window.location.reload();
+            });
+        } else {
+            throw new Error(result.message);
+        }
+    } catch (error) {
+        Swal.fire({
+            title: 'Error!',
+            text: error.message || 'Something went wrong!',
+            icon: 'error'
+        });
+    }
+
+    return false;
+  }
+
+  // Add this at the end of your script section
+  document.addEventListener('DOMContentLoaded', function() {
+    setDefaultStartDate();
+    
+    // Add input validation for numeric fields
+    document.getElementsByName('offerPrice')[0].addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    });
+    
+    document.getElementsByName('minimumPrice')[0].addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    });
+    
+    // Clear error messages when inputs change
+    document.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', function() {
+            const errorElement = this.parentElement.querySelector('.error-message');
+            if (errorElement) {
+                errorElement.textContent = '';
+            }
+        });
+    });
+  });
 </script>
 
 <%- include("../../views/partials/admin/footer") %>
