@@ -68,6 +68,7 @@ router.post('/returns/accept/:orderId/:itemId', orderController.acceptReturn);
 router.post('/returns/reject/:orderId/:itemId', orderController.rejectReturn);
 
 router.get('/coupon',checkSession,coupenController.loadCoupon);
+router.post('/createCoupon',coupenController.createCoupon);
 
 
 module.exports = router;
