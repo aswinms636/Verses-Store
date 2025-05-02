@@ -5,6 +5,7 @@ const customerController = require('../controller/admin/customerController');
 const categoryController = require('../controller/admin/categoryController');
 const productController = require('../controller/admin/productController');
 const orderController = require('../controller/admin/orderController');
+const coupenController = require('../controller/admin/coupenController');
 const { isLogin,checkSession }=require('../middlewares/adminAuthetic');
 const upload= require('../middlewares/multer');
 
@@ -65,6 +66,8 @@ router.post('/orders/:orderId/update-status',orderController.updateOrderStatus);
 router.get('/returnOrders',checkSession,orderController.getReturnOrders);
 router.post('/returns/accept/:orderId/:itemId', orderController.acceptReturn);
 router.post('/returns/reject/:orderId/:itemId', orderController.rejectReturn);
+
+router.get('/coupon',checkSession,coupenController.loadCoupon);
 
 
 module.exports = router;
