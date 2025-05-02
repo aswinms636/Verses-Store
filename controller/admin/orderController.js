@@ -1,6 +1,7 @@
 const Order = require("../../models/orderSchema");
 const User = require("../../models/userSchema");
 const Product = require('../../models/productSchema');
+const Wallet = require('../../models/walletSchema');
 
 const getAllOrders = async (req, res) => {
     try {
@@ -122,11 +123,9 @@ const acceptReturn = async (req, res) => {
         const item = order.orderItems.id(itemId);
 
         if (item) {
-            
             item.returnStatus = 'Accepted';
             item.status = 'Returned';
 
-            
             const allReturnedOrCancelled = order.orderItems.every(
                 (i) => i.status === 'Returned' || i.status === 'Cancelled'
             );
@@ -134,17 +133,6 @@ const acceptReturn = async (req, res) => {
             if (allReturnedOrCancelled) {
                 order.status = 'Returned';
             }
-
-            
-            const user = await User.findById(order.userId);
-            console.log("user",user);
-            
-            user.wallet = (user.wallet || 0) + item.price * item.quantity;
-            console.log('--------------------');
-            
-            await user.save();
-            console.log('--=-==------=-=-=-=-=----==-=',user);
-            
 
             // Restore stock in the product model
             const product = await Product.findById(item.product);
@@ -157,18 +145,52 @@ const acceptReturn = async (req, res) => {
                 return res.status(404).json({ message: "Product not found" });
             }
 
+            // Find or create wallet
+            let wallet = await Wallet.findOne({ user: order.userId });
+            const refundAmount = item.price * item.quantity;
+
+            if (!wallet) {
+                wallet = new Wallet({
+                    user: order.userId,
+                    balance: refundAmount,
+                    history: [{
+                        amount: refundAmount,
+                        status: 'credit',
+                        description: `Refund for returned order ${order.orderId}`,
+                        date: new Date()
+                    }]
+                });
+            } else {
+                wallet.balance += refundAmount;
+                wallet.history.push({
+                    amount: refundAmount,
+                    status: 'credit',
+                    description: `Refund for returned order ${order.orderId}`,
+                    date: new Date()
+                });
+            }
+
+            await wallet.save();
             await order.save();
-            res.json({  success:true,  message: "Return accepted and order updated successfully" });
+
+            res.json({ 
+                success: true, 
+                message: "Return accepted and refund processed successfully" 
+            });
         } else {
-            res.status(404).json({ success:false,message: "Order item not found" });
+            res.status(404).json({ 
+                success: false,
+                message: "Order item not found" 
+            });
         }
     } catch (error) {
-        console.error("error in returnaccept", error);
-        res.status(500).json({success:false, message: "Internal server error" });
+        console.error("Error in returnaccept:", error);
+        res.status(500).json({
+            success: false, 
+            message: "Internal server error" 
+        });
     }
 };
-
-
 
 const rejectReturn = async(req,res)=>{
     try {
