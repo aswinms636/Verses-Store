@@ -150,6 +150,7 @@ const acceptReturn = async (req, res) => {
             const product = await Product.findById(item.product);
             if (product) {
                 product.sizes[item.size] += item.quantity;
+                product.quantity += item.quantity;
                 await product.save();
             } else {
                 console.error("Product not found for ID:", item.product);

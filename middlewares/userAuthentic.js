@@ -21,16 +21,9 @@ const blockCheck = async (req, res, next) => {
         
         if (userData?.isBlocked) {
             delete req.session.user
-            req.redirect('/')
-
-
-
-
-
-
-            
+            res.redirect('/')     
         }
-  
+
         next();
   
     } catch (error) {
@@ -38,6 +31,7 @@ const blockCheck = async (req, res, next) => {
         next();
     }
   };
+
 
 const checkSession=async (req,res,next)=>{
     if(req.session.user){

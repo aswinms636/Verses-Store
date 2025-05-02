@@ -9,6 +9,8 @@ const { isLogin,checkSession,blockCheck }=require('../middlewares/userAuthentic'
  const checkoutController=require('../controller/user/checkoutController')
  const orderController=require('../controller/user/orderController')
  const wishlistController=require('../controller/user/wishlistController')
+ const razorpayController=require('../controller/user/razopayController')
+
 const passport=require('../config/passport')
 
 
@@ -108,6 +110,9 @@ router.post('/submit-return', orderController.submitReturnRequest);
 router.get('/wishlist', checkSession,  wishlistController.getWishlist);
 router.post('/wishlist-add',wishlistController.addToWishlist);
 router.post('/wishlist/remove',wishlistController.removeFromWishlist);
+
+
+router.post('/create-order',razorpayController.createOrder);
 
 
 
