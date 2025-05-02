@@ -61,7 +61,38 @@ const createCoupon = async (req, res) => {
     }
 };
 
+
+const listCoupon = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const result = await Coupon.updateOne({ _id: id }, { $set: { isList: true } });
+        if (result.modifiedCount > 0) {
+            res.json({ status: true, message: "Coupon listed successfully" });
+        } else {
+            res.status(400).json({ status: false, message: "Failed to list coupon" });
+        }
+    } catch (error) {
+        next(error);
+    }
+};
+
+const unlistCoupon = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const result = await Coupon.updateOne({ _id: id }, { $set: { isList: false } });
+        if (result.modifiedCount > 0) {
+            res.json({ status: true, message: "Coupon unlisted successfully" });
+        } else {
+            res.status(400).json({ status: false, message: "Failed to unlist coupon" });
+        }
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     loadCoupon,
     createCoupon,
+    unlistCoupon,
+    listCoupon
 };
