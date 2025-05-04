@@ -113,7 +113,7 @@ const addCategoryOffer = async (req, res) => {
             if (!product.productOffer || product.productOffer < offerPercentage) {
                 const discountAmount = Math.floor(product.regularPrice * (offerPercentage / 100));
                 product.salePrice = product.regularPrice - discountAmount;
-                console.log(  product.name,product.regularPrice, discountAmount, product.salePrice)
+                console.log(  product.name,product.regularPrice, discountAmount, product.salePrice);
                 console.log('Updated product sale price:', product.salePrice);
                 await product.save();
             }
@@ -136,36 +136,71 @@ const addCategoryOffer = async (req, res) => {
 
 
 
-const removeCategoryOffer=async(req,res)=>{
+const removeCategoryOffer = async (req, res) => {
     try {
-        const categoryId=req.body.categoryId;
-        const category=await Category.findById(categoryId) 
-        if(!category){
-            return res.status(404).json({status:false,message:"Category not found"})
+        const { categoryId } = req.body;
+        
+        // Validate categoryId
+        if (!categoryId || !mongoose.Types.ObjectId.isValid(categoryId)) {
+            return res.status(400).json({
+                status: false,
+                message: "Invalid category ID"
+            });
         }
 
-        const percentage=category.categoryOffer;
-        const products=await Product.find({category:category._id})
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            return res.status(404).json({
+                status: false,
+                message: "Category not found"
+            });
+        }
 
-        if(products.length>0){
+        // Store the current offer percentage before removing it
+        const previousOffer = category.categoryOffer;
+        
+        // Reset category offer
+        category.categoryOffer = 0;
+        await category.save();
 
-            for(const product of products){
-                product.salePrice+=Math.floor(product.regularPrice * (percentage/100))
-                product.productOffer=0;
+        // Update products in this category
+        const products = await Product.find({ category: categoryId });
+        for (const product of products) {
+            // Only update price if category offer was being applied
+            if (!product.productOffer || product.productOffer < previousOffer) {
+                // Reset sale price to regular price or apply product offer if exists
+                if (product.productOffer) {
+                    // If product has its own offer, apply that
+                    const productDiscountAmount = Math.floor(product.regularPrice * (product.productOffer / 100));
+                    product.salePrice = product.regularPrice - productDiscountAmount;
+                } else {
+                    // If no product offer, reset to regular price
+                    product.salePrice = product.regularPrice;
+                }
+                
+                console.log(`Updating product ${product.productName}:`, {
+                    regularPrice: product.regularPrice,
+                    newSalePrice: product.salePrice,
+                    productOffer: product.productOffer
+                });
+                
                 await product.save();
-
             }
-
-            category.categoryOffer=0;
-            await category.save()
-            res.json({status:true})
-
         }
+
+        return res.json({
+            status: true,
+            message: "Category offer removed successfully"
+        });
 
     } catch (error) {
-        res.status(500).json({status:false,message:"Internal Server Error"})
+        console.error('Error in removeCategoryOffer:', error);
+        return res.status(500).json({
+            status: false,
+            message: "Internal server error"
+        });
     }
-}
+};
 
 
 const listCategory = async (req, res) => {
