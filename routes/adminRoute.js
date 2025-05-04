@@ -40,7 +40,7 @@ router.post('/editCategory/:id',categoryController.editCategory)
 
 
 //Product Management
-router.get('/addProducts',checkSession,productController.loadAddProduct)
+router.get('/addProducts',checkSession,productController.loadAddProduct);
 router.post('/addProducts', upload.array('productImages', 4),productController.addProducts);
 router.get('/products',checkSession,productController.getAllProducts);
 router.post('/addProductOffer',productController.addProductOffer)

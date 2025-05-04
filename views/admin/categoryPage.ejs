@@ -332,45 +332,62 @@
     }
 
     async function removeCategoryOffer(categoryId) {
-      const result = await Swal.fire({
-        title: 'Remove Offer?',
-        text: 'Are you sure you want to remove this offer?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, remove it!'
-      });
-
-      if (!result.isConfirmed) return;
-
       try {
+        // Show confirmation dialog
+        const result = await Swal.fire({
+            title: 'Remove Category Offer?',
+            text: "This will remove the offer from all products in this category",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, remove it!',
+            cancelButtonText: 'Cancel'
+        });
+
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        // Show loading state
+        Swal.fire({
+            title: 'Processing...',
+            text: 'Removing category offer',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
         const response = await fetch('/admin/removeCategoryOffer', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ categoryId }),
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ categoryId })
         });
 
         const data = await response.json();
 
         if (data.status) {
-          Swal.fire({
-            icon: 'success',
-            title: 'Success',
-            text: 'Offer removed successfully',
-            timer: 1500,
-            showConfirmButton: false
-          });
-          location.reload();
+            await Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: data.message,
+                timer: 1500,
+                showConfirmButton: false
+            });
+            location.reload();
         } else {
-          throw new Error(data.message || 'Failed to remove offer');
+            throw new Error(data.message || 'Failed to remove offer');
         }
+
       } catch (error) {
-        console.error('Error:', error);
+        console.error('Error removing offer:', error);
         Swal.fire({
           icon: 'error',
-          title: 'Error',
-          text: error.message || 'Failed to remove offer',
+          title: 'Error!',
+          text: error.message || 'Something went wrong while removing the offer',
           confirmButtonColor: '#3085d6'
         });
       }
