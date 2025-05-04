@@ -74,28 +74,27 @@ const addCategory=async(req,res)=>{
 
 const addCategoryOffer = async (req, res) => {
     try {
-        const { percentage, categoryId, adminPassword } = req.body;
-        console.log(percentage, categoryId, adminPassword)
+        const { percentage, categoryId } = req.body;
+        console.log('Received offer data:', { percentage, categoryId });
+
         // Validate inputs
-        if (!percentage || !categoryId ) {
+        if (!percentage || !categoryId) {
             return res.status(400).json({
                 status: false,
                 message: "Missing required fields"
             });
         }
 
-        // Verify admin password
-      
-
         // Validate percentage
-        if (percentage < 0 || percentage > 90) {
+        const offerPercentage = parseInt(percentage);
+        if (isNaN(offerPercentage) || offerPercentage < 0 || offerPercentage > 90) {
             return res.status(400).json({
                 status: false,
                 message: "Offer percentage must be between 0 and 90"
             });
         }
 
-        // Find category
+        // Find category and update
         const category = await Category.findById(categoryId);
         if (!category) {
             return res.status(404).json({
@@ -104,31 +103,18 @@ const addCategoryOffer = async (req, res) => {
             });
         }
 
-        // Check for existing product offers
-        const products = await Product.find({ category: category._id });
-        const hasHigherProductOffer = products.some(
-            (product) => product.productOffer > percentage
-        );
-
-        if (hasHigherProductOffer) {
-            return res.status(400).json({
-                status: false,
-                message: "Some products in this category have higher product offers"
-            });
-        }
-
         // Update category offer
-        await Category.updateOne(
-            { _id: categoryId },
-            { $set: { categoryOffer: percentage } }
-        );
+        category.categoryOffer = offerPercentage;
+        await category.save();
 
-        // Update product prices
+        // Update product prices in this category
+        const products = await Product.find({ category: categoryId });
         for (const product of products) {
-            if (!product.productOffer) {
-                product.salePrice = Math.floor(
-                    product.regularPrice * (1 - percentage / 100)
-                );
+            if (!product.productOffer || product.productOffer < offerPercentage) {
+                const discountAmount = Math.floor(product.regularPrice * (offerPercentage / 100));
+                product.salePrice = product.regularPrice - discountAmount;
+                console.log(  product.name,product.regularPrice, discountAmount, product.salePrice)
+                console.log('Updated product sale price:', product.salePrice);
                 await product.save();
             }
         }
