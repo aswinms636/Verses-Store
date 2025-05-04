@@ -3,6 +3,8 @@ const Product = require('../../models/productSchema');
 const User = require('../../models/userSchema');
 const Cart = require('../../models/cartSchema');
 const Address = require('../../models/addressSchema');
+const Wallet = require('../../models/walletSchema');
+const mongoose = require('mongoose');
 
 
 
@@ -193,8 +195,8 @@ const placedOrder = async (req, res) => {
         }
 
         const placedOrders = [];
+        let totalAmount = 0;
 
-        
         for (let item of cart.items) {
             const product = item.productId;
             const selectedSize = item.size;
@@ -212,6 +214,7 @@ const placedOrder = async (req, res) => {
             await product.save();
 
             const totalPrice = item.quantity * item.price;
+            totalAmount += totalPrice;
 
             const newOrder = new Order({
                 userId,
@@ -238,8 +241,27 @@ const placedOrder = async (req, res) => {
             await newOrder.save();
             placedOrders.push(newOrder);
         }
+        console.log('paymentMethod:', paymentMethod);
+        if (paymentMethod === 'Wallet Payment') {
+            const user = await User.findById(userId);
+            if (!user) {
+                return res.status(404).json({ success: false, message: 'User not found' });
+            }
 
-        
+            const wallet =  await Wallet.findOne({ user: userId });
+            if (!wallet) {
+                return res.status(404).json({ success: false, message: 'Wallet not found' });
+            }
+
+            if (wallet.balance < totalAmount) {
+                return res.status(400).json({ success: false, message: 'Insufficient wallet balance' });
+            }
+
+            // Deduct the amount from the user's wallet
+           wallet.balance -= totalAmount;
+            await wallet.save();
+        }
+
         cart.items = [];
         await cart.save();
 
@@ -250,6 +272,7 @@ const placedOrder = async (req, res) => {
         res.status(500).json({ success: false, message: "Order placement failed" });
     }
 };
+
 
 
 
