@@ -9,7 +9,7 @@
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Sidebar styles - kept the same as reference */
+        /* Sidebar styles */
         .sidebar {
             min-height: 100vh;
             background-color: #343a40;
@@ -241,9 +241,11 @@
             }
         }
     </style>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
-    <!-- Sidebar - using the same structure as the reference page -->
+    <!-- Sidebar -->
     <div class="sidebar">
         <div class="d-flex flex-column p-3">
             <div class="text-center mb-4">
@@ -270,7 +272,6 @@
                         <i class="fas fa-wallet"></i> My Wallet
                     </a>
                 </li>
-
                 <li class="nav-item">
                     <a href="/settings" class="nav-link">
                         <i class="fas fa-cog"></i> Settings
@@ -376,7 +377,6 @@
     <!-- Bootstrap JS and dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.min.js"></script>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
         // Simple JavaScript for toggling filter buttons
         document.querySelectorAll('.filter-btn').forEach(button => {
@@ -389,70 +389,91 @@
         });
 
         // Razorpay integration
-        document.getElementById('add-money-btn').onclick = async function () {
-            const amount = prompt("Enter the amount to add:");
-            if (amount === null || isNaN(amount) || amount <= 0) {
-                alert("Please enter a valid amount.");
+        document.getElementById('add-money-btn').addEventListener('click', async function() {
+            const amount = prompt('Enter amount to add (in ₹):');
+            if (!amount || isNaN(amount) || amount <= 0) {
+                alert('Please enter a valid amount');
                 return;
             }
 
-            const response = await fetch('/create-Order', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ amount: parseFloat(amount) }),
-            });
+            try {
+                const response = await fetch('/addMoneyToWallet', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ amount: parseFloat(amount) })
+                });
 
-            const order = await response.json();
+                const data = await response.json();
+                if (!data.success) {
+                    throw new Error(data.message);
+                }
 
-            const options = {
-                key: order.key,
-                amount: order.amount,
-                currency: 'INR',
-                name: 'Verses Store',
-                description: 'Add money to wallet',
-                order_id: order.id,
-                handler: async function (response) {
-                    const paymentData = {
-                        razorpay_order_id: response.razorpay_order_id,
-                        razorpay_payment_id: response.razorpay_payment_id,
-                        razorpay_signature: response.razorpay_signature,
-                        userId: '<%= wallet.user %>', // Replace with actual user ID
-                        amount: parseFloat(amount),
-                        description: 'Money added to wallet via Razorpay',
-                    };
+                const options = {
+                    key: data.key, // Ensure this is securely handled
+                    amount: data.order.amount,
+                    currency: "INR",
+                    name: "Verses Store",
+                    description: "Wallet Recharge",
+                    order_id: data.order.id,
+                    handler: async function (response) {
+                        try {
+                            const verifyResponse = await fetch('/walletPaymentSuccess', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    razorpayPaymentId: response.razorpay_payment_id,
+                                    razorpayOrderId: response.razorpay_order_id,
+                                    razorpaySignature: response.razorpay_signature,
+                                    amount: parseFloat(amount)
+                                })
+                            });
 
-                    const verifyResponse = await fetch('/verify-Payment', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(paymentData),
-                    });
+                            console.log('------------------')
 
-                    const result = await verifyResponse.json();
-                    alert(result.message);
-                    if (result.message === 'Money added to wallet successfully') {
-                        location.reload(); // Reload the page to reflect the updated balance
+                            const result = await verifyResponse.json();
+                            if (result.success) {
+                                Swal.fire({
+                                    title: 'Success!',
+                                    text: 'Money added to wallet successfully',
+                                    icon: 'success'
+                                }).then(() => {
+                                    window.location.reload();
+                                });
+                            } else {
+                                throw new Error(result.message);
+                            }
+                        } catch (error) {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: error.message || 'Payment verification failed',
+                                icon: 'error'
+                            });
+                        }
+                    },
+                    prefill: {
+                        name: "<%= wallet.user.name %>",
+                        email: "<%= wallet.user.email %>"
+                    },
+                    theme: {
+                        color: "#3399cc"
                     }
-                },
-                prefill: {
-                    name: 'User Name',
-                    email: 'user@example.com',
-                    contact: '9999999999',
-                },
-                notes: {
-                    address: 'Razorpay Corporate Office',
-                },
-                theme: {
-                    color: '#3399cc',
-                },
-            };
+                };
 
-            const rzp1 = new Razorpay(options);
-            rzp1.open();
-        };
+                const rzp1 = new Razorpay(options);
+                rzp1.open();
+
+            } catch (error) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: error.message || 'Failed to create order',
+                    icon: 'error'
+                });
+            }
+        });
     </script>
 </body>
 </html>

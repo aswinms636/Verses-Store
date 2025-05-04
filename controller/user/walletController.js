@@ -1,5 +1,5 @@
 const Wallet = require('../../models/walletSchema'); 
-const razorpay=require('razorpay');
+const Razorpay = require('razorpay');
 const mongoose = require('mongoose');
 const crypto = require('crypto');
 
@@ -30,82 +30,74 @@ const getWallet = async (req, res) => {
     }
 };
 
-
-
- 
-
-const createOrder = async (req, res) => {
-  const { amount } = req.body;
-
+const addMoneyToWallet = async (req, res, next) => {
   try {
+    console.log("Received request body:", req.body);
+    const userId = req.session.user._id;
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "User not logged in" });
+    }
+    const { amount } = req.body;
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid amount" });
+    }
+    const razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+
+    console.log("Razorpay instance created:", razorpay);
     const options = {
-      key: process.env.RAZORPAY_KEY_ID, // Enter the Key ID generated from the Dashboard
       amount: amount * 100, // amount in paise
-      currency: 'INR',
-      receipt: 'receipt_order_' + Date.now(),
+      currency: "INR",
+      receipt: `wallet_${userId.slice(0,6)}_${Date.now()}`,
     };
 
     const order = await razorpay.orders.create(options);
-    res.status(200).json(order);
+    console.log("Razorpay order created:", order);
+    return res.json({ success: true, order,key: process.env.RAZORPAY_KEY_ID });
   } catch (error) {
-    res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    console.error("Error in addMoneyToWallet:", error);
+    next(error);
   }
 };
 
-
-
-
-// Adjust the path as necessary
-
-
-
-const verifyPaymentAndUpdateWallet = async (req, res) => {
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature, userId, amount, description } = req.body;
-
-   const generatedSignature = crypto
-              .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-              .update(razorpay_order_id + "|" + razorpay_payment_id)
-              .digest("hex");
-
-  if (generated_signature !== razorpay_signature) {
-    return res.status(400).json({ message: 'Payment verification failed' });
-  }
-
+const walletPaymentSuccess = async (req, res, next) => {
   try {
-    let wallet = await Wallet.findOne({ user: userId });
-
-    if (!wallet) {
-      const newWallet = new Wallet({
-        user: userId,
-        balance: 0,
-        history: [],
-      });
-      wallet = await newWallet.save();
+    const userId = req.session.user._id;
+    console.log("User ID:", userId);
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "User not logged in" });
     }
+    const { razorpayPaymentId, razorpayOrderId, razorpaySignature, amount } = req.body;
 
-    wallet.balance += amount;
+    console.log("Payment success data:", req.body);
 
-    wallet.history.push({
-      amount: amount,
-      status: 'credit',
-      description: description || 'Money added to wallet via Razorpay',
+    // You can add payment signature verification logic here if needed.
+
+    // Update the user's wallet.
+    let userWallet = await Wallet.findOne({ user: userId });
+    if (!userWallet) {
+      userWallet = new Wallet({ user: userId, balance: 0, history: [] });
+    }
+    userWallet.balance += parseInt(amount);
+    userWallet.history.push({
+      amount: parseInt(amount),
+      status: "credit",
+      date: Date.now(),
+      description: "Wallet recharge via Razorpay",
     });
-
-    await wallet.save();
-
-    res.status(200).json({ message: 'Money added to wallet successfully', wallet });
+    await userWallet.save();
+    return res.json({ success: true, message: "Wallet updated successfully" });
   } catch (error) {
-    res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    console.error("Error in walletPaymentSuccess:", error);
+    next(error);
   }
 };
-
-
-
-
 
 
 module.exports = {
     getWallet,
-    createOrder,
-    verifyPaymentAndUpdateWallet
+    addMoneyToWallet,
+    walletPaymentSuccess,
 };

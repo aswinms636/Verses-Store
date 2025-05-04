@@ -118,9 +118,9 @@ router.post('/verify-payment',checkSession,razorpayController.verifyPayment);
 
 
 
-router.get('/wallet',checkSession,walletController.getWallet);
-router.post('/create-order',walletController. createOrder);
-router.post('/verify-payment', walletController.verifyPaymentAndUpdateWallet);
+router.get('/wallet',checkSession, walletController.getWallet);
+router.post('/addMoneyToWallet', walletController.addMoneyToWallet);
+router.post('/walletPaymentSuccess',walletController.walletPaymentSuccess);
 
 
 module.exports = router;
