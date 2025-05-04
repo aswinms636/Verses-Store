@@ -374,6 +374,29 @@
         <% } %>
     </div>
 
+    <!-- Add Money Modal -->
+    <div class="modal fade" id="addMoneyModal" tabindex="-1" aria-labelledby="addMoneyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addMoneyModalLabel">Add Money to Wallet</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="walletAmount" class="form-label">Enter Amount (₹)</label>
+                        <input type="number" class="form-control" id="walletAmount" min="1" step="1" placeholder="Enter amount">
+                        <div class="invalid-feedback">Please enter a valid amount</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmAmount">Add Money</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS and dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.min.js"></script>
@@ -388,13 +411,24 @@
             });
         });
 
-        // Razorpay integration
-        document.getElementById('add-money-btn').addEventListener('click', async function() {
-            const amount = prompt('Enter amount to add (in ₹):');
+        // Razorpay integration with modal
+        document.getElementById('add-money-btn').addEventListener('click', function() {
+            const addMoneyModal = new bootstrap.Modal(document.getElementById('addMoneyModal'));
+            addMoneyModal.show();
+        });
+
+        document.getElementById('confirmAmount').addEventListener('click', async function() {
+            const amountInput = document.getElementById('walletAmount');
+            const amount = parseFloat(amountInput.value);
+            
             if (!amount || isNaN(amount) || amount <= 0) {
-                alert('Please enter a valid amount');
+                amountInput.classList.add('is-invalid');
                 return;
             }
+            
+            amountInput.classList.remove('is-invalid');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addMoneyModal'));
+            modal.hide();
 
             try {
                 const response = await fetch('/addMoneyToWallet', {
@@ -402,7 +436,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ amount: parseFloat(amount) })
+                    body: JSON.stringify({ amount })
                 });
 
                 const data = await response.json();
@@ -411,7 +445,7 @@
                 }
 
                 const options = {
-                    key: data.key, // Ensure this is securely handled
+                    key: data.key,
                     amount: data.order.amount,
                     currency: "INR",
                     name: "Verses Store",
@@ -428,11 +462,9 @@
                                     razorpayPaymentId: response.razorpay_payment_id,
                                     razorpayOrderId: response.razorpay_order_id,
                                     razorpaySignature: response.razorpay_signature,
-                                    amount: parseFloat(amount)
+                                    amount: amount
                                 })
                             });
-
-                            console.log('------------------')
 
                             const result = await verifyResponse.json();
                             if (result.success) {
@@ -473,6 +505,13 @@
                     icon: 'error'
                 });
             }
+        });
+
+        // Clear validation when modal is hidden
+        document.getElementById('addMoneyModal').addEventListener('hidden.bs.modal', function () {
+            const amountInput = document.getElementById('walletAmount');
+            amountInput.classList.remove('is-invalid');
+            amountInput.value = '';
         });
     </script>
 </body>
