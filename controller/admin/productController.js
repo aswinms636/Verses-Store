@@ -6,6 +6,7 @@ const sharp = require('sharp');
 const { pageNotFound } = require('./adminController');
 const { find } = require('../../models/userSchema');
 const { Console } = require('console');
+const mongoose = require('mongoose');
 
 const uploadDir = path.join('public', 'Uploads', 'product-Images');
 
@@ -336,29 +337,73 @@ const addProductOffer = async(req, res) => {
     }
 };
 
-const removeProductOffer=async(req,res)=>{
+const removeProductOffer = async (req, res) => {
     try {
+        const { productId } = req.body;
 
-        const {productId}=-req.body;
+        // Input validation
+        if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
+            return res.json({
+                status: false,
+                message: "Invalid product ID"
+            });
+        }
 
-         const findProduct=await Product.findOne({id:productId})
-         const percentage=findProduct.productOffer;
-        
-         findProduct.salePrice=findProduct.salePrice + Math.floor(findProduct.regularPrice*(percentage/100));
-         
-         findProduct.productOffer=0;
-         await findProduct.save()
-         res.json({status:true})
-        
+        const findProduct = await Product.findById(productId);
+        if (!findProduct) {
+            return res.json({
+                status: false,
+                message: "Product not found"
+            });
+        }
+
+        // Store original values before update
+        const originalOffer = findProduct.productOffer;
+        const originalPrice = findProduct.regularPrice;
+
+        if (originalOffer === 0) {
+            return res.json({
+                status: false,
+                message: "No offer exists for this product"
+            });
+        }
+
+        // Reset product offer and recalculate sale price
+        findProduct.productOffer = 0;
+
+        // Check if category has an offer
+        const category = await Category.findById(findProduct.category);
+        if (category && category.categoryOffer > 0) {
+            // Apply category offer
+            const categoryDiscountAmount = Math.floor(originalPrice * (category.categoryOffer / 100));
+            findProduct.salePrice = originalPrice - categoryDiscountAmount;
+        } else {
+            // Reset to regular price if no category offer
+            findProduct.salePrice = originalPrice;
+        }
+
+        await findProduct.save();
+
+        console.log("Product offer removed:", {
+            productId,
+            originalOffer,
+            originalPrice,
+            newSalePrice: findProduct.salePrice
+        });
+
+        return res.json({
+            status: true,
+            message: "Offer removed successfully"
+        });
+
     } catch (error) {
-
-        res.redirect('/pageNotFound')
-        
-        
+        console.error("Error in removeProductOffer:", error);
+        return res.status(500).json({
+            status: false,
+            message: "Internal server error"
+        });
     }
-}
-
-
+};
 
 const blockProduct=async(req,res)=>{
     try {
