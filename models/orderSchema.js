@@ -111,6 +111,23 @@ const orderSchema = new Schema({
     couponApplied: {
         type: Boolean,
         default: false
+    },
+    couponApplied: {
+        type: Schema.Types.ObjectId,
+        ref: 'Coupon',
+        default: null
+    },
+    actualPrice: {
+        type: Number,
+        required: true
+    },
+    payableAmount: {
+        type: Number,
+        required: true
+    },
+    couponDiscount: {
+        type: Number,
+        default: 0
     }
 });
 

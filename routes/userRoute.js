@@ -95,6 +95,10 @@ router.post("/order/place", checkoutController.placeOrder);
 router.post("/address/add",checkoutController.addAddress);
 router.post("/place",checkoutController.placedOrder);
 router.get("/order/view/:orderId",checkoutController.viewOrder);
+router.get('/coupons/available', checkoutController.getAvailableCoupons);
+router.post('/coupons/apply', checkoutController.applyCoupon);
+router.post('/coupons/remove', checkoutController.removeCoupon);
+
 
 
 
@@ -121,6 +125,10 @@ router.post('/verify-payment',checkSession,razorpayController.verifyPayment);
 router.get('/wallet',checkSession, walletController.getWallet);
 router.post('/addMoneyToWallet', walletController.addMoneyToWallet);
 router.post('/walletPaymentSuccess',walletController.walletPaymentSuccess);
+
+
+
+
 
 
 module.exports = router;

@@ -4,6 +4,7 @@ const User = require('../../models/userSchema');
 const Cart = require('../../models/cartSchema');
 const Address = require('../../models/addressSchema');
 const Wallet = require('../../models/walletSchema');
+const Coupon = require('../../models/coupenSchema');
 const mongoose = require('mongoose');
 
 
@@ -172,7 +173,7 @@ const placedOrder = async (req, res) => {
     console.log("controller reached!");
 
     try {
-        const { addressId, paymentMethod } = req.body;
+        const { addressId, paymentMethod, couponCode, actualPrice, payableAmount } = req.body;
         const userId = req.session.user._id;
 
         if (!userId) {
@@ -216,7 +217,7 @@ const placedOrder = async (req, res) => {
             const totalPrice = item.quantity * item.price;
             totalAmount += totalPrice;
 
-            const newOrder = new Order({
+            const orderData = {
                 userId,
                 orderItems: [{
                     product: item.productId._id,
@@ -235,9 +236,22 @@ const placedOrder = async (req, res) => {
                     zipCode: selectedAddress.zipCode,
                     phone: selectedAddress.phone
                 },
-                status: "Pending"
-            });
+                status: "Pending",
+                actualPrice: actualPrice,
+                payableAmount: payableAmount,
+                couponApplied: null,
+                couponDiscount: 0
+            };
 
+            if (couponCode) {
+                const coupon = await Coupon.findOne({ name: couponCode });
+                if (coupon) {
+                    orderData.couponApplied = coupon._id;
+                    orderData.couponDiscount = coupon.offerPrice;
+                }
+            }
+
+            const newOrder = new Order(orderData);
             await newOrder.save();
             placedOrders.push(newOrder);
         }
@@ -335,10 +349,126 @@ const viewOrder = async (req, res) => {
 
 
 
+const getAvailableCoupons = async (req, res) => {
+    try {
+        const { totalAmount } = req.query;
+        const userId = req.session.user._id;
+
+        console.log('Fetching coupons for:', { totalAmount, userId });
+
+        const currentDate = new Date();
+        
+        const coupons = await Coupon.find({
+            isList: true,
+            minimumPrice: { $lte: totalAmount },
+            expireOn: { $gt: currentDate },
+            userId: { $nin: [userId] }
+        });
+
+        console.log('Found coupons:', coupons);
+
+        res.json({
+            success: true,
+            coupons: coupons
+        });
+
+    } catch (error) {
+        console.error('Error fetching coupons:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch available coupons'
+        });
+    }
+};
+
+const applyCoupon = async (req, res) => {
+    try {
+        const { couponCode, totalAmount } = req.body;
+        const userId = req.session.user._id;
+
+        console.log('Applying coupon:', { couponCode, totalAmount, userId });
+
+        const coupon = await Coupon.findOne({
+            name: couponCode,
+            isList: true,
+            minimumPrice: { $lte: totalAmount },
+            expireOn: { $gt: new Date() },
+            userId: { $nin: [userId] }
+        });
+
+        if (!coupon) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid or expired coupon'
+            });
+        }
+
+        const discount = coupon.offerPrice;
+        const newTotal = totalAmount - discount;
+
+        res.json({
+            success: true,
+            message: 'Coupon applied successfully',
+            discount: discount,
+            newTotal: newTotal,
+            couponDetails: {
+                code: couponCode,
+                discount: discount
+            }
+        });
+
+    } catch (error) {
+        console.error('Error applying coupon:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to apply coupon'
+        });
+    }
+};
+
+
+const removeCoupon = async (req, res) => {
+    try {
+        const { couponCode } = req.body;
+        const userId = req.session.user._id;
+
+        const coupon = await Coupon.findOne({ name: couponCode });
+        if (!coupon) {
+            return res.json({
+                success: false,
+                message: 'Coupon not found'
+            });
+        }
+
+        // Remove user from the coupon's used list
+        await Coupon.findByIdAndUpdate(coupon._id, {
+            $pull: { userId: userId }
+        });
+
+        res.json({
+            success: true,
+            message: 'Coupon removed successfully'
+        });
+
+    } catch (error) {
+        console.error('Error removing coupon:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to remove coupon'
+        });
+    }
+};
+
+
+
+
 module.exports = {
     placeOrder,
     getCheckoutPage,
     addAddress,
     placedOrder,
     viewOrder,
-}
+    getAvailableCoupons,
+    applyCoupon,
+    removeCoupon
+};
