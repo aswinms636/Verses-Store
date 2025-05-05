@@ -2,6 +2,35 @@
 <head>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
+    <style>
+        .offer-badge {
+            background-color: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .offer-price {
+            color: #dc3545;
+            font-weight: 500;
+            text-decoration: line-through;
+            font-size: 0.875rem;
+        }
+
+        .btn-offer {
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .btn-offer:hover {
+            background-color: #138496;
+            border-color: #117a8b;
+        }
+    </style>
 </head>
 <div class="content-header">
     <div>
@@ -97,25 +126,55 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script>
     async function addOffer(productId) {
-        const { value: amount } = await Swal.fire({
-            title: "Offer in Percentage",
-            input: "number",
-            inputLabel: "percentage",
-            inputPlaceholder: "%"
-        });
-        $.ajax({
-            url: "/admin/addProductOffer",
-            method: "post",
-            data: { percentage: amount, productId: productId },
-            success: (response) => {
-                if (response.status === true) {
-                    location.reload();
-                    Swal.fire("Offer added", "The order has been removed", 'success');
-                } else {
-                    alert('failed');
+        try {
+            const { value: percentage } = await Swal.fire({
+                title: "Add Product Offer",
+                input: "number",
+                inputLabel: "Enter offer percentage (1-90)",
+                inputPlaceholder: "Enter percentage",
+                showCancelButton: true,
+                inputValidator: (value) => {
+                    if (!value) {
+                        return "Please enter a percentage!";
+                    }
+                    if (value <= 0 || value > 90) {
+                        return "Offer percentage must be between 1 and 90!";
+                    }
                 }
+            });
+
+            if (!percentage) return; // User cancelled or closed the dialog
+
+            const response = await fetch('/admin/addProductOffer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ productId, percentage })
+            });
+
+            const data = await response.json();
+
+            if (data.status) {
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Product offer added successfully',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                location.reload();
+            } else {
+                throw new Error(data.message);
             }
-        });
+
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: error.message || 'Failed to add offer'
+            });
+        }
     }
     function removeOffer(productId) {
     try {

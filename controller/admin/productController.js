@@ -280,32 +280,61 @@ const getAllProducts = async (req, res) => {
     }
 };
 
-const addProductOffer= async(req,res)=>{
+const addProductOffer = async(req, res) => {
     try {
+        const { productId, percentage } = req.body;
         
-       const {productId,percentage}=req.body;
-       const findProduct=await Product.findOne({_id:productId});
-       const findCategory=await Category.findOne({_id:findProduct.category})
-
-
-       if(findCategory.categoryOffer>percentage){
-            return res.json({status:false,message:"This product category already has a category offer"})
+        // Validate percentage
+        if (!percentage || percentage <= 0 || percentage > 90) {
+            return res.json({
+                status: false,
+                message: "Please enter a valid offer percentage between 1 and 90"
+            });
         }
 
-            findProduct.salePrice=findProduct.salePrice-Math.floor(findProduct.regularPrice*(percentage/100));
-            findProduct.productOffer=parseInt(percentage);
-            await findProduct.save();
-            findCategory.categoryOffer=0;
-            await findCategory.save();
-            
-            res.json({status:true,})
+        const findProduct = await Product.findOne({ _id: productId });
+        if (!findProduct) {
+            return res.json({
+                status: false,
+                message: "Product not found"
+            });
+        }
+
+        const findCategory = await Category.findOne({ _id: findProduct.category });
+        if (findCategory.categoryOffer > percentage) {
+            return res.json({
+                status: false,
+                message: "Category offer is higher than product offer"
+            });
+        }
+
+        // Calculate new sale price with offer
+        const discountAmount = Math.floor(findProduct.regularPrice * (percentage / 100));
+        findProduct.salePrice = findProduct.regularPrice - discountAmount;
+        findProduct.productOffer = parseInt(percentage);
+        
+        await findProduct.save();
+        console.log("Product updated with offer:", {
+            productId,
+            originalPrice: findProduct.regularPrice,
+            discountAmount,
+            newSalePrice: findProduct.salePrice,
+            offerPercentage: percentage
+        });
+
+        return res.json({
+            status: true,
+            message: "Offer added successfully"
+        });
 
     } catch (error) {
-        res.redirect('/pageNotFound')
-        res.status(500).json({status:false,message:" Internal server error"})
+        console.error("Error in addProductOffer:", error);
+        res.status(500).json({
+            status: false,
+            message: "Internal server error"
+        });
     }
-}
-
+};
 
 const removeProductOffer=async(req,res)=>{
     try {
