@@ -94,6 +94,11 @@ const createOrder = async (req, res) => {
             couponApplied: couponObjectId
         });
 
+        await Cart.findOneAndUpdate(
+            { userId },
+            { $set: { items: [] } }
+        );
+
         await order.save();
 
         res.json({
