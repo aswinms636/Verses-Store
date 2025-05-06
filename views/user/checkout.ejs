@@ -477,40 +477,53 @@
         }
 
         async function placeOrder() {
-            const addressId = document.getElementById("addressSelect").value;
-            const paymentMethod = document.getElementById("paymentMethod").value;
+            try {
+                const addressId = document.getElementById("addressSelect").value;
+                const paymentMethod = document.getElementById("paymentMethod").value;
 
-            if (!addressId) {
-                return Swal.fire("Error", "Please select an address", "error");
-            }
-
-            if (paymentMethod === "Online Payment") {
-                // Handle Razorpay payment
-                await handleRazorpayPayment(addressId);
-            } else {
-                // Existing COD logic
-                const orderData = {
-                    addressId,
-                    paymentMethod,
-                    couponCode: currentCoupon ? currentCoupon.code : null,
-                    actualPrice: <%= totalAmount %>,
-                    payableAmount: parseFloat(document.getElementById('payableAmount').textContent)
-                };
-
-                const response = await fetch("/place", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(orderData)
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    Swal.fire("Order Placed!", "Your order has been placed successfully", "success")
-                        .then(() => location.href = `/order/view/${data.orderId}`);
-                } else {
-                    Swal.fire("Error", "Order placement failed", "error");
+                if (!addressId) {
+                    return Swal.fire("Error", "Please select an address", "error");
                 }
+
+                const actualPrice = parseFloat(document.getElementById('actualPrice').textContent);
+                const payableAmount = parseFloat(document.getElementById('payableAmount').textContent);
+
+                if (paymentMethod === "Online Payment") {
+                    await handleRazorpayPayment(addressId);
+                } else {
+                    const orderData = {
+                        addressId,
+                        paymentMethod,
+                        couponCode: currentCoupon ? currentCoupon.code : null,
+                        actualPrice,
+                        payableAmount
+                    };
+
+                    const response = await fetch("/place", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(orderData)
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        await Swal.fire({
+                            title: "Success!",
+                            text: "Your order has been placed successfully",
+                            icon: "success"
+                        });
+                        
+                        // Redirect to the first order's detail page if multiple orders were created
+                        const orderId = Array.isArray(data.orders) ? data.orders[0] : data.orders;
+                        window.location.href = `/order/view/${orderId}`;
+                    } else {
+                        Swal.fire("Error", data.message || "Order placement failed", "error");
+                    }
+                }
+            } catch (error) {
+                console.error("Order placement error:", error);
+                Swal.fire("Error", "Failed to place order. Please try again.", "error");
             }
         }
 
