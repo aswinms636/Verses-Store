@@ -529,73 +529,83 @@
 
         async function handleRazorpayPayment(addressId) {
             try {
-                // First create an order on your backend
+                const actualPrice = parseFloat(document.getElementById('actualPrice').textContent);
+                const payableAmount = parseFloat(document.getElementById('payableAmount').textContent);
+                const totalAmount = actualPrice; // or calculate as needed
+
                 const response = await fetch("/create-order", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         addressId,
-                        paymentMethod: "Online Payment",
-                        totalAmount: parseFloat("<%= totalAmount %>")
+                        totalAmount,
+                        actualPrice,
+                        payableAmount,
+                        couponCode: currentCoupon ? currentCoupon.code : null
                     })
                 });
 
                 const data = await response.json();
-                console.log(data);
-
 
                 if (!data.success) {
-                    console.error("Order creation failed:", data.message);
-                    return Swal.fire("Error", "Failed to create order", "error");
+                    throw new Error(data.message || "Failed to create order");
                 }
 
-                
-
-                // Razorpay options
+                // Initialize Razorpay
                 const options = {
-                    key: data.key, // Make sure this is passed from your backend
+                    key: data.key,
                     amount: data.amount,
-                    currency: data.currency || "INR",
-                    order_id: data.orderId,
+                    currency: data.currency,
                     name: "Verses Store",
                     description: "Order Payment",
+                    order_id: data.orderId,
                     handler: async function(response) {
-                        // Payment successful, verify payment
-                        const verifyResponse = await fetch("/verify-payment", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                razorpay_order_id: response.razorpay_order_id,
-                                razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_signature: response.razorpay_signature,
-                                dbOrderId: data.dbOrderId // Include dbOrderId in the verification request
-                            })
-                        });
+                        try {
+                            const verifyResponse = await fetch("/verify-payment", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                    dbOrderId: data.dbOrderId
+                                })
+                            });
 
-                        const verifyData = await verifyResponse.json();
+                            const verifyData = await verifyResponse.json();
 
-                        console.log( 'verifyyyyyyyyyyyy',verifyData);
-
-                        if (verifyData.success) {
-                            Swal.fire("Success!", verifyData.message || "Payment successful and order placed!", "success")
-                                .then(() => {
-                                    window.location.href = `/order/view/${verifyData.orderId}`;
+                            if (verifyData.success) {
+                                await Swal.fire({
+                                    title: "Success!",
+                                    text: "Payment successful and order placed!",
+                                    icon: "success"
                                 });
-                        } else {
-                            Swal.fire("Error", verifyData.message || "Payment verification failed", "error");
+                                window.location.href = `/order/view/${data.dbOrderId}`;
+                            } else {
+                                throw new Error(verifyData.message || "Payment verification failed");
+                            }
+                        } catch (error) {
+                            Swal.fire("Error", error.message, "error");
                         }
                     },
+                    prefill: {
+                        name: document.querySelector('#addressSelect option:checked').textContent.split(',')[0],
+                        contact: document.querySelector('#addressSelect option:checked').textContent.match(/\d{10}/)?.[0] || ''
+                    },
                     theme: {
-                        color: "#3399cc"
+                        color: "#ff4757"
                     }
                 };
 
                 const rzp = new Razorpay(options);
+                rzp.on('payment.failed', function(response) {
+                    Swal.fire("Error", "Payment failed! Please try again.", "error");
+                });
                 rzp.open();
 
             } catch (error) {
                 console.error("Payment error:", error);
-                Swal.fire("Error", "Payment processing failed", "error");
+                Swal.fire("Error", error.message || "Payment processing failed", "error");
             }
         }
 

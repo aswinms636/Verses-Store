@@ -109,10 +109,6 @@ const orderSchema = new Schema({
         required: true
     },
     couponApplied: {
-        type: Boolean,
-        default: false
-    },
-    couponApplied: {
         type: Schema.Types.ObjectId,
         ref: 'Coupon',
         default: null
