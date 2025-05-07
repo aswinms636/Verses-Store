@@ -86,9 +86,9 @@ const viewOrderDetails = async (req, res) => {
 const cancelOrder = async (req, res) => {
     try {
         const orderId = req.params.id;
-        const order = await Order.findById(orderId);
+const order = await Order.findById(orderId);
         const userId = req.session.user._id;
-
+        
         if (!order) {
             return res.status(404).json({
                 success: false,
@@ -118,14 +118,18 @@ const cancelOrder = async (req, res) => {
             product.sizes[item.size] += item.quantity;
             console.log('product', product);
             await product.save();
+            console.log('product updated', product);
+            console.log('product size',product.sizes[item.size]);
         }
 
         // Update order status
         order.status = 'Cancelled';
         await order.save();
 
+
+
         // Check if payment method is online
-        if (order.paymentMethod === 'Online Payment') {
+        if (order.paymentMethod === 'Online Payment'|| order.paymentMethod === 'Wallet Payment') {
             const wallet = await Wallet.findOne({ user: userId });
 
             console.log('wallet', wallet);
@@ -157,7 +161,7 @@ const cancelOrder = async (req, res) => {
         }
 
 
-        console.log('wallet updated', wallet);
+        
 
         return res.json({
             success: true,
