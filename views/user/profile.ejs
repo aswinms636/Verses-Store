@@ -362,12 +362,17 @@
         }
       });
 
-      // Handle OTP verification
+      // Update the OTP verification handler
       document.getElementById('verify-password-otp').addEventListener('click', async function() {
         const otpInput = document.getElementById('password-otp');
         const otpCode = otpInput.value.trim();
         
         if (!otpCode) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Please enter OTP'
+            });
             otpInput.classList.add('is-invalid');
             return;
         }
@@ -383,9 +388,19 @@
             
             const data = await response.json();
             if (data.success) {
-                document.getElementById('password-step-1').style.display = 'none';
-                document.getElementById('password-step-2').style.display = 'block';
-                clearInterval(otpTimer);
+                // Show success message
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: 'OTP verified successfully',
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    // Switch to password change form
+                    document.getElementById('password-step-1').style.display = 'none';
+                    document.getElementById('password-step-2').style.display = 'block';
+                    clearInterval(otpTimer);
+                });
             } else {
                 Swal.fire({
                     icon: 'error',

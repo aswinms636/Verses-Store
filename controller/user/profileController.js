@@ -142,30 +142,49 @@ const verifyPasswordOtp = async (req, res) => {
         const { code } = req.body;
 
         if (!code) {
-            return res.json({ success: false, message: 'OTP is required' });
+            return res.json({ 
+                success: false, 
+                message: 'OTP is required' 
+            });
         }
 
         const storedData = otpStore.get(userId);
         if (!storedData) {
-            return res.json({ success: false, message: 'OTP expired or not found' });
+            return res.json({ 
+                success: false, 
+                message: 'OTP expired or not found' 
+            });
         }
 
         if (Date.now() > storedData.expiry) {
             otpStore.delete(userId);
-            return res.json({ success: false, message: 'OTP has expired' });
+            return res.json({ 
+                success: false, 
+                message: 'OTP has expired' 
+            });
         }
 
         if (storedData.otp !== code) {
-            return res.json({ success: false, message: 'Invalid OTP' });
+            return res.json({ 
+                success: false, 
+                message: 'Invalid OTP' 
+            });
         }
 
+        // Clear OTP after successful verification
         otpStore.delete(userId);
 
-       
-        res.json({ success: true, message: 'OTP verified successfully' });
+        // Send success response
+        return res.json({ 
+            success: true, 
+            message: 'OTP verified successfully' 
+        });
     } catch (error) {
-        console.error(error);
-        res.json({ success: false, message: 'Failed to verify OTP' });
+        console.error('OTP verification error:', error);
+        return res.json({ 
+            success: false, 
+            message: 'Failed to verify OTP' 
+        });
     }
 };
 
