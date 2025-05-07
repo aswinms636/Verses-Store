@@ -7,6 +7,36 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    .profile-img {
+      width: 150px;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 3px solid #f8f9fa;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .info-item {
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .info-item:last-child {
+      border-bottom: none;
+    }
+    .edit-btn {
+      font-size: 0.9rem;
+    }
+    .account-actions {
+      border-top: 1px solid #eee;
+      padding-top: 20px;
+      margin-top: 10px;
+    }
+    .email-badge {
+      font-size: 0.75rem;
+      vertical-align: middle;
+      margin-left: 5px;
+    }
+  </style>
 </head>
 <body>
   <%- include('../../views/partials/user/sidebar') %>
@@ -21,8 +51,21 @@
         </div>
         <div class="d-flex flex-column">
           <h2 id="display-name"><%= user.name || "Not provided" %></h2>
-         
-          <button id="edit-profile-btn" class="btn btn-primary edit-btn align-self-start mt-2">
+          <div class="mb-2">
+            <span id="verification-status">
+              <% if(user.emailVerified) { %>
+                <span class="badge bg-success email-badge"><i class="fas fa-check-circle me-1"></i> Verified</span>
+              <% } else { %>
+                <span class="badge bg-warning email-badge">
+                  <i class="fas fa-exclamation-circle me-1"></i> Unverified
+                  <button id="verify-email-btn" class="btn btn-link text-white p-0 ms-1" style="font-size: 0.75rem; text-decoration: underline;">
+                    Verify Now
+                  </button>
+                </span>
+              <% } %>
+            </span>
+          </div>
+          <button id="edit-profile-btn" class="btn btn-primary edit-btn align-self-start">
             <i class="fas fa-edit me-2"></i> Edit Profile
           </button>
         </div>
@@ -30,8 +73,8 @@
 
       <!-- Profile Info -->
       <div class="profile-info mb-4">
-        <h4 class="p-3 bg-light">Personal Information</h4>
-        <div id="info-display">
+        <h4 class="p-3 bg-light rounded">Personal Information</h4>
+        <div id="info-display" class="p-3">
           <div class="info-item d-flex align-items-center">
             <i class="fas fa-envelope text-primary me-3 fa-fw"></i>
             <div>
@@ -47,6 +90,11 @@
             </div>
           </div>
           
+          <div class="account-actions mt-4">
+            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+              <i class="fas fa-key me-2"></i> Change Password
+            </button>
+          </div>
         </div>
 
         <!-- Edit Form (Hidden by default) -->
@@ -73,6 +121,113 @@
     </div>
   </div>
 
+  <!-- Change Password Modal -->
+  <div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Change Password</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        
+        <!-- Step 1: OTP Verification -->
+        <div id="password-step-1">
+          <div class="modal-body">
+            <p>We'll send a verification code to your email to confirm it's you.</p>
+            <div class="mb-3">
+              <label class="form-label">Enter OTP</label>
+              <input type="text" id="password-otp" class="form-control" maxlength="6">
+              <div class="mt-2">
+                <small class="text-muted">Time remaining: <span id="otp-countdown">02:00</span></small>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-link" id="resend-password-otp">Resend OTP</button>
+            <button type="button" class="btn btn-primary" id="verify-password-otp">Verify OTP</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Change Password -->
+        <div id="password-step-2" style="display: none;">
+            <div class="modal-body">
+                <form id="change-password-form">
+                    <div class="mb-3">
+                        <label for="new-password" class="form-label">New Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="new-password" required>
+                            <button type="button" class="btn btn-outline-secondary toggle-password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="password-requirements mt-2">
+                            <div id="length-check" class="text-muted">
+                                <i class="fas fa-circle"></i> At least 8 characters
+                            </div>
+                            <div id="uppercase-check" class="text-muted">
+                                <i class="fas fa-circle"></i> One uppercase letter
+                            </div>
+                            <div id="lowercase-check" class="text-muted">
+                                <i class="fas fa-circle"></i> One lowercase letter
+                            </div>
+                            <div id="number-check" class="text-muted">
+                                <i class="fas fa-circle"></i> One number
+                            </div>
+                            <div id="special-check" class="text-muted">
+                                <i class="fas fa-circle"></i> One special character
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="confirm-password" class="form-label">Confirm Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="confirm-password" required>
+                            <button type="button" class="btn btn-outline-secondary toggle-password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="save-password">Change Password</button>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Email Verification Modal -->
+  <div class="modal fade" id="verifyEmailModal" tabindex="-1" aria-labelledby="verifyEmailModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="verifyEmailModalLabel">Verify Your Email</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>We've sent a verification code to your email: <strong id="verification-email"><%= user.email %></strong></p>
+          <form id="verify-email-form">
+            <div class="mb-3">
+              <label for="verification-code" class="form-label">Enter Verification Code</label>
+              <input type="text" class="form-control" id="verification-code" required>
+            </div>
+          </form>
+          <p class="text-muted small">
+            Didn't receive the code? 
+            <button id="resend-code" class="btn btn-link p-0 align-baseline">Resend code</button>
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="submit-verification">Verify</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Bootstrap & JavaScript -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
   <script>
@@ -83,76 +238,262 @@
       const infoDisplay = document.getElementById('info-display');
       const editForm = document.getElementById('edit-form');
       const form = document.getElementById('edit-form');
+      const verifyEmailBtn = document.getElementById('verify-email-btn');
+      const changePasswordForm = document.getElementById('change-password-form');
+      const savePasswordBtn = document.getElementById('save-password');
+      const submitVerificationBtn = document.getElementById('submit-verification');
+      const resendCodeBtn = document.getElementById('resend-code');
 
-      // Handle edit button click
-      editBtn.addEventListener('click', function() {
-        infoDisplay.style.display = 'none';
-        editForm.style.display = 'block';
-        editBtn.style.display = 'none';
-      });
-
-      // Handle cancel button click
-      cancelBtn.addEventListener('click', function() {
-        infoDisplay.style.display = 'block';
-        editForm.style.display = 'none';
-        editBtn.style.display = 'inline-block';
-      });
-
-      // Handle form submission
-      form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        // Get form values
-        const name = document.getElementById('name').value;
-        const email = document.getElementById('email').value;
-        const phone = document.getElementById('phone').value;
+      // Password validation variables
+      const newPasswordInput = document.getElementById('new-password');
+      const confirmPasswordInput = document.getElementById('confirm-password');
+      const lengthCheck = document.getElementById('length-check');
+      const uppercaseCheck = document.getElementById('uppercase-check');
+      const lowercaseCheck = document.getElementById('lowercase-check');
+      const numberCheck = document.getElementById('number-check');
+      const specialCheck = document.getElementById('special-check');
+      
+      let otpTimer;
+      
+      // Function to start OTP countdown timer
+      function startOtpTimer() {
+        let timeLeft = 120; // 2 minutes
+        const countdownEl = document.getElementById('otp-countdown');
+        clearInterval(otpTimer);
         
-
-        try {
-          const response = await fetch('/edit-profile', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ name, email, phone })
-          });
-
-          const data = await response.json();
-
-          if (data.success) {
-            // Update display values
-            document.getElementById('display-name').textContent = data.user.name;
-            document.getElementById('display-email').textContent = data.user.email;
-            document.getElementById('display-phone').textContent = data.user.phone;
+        otpTimer = setInterval(() => {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            countdownEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
             
+            if (timeLeft === 0) {
+                clearInterval(otpTimer);
+                document.getElementById('password-otp').disabled = true;
+                document.getElementById('verify-password-otp').disabled = true;
+            }
+            timeLeft--;
+        }, 1000);
+      }
 
-            // Show info display, hide form
-            infoDisplay.style.display = 'block';
-            editForm.style.display = 'none';
-            editBtn.style.display = 'inline-block';
+      // Password validation function
+      function validatePassword(password) {
+          const requirements = {
+              length: password.length >= 8,
+              uppercase: /[A-Z]/.test(password),
+              lowercase: /[a-z]/.test(password),
+              number: /[0-9]/.test(password),
+              special: /[@$!%*?&]/.test(password)
+          };
 
-            // Show success message
-            Swal.fire({
-              icon: 'success',
-              title: 'Profile Updated',
-              text: data.message
+          // Update UI indicators
+          document.getElementById('length-check').className = 
+              requirements.length ? 'text-success' : 'text-muted';
+          document.getElementById('uppercase-check').className = 
+              requirements.uppercase ? 'text-success' : 'text-muted';
+          document.getElementById('lowercase-check').className = 
+              requirements.lowercase ? 'text-success' : 'text-muted';
+          document.getElementById('number-check').className = 
+              requirements.number ? 'text-success' : 'text-muted';
+          document.getElementById('special-check').className = 
+              requirements.special ? 'text-success' : 'text-muted';
+
+          return Object.values(requirements).every(req => req);
+      }
+
+      // Live password validation
+      document.getElementById('new-password').addEventListener('input', function() {
+        validatePassword(this.value);
+      });
+
+      // Toggle password visibility
+      document.querySelectorAll('.toggle-password').forEach(button => {
+        button.addEventListener('click', function() {
+            const input = this.previousElementSibling;
+            const icon = this.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        });
+      });
+
+      // Handle password change modal show
+      const changePasswordModal = document.getElementById('changePasswordModal');
+      changePasswordModal.addEventListener('show.bs.modal', async function() {
+        try {
+            const response = await fetch('/send-password-otp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             });
-          } else {
-            // Show error message
-            Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: data.message
-            });
-          }
+            
+            const data = await response.json();
+            if (data.success) {
+                document.getElementById('password-step-1').style.display = 'block';
+                document.getElementById('password-step-2').style.display = 'none';
+                startOtpTimer();
+                
+                Swal.fire({
+                    icon: 'info',
+                    title: 'OTP Sent',
+                    text: 'Please check your email for the verification code'
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message || 'Failed to send OTP'
+                });
+                const modal = bootstrap.Modal.getInstance(changePasswordModal);
+                modal.hide();
+            }
         } catch (error) {
-          console.error(error);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text:'An error occurred while updating your profile.'
-          });
+            console.error(error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to send OTP'
+            });
         }
+      });
+
+      // Handle OTP verification
+      document.getElementById('verify-password-otp').addEventListener('click', async function() {
+        const otpInput = document.getElementById('password-otp');
+        const otpCode = otpInput.value.trim();
+        
+        if (!otpCode) {
+            otpInput.classList.add('is-invalid');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/verify-password-otp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ code: otpCode })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                document.getElementById('password-step-1').style.display = 'none';
+                document.getElementById('password-step-2').style.display = 'block';
+                clearInterval(otpTimer);
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message || 'Invalid OTP'
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to verify OTP'
+            });
+        }
+      });
+
+      // Handle password change submission
+      document.getElementById('save-password').addEventListener('click', async function() {
+          const newPassword = document.getElementById('new-password').value;
+          const confirmPassword = document.getElementById('confirm-password').value;
+
+          try {
+              // Client-side validation
+              if (!newPassword || !confirmPassword) {
+                  Swal.fire({
+                      icon: 'error',
+                      title: 'Error',
+                      text: 'Please fill in all password fields'
+                  });
+                  return;
+              }
+
+              // Password requirements validation
+              const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+              if (!passwordRegex.test(newPassword)) {
+                  Swal.fire({
+                      icon: 'error',
+                      title: 'Error',
+                      text: 'Please ensure your password meets all requirements'
+                  });
+                  return;
+              }
+
+              if (newPassword !== confirmPassword) {
+                  Swal.fire({
+                      icon: 'error',
+                      title: 'Error',
+                      text: 'Passwords do not match'
+                  });
+                  return;
+              }
+
+              const response = await fetch('/change-password', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                      newPassword,
+                      confirmPassword
+                  })
+              });
+
+              const data = await response.json();
+              if (data.success) {
+                  const modal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
+                  modal.hide();
+                  
+                  // Clear form fields
+                  document.getElementById('new-password').value = '';
+                  document.getElementById('confirm-password').value = '';
+                  
+                  // Reset password requirement indicators
+                  document.querySelectorAll('.password-requirements div').forEach(div => {
+                      div.className = 'text-muted';
+                  });
+                  
+                  Swal.fire({
+                      icon: 'success',
+                      title: 'Success',
+                      text: 'Password changed successfully'
+                  });
+              } else {
+                  Swal.fire({
+                      icon: 'error',
+                      title: 'Error',
+                      text: data.message || 'Failed to change password'
+                  });
+              }
+          } catch (error) {
+              console.error(error);
+              Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: 'An error occurred while changing password'
+              });
+          }
+      });
+
+      // Cleanup timer when modal is closed
+      changePasswordModal.addEventListener('hidden.bs.modal', function() {
+        clearInterval(otpTimer);
+        document.getElementById('password-step-1').style.display = 'block';
+        document.getElementById('password-step-2').style.display = 'none';
+        document.getElementById('password-otp').value = '';
+        document.getElementById('new-password').value = '';
+        document.getElementById('confirm-password').value = '';
       });
     });
   </script>

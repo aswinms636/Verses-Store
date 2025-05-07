@@ -62,6 +62,9 @@ router.get('/productDetails/:id',shopController.loadProductDetails);
 
 router.get('/profile',checkSession,profileController.loadProfilePage);
 router.post('/edit-profile',profileController.editProfile);
+router.post('/send-password-otp', profileController.sendPasswordOtp);
+router.post('/verify-password-otp', profileController.verifyPasswordOtp);
+router.post('/change-password', profileController.changePassword);
 
 // address manegement
 

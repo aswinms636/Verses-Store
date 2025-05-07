@@ -2,6 +2,7 @@ const Order = require('../../models/orderSchema');
 const Product = require('../../models/productSchema');
 const Wallet = require('../../models/walletSchema'); 
 const PDFDocument = require('pdfkit');
+const puppeteer = require('puppeteer');
 
 const getUserOrders = async (req, res) => {
     try {
@@ -236,6 +237,8 @@ const submitReturnRequest = async (req, res) => {
 
 
 // Controller function to generate and download the invoice
+
+
 async function downloadInvoice(req, res) {
     try {
         const orderId = req.params.orderId;
@@ -245,40 +248,78 @@ async function downloadInvoice(req, res) {
             return res.status(404).json({ message: 'Order not found' });
         }
 
-        const doc = new PDFDocument();
-        let filename = `invoice_${order.orderId}.pdf`;
-        res.setHeader('Content-disposition', 'attachment; filename="' + filename + '"');
-        res.setHeader('Content-type', 'application/pdf');
-
         const content = `
-            Invoice Date: ${new Date().toDateString()}
-            Order ID: ${order.orderId}
-            Total Amount: ₹${order.totalAmount}
-            Payment Method: ${order.paymentMethod}
-            Status: ${order.status}
-
-            Items:
-            ${order.orderItems.map(item => `
-                Product: ${item.product.name}
-                Size: ${item.size}
-                Quantity: ${item.quantity}
-                Price: ₹${item.price}
-            `).join('\n')}
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+                    .invoice { width: 80%; margin: auto; overflow: hidden; }
+                    .header, .footer { background-color: #f4f4f4; text-align: center; padding: 10px; }
+                    .main { padding: 20px; }
+                    .info { margin-bottom: 20px; }
+                    .info div { margin-bottom: 10px; }
+                    .items { border-collapse: collapse; width: 100%; }
+                    .items th, .items td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    .items th { background-color: #f4f4f4; }
+                </style>
+            </head>
+            <body>
+                <div class="invoice">
+                    <div class="header">
+                        <h1>Invoice</h1>
+                    </div>
+                    <div class="main">
+                        <div class="info">
+                            <div>Invoice Date: ${new Date().toDateString()}</div>
+                            <div>Order ID: ${order.orderId}</div>
+                            <div>Total Amount: ₹${order.totalAmount}</div>
+                            <div>Payment Method: ${order.paymentMethod}</div>
+                            <div>Status: ${order.status}</div>
+                        </div>
+                        <table class="items">
+                            <tr>
+                                <th>Product</th>
+                                <th>Size</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                            </tr>
+                            ${order.orderItems.map(item => `
+                                <tr>
+                                    <td>${item.product.name}</td>
+                                    <td>${item.size}</td>
+                                    <td>${item.quantity}</td>
+                                    <td>₹${item.price}</td>
+                                </tr>
+                            `).join('')}
+                        </table>
+                    </div>
+                    <div class="footer">
+                        <p>Thank you for your purchase!</p>
+                    </div>
+                </div>
+            </body>
+            </html>
         `;
 
-        doc.text(content, {
-            align: 'left',
-            indent: 20,
-            lineGap: 10
-        });
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+        await page.setContent(content);
+        const pdf = await page.pdf({ format: 'A4' });
 
-        doc.pipe(res);
-        doc.end();
+        await browser.close();
+
+        res.setHeader('Content-disposition', `attachment; filename="invoice_${order.orderId}.pdf"`);
+        res.setHeader('Content-type', 'application/pdf');
+        res.send(pdf);
     } catch (error) {
         console.error('Error generating invoice:', error);
         res.status(500).json({ message: 'Failed to generate invoice' });
     }
 }
+
 
 
 
