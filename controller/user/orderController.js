@@ -1,6 +1,7 @@
 const Order = require('../../models/orderSchema');
 const Product = require('../../models/productSchema');
 const Wallet = require('../../models/walletSchema'); 
+const PDFDocument = require('pdfkit');
 
 const getUserOrders = async (req, res) => {
     try {
@@ -230,9 +231,62 @@ const submitReturnRequest = async (req, res) => {
     }
 };
 
+
+ // Adjust the path as necessary
+
+
+// Controller function to generate and download the invoice
+async function downloadInvoice(req, res) {
+    try {
+        const orderId = req.params.orderId;
+        const order = await Order.findById(orderId).populate('orderItems.product');
+
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        const doc = new PDFDocument();
+        let filename = `invoice_${order.orderId}.pdf`;
+        res.setHeader('Content-disposition', 'attachment; filename="' + filename + '"');
+        res.setHeader('Content-type', 'application/pdf');
+
+        const content = `
+            Invoice Date: ${new Date().toDateString()}
+            Order ID: ${order.orderId}
+            Total Amount: ₹${order.totalAmount}
+            Payment Method: ${order.paymentMethod}
+            Status: ${order.status}
+
+            Items:
+            ${order.orderItems.map(item => `
+                Product: ${item.product.name}
+                Size: ${item.size}
+                Quantity: ${item.quantity}
+                Price: ₹${item.price}
+            `).join('\n')}
+        `;
+
+        doc.text(content, {
+            align: 'left',
+            indent: 20,
+            lineGap: 10
+        });
+
+        doc.pipe(res);
+        doc.end();
+    } catch (error) {
+        console.error('Error generating invoice:', error);
+        res.status(500).json({ message: 'Failed to generate invoice' });
+    }
+}
+
+
+
+
 module.exports = {
     getUserOrders,
     viewOrderDetails,
     cancelOrder,
     submitReturnRequest,
+    downloadInvoice
 }
