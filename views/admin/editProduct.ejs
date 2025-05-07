@@ -244,7 +244,7 @@
                                     <div class="col-lg-4">
                                         <div class="mb-4">
                                             <label class="form-label">Quantity</label>
-                                            <input name="quantity" type="text" value="<%=product.quantity%>" class="form-control">
+                                            <input name="quantity" type="text" value="<%=product.quantity%>" class="form-control" readonly>
                                             <div id="quantity-error" class="error-message"></div>
                                         </div>
                                     </div>
@@ -498,7 +498,6 @@
             const price = document.getElementsByName('regularPrice')[0].value;
             const salePrice = document.getElementsByName('salePrice')[0].value;
             const category = document.getElementsByName('category')[0].value;
-            const quantity = document.getElementsByName('quantity')[0].value;
 
             // Get total size quantities
             const sizes = {
@@ -549,15 +548,9 @@
                 isValid = false;
             }
 
-            // Validate Quantity
-            if (!quantity || isNaN(parseInt(quantity)) || parseInt(quantity) < 0) {
-                displayErrorMessage('quantity-error', 'Please enter a valid quantity');
-                isValid = false;
-            }
-
-            // Validate Size Quantities match total quantity
-            if (parseInt(quantity) !== totalSizeQuantity) {
-                displayErrorMessage('size-error', 'Total size quantities must match the total quantity');
+            // Validate at least one size has quantity
+            if (totalSizeQuantity === 0) {
+                displayErrorMessage('size-error', 'At least one size must have quantity');
                 isValid = false;
             }
 
@@ -667,7 +660,28 @@
                     console.log('Brand changed to:', e.target.value);
                 });
             }
+
+            // Add size input event listeners
+            const sizeInputs = ['size-6', 'size-7', 'size-8', 'size-9'];
+            sizeInputs.forEach(sizeId => {
+                document.getElementById(sizeId).addEventListener('input', updateTotalQuantity);
+            });
+
+            // Initialize total quantity on page load
+            updateTotalQuantity();
         });
+
+        function updateTotalQuantity() {
+            const sizes = {
+                6: parseInt(document.getElementById('size-6')?.value) || 0,
+                7: parseInt(document.getElementById('size-7')?.value) || 0,
+                8: parseInt(document.getElementById('size-8')?.value) || 0,
+                9: parseInt(document.getElementById('size-9')?.value) || 0
+            };
+
+            const totalQuantity = Object.values(sizes).reduce((sum, qty) => sum + qty, 0);
+            document.querySelector('[name="quantity"]').value = totalQuantity;
+        }
     </script>
 </body>
 </html>

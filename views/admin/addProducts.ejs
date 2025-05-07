@@ -165,7 +165,7 @@
                             <div class="col-lg-4">
                                 <div class="mb-4">
                                     <label class="form-label">Quantity</label>
-                                    <input placeholder="" name="quantity" type="text" class="form-control">
+                                    <input placeholder="" name="quantity" type="text" class="form-control" readonly>
                                     <span id="quantity-error" class="error-message"></span>
                                 </div>
                             </div>
@@ -472,7 +472,6 @@
             'descriptionid': 'Description',
             'regularPrice': 'Regular Price',
             'salePrice': 'Sale Price',
-            'quantity': 'Quantity',
             'category': 'Category'
         };
 
@@ -499,21 +498,36 @@
         };
 
         totalSizeQuantity = Object.values(sizes).reduce((sum, qty) => sum + qty, 0);
-        const declaredQuantity = parseInt(document.querySelector('[name="quantity"]')?.value) || 0;
 
         const sizeError = document.getElementById('size-error');
         if (sizeError) {
             if (totalSizeQuantity === 0) {
                 sizeError.textContent = "At least one size quantity is required.";
                 hasErrors = true;
-            } else if (totalSizeQuantity !== declaredQuantity) {
-                sizeError.textContent = `Total size quantities (${totalSizeQuantity}) must match the total quantity (${declaredQuantity}).`;
-                hasErrors = true;
             }
         }
 
         return !hasErrors;
     }
+
+    function updateTotalQuantity() {
+        const sizes = {
+            6: parseInt(document.getElementById('size-6')?.value) || 0,
+            7: parseInt(document.getElementById('size-7')?.value) || 0,
+            8: parseInt(document.getElementById('size-8')?.value) || 0,
+            9: parseInt(document.getElementById('size-9')?.value) || 0
+        };
+
+        const totalQuantity = Object.values(sizes).reduce((sum, qty) => sum + qty, 0);
+        document.querySelector('[name="quantity"]').value = totalQuantity;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const sizeInputs = ['size-6', 'size-7', 'size-8', 'size-9'];
+        sizeInputs.forEach(sizeId => {
+            document.getElementById(sizeId).addEventListener('input', updateTotalQuantity);
+        });
+    });
 </script>
 
 <%- include("../../views/partials/admin/footer") %>
