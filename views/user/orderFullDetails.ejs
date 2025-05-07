@@ -653,27 +653,35 @@
 
         async function downloadInvoice(orderId) {
             try {
-                const response = await fetch(`/download-invoice/${orderId}`);
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    a.download = `invoice_${orderId}.pdf`;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                } else {
+                const response = await fetch(`/download-invoice/${orderId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
                     throw new Error('Failed to download invoice');
                 }
+
+                // Create blob from response
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                
+                // Create temporary link and trigger download
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `invoice_${orderId}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                
+                // Cleanup
+                window.URL.revokeObjectURL(url);
+                a.remove();
+
             } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error!',
-                    text: 'Failed to download invoice. Please try again.',
-                    confirmButtonColor: '#dc3545'
-                });
+                console.error('Error downloading invoice:', error);
+                alert('Failed to download invoice');
             }
         }
 
@@ -748,3 +756,4 @@
     </script>
 </body>
 </html>
+``` 
