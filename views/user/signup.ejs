@@ -95,6 +95,10 @@
                                 </button></a>
                             </div>
                             <div class="col-md-12 form-group">
+                                <input type="text" class="form-control" id="referralCode" name="referralCode" placeholder="Referral Code (Optional)">
+                                <span class="error-message" id="referralCodeError" style="color: red;"></span>
+                            </div>
+                            <div class="col-md-12 form-group">
                                 <button type="submit" value="submit" class="primary-btn">Register</button>
                             </div>
                         </form>
@@ -127,6 +131,7 @@
             let email = document.getElementById("email").value.trim();
             let password = document.getElementById("password").value;
             let confirmPassword = document.getElementById("confirmPassword").value;
+            const referralCode=document.getElementById('referralCode').value
     
             if (!name) {
                 document.getElementById("nameError").textContent = "Name is required.";

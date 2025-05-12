@@ -142,10 +142,10 @@ const order = await Order.findById(orderId);
                 // Create a new wallet if it doesn't exist
                 const newWallet = new Wallet({
                     user: userId,
-                    balance: order.totalPrice,
+                    balance: order.payableAmount,
                     history: [
                         {
-                            amount: order.totalPrice,
+                            amount: order.payableAmount,
                             status: 'credit',
                             description: `Refund for cancelled order ${orderId}`
                         }
@@ -156,7 +156,7 @@ const order = await Order.findById(orderId);
                 // Update existing wallet
                 wallet.balance += order.payableAmount;
                 wallet.history.push({
-                    amount: order.totalPrice,
+                    amount: order.payableAmount,
                     status: 'credit',
                     description: `Refund for cancelled order ${orderId}`
                 });
@@ -174,7 +174,7 @@ const order = await Order.findById(orderId);
 
     } catch (error) {
         console.error('Error cancelling order:', error);
-        return res.status(500).json({
+        return res.json({
             success: false,
             message: 'Internal Server Error'
         });

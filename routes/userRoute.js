@@ -11,6 +11,7 @@ const { isLogin,checkSession,blockCheck }=require('../middlewares/userAuthentic'
  const wishlistController=require('../controller/user/wishlistController')
  const razorpayController=require('../controller/user/razopayController')
  const walletController=require('../controller/user/walletController')
+ const referalController=require('../controller/user/referalController')
 
 const passport=require('../config/passport')
 
@@ -109,7 +110,6 @@ router.post('/coupons/remove', checkoutController.removeCoupon);
 
 router.get('/orders',checkSession,orderController.getUserOrders);
 router.get('/order-details/:id',checkSession,orderController.viewOrderDetails);
-
 router.post('/submit-return', orderController.submitReturnRequest);
 router.get('/download-invoice/:orderId', orderController.downloadInvoice);
 router.post('/cancel-order/:id', checkSession, orderController.cancelOrder);
@@ -131,7 +131,7 @@ router.get('/wallet',checkSession, walletController.getWallet);
 router.post('/addMoneyToWallet', walletController.addMoneyToWallet);
 router.post('/walletPaymentSuccess',walletController.walletPaymentSuccess);
 
-
+router.get('/refer-earn',checkSession,referalController.loadReferEarn);
 
 
 
