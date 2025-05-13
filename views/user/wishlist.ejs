@@ -309,9 +309,9 @@
             <div class="wishlist-items">
                 <% wishlist.items.forEach(item => { %>
                     <div class="wishlist-item">
-                        <img src="/Uploads/product-Images/<%= item.productId.productImage[0] %>" 
+                        <a href="/productDetails/<%= item.productId._id %>"><img src="/Uploads/product-Images/<%= item.productId.productImage[0] %>" 
                              alt="<%= item.productId.productName %>" 
-                             class="wishlist-item-image">
+                             class="wishlist-item-image"></a>
                         <div class="wishlist-item-info">
                             <h3><%= item.productId.productName %></h3>
                             <p><%= item.productId.description %></p>
