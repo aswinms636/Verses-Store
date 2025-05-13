@@ -252,7 +252,7 @@ const placedOrder = async (req, res) => {
                     throw new Error(`Failed to update inventory for product ${product.productName}`);
                 }
 
-                const totalPrice = item.quantity * item.price;
+                const totalPrice = payableAmount 
                 totalAmount += totalPrice;
 
                 // Create order
@@ -297,10 +297,18 @@ const placedOrder = async (req, res) => {
 
             // Update wallet balance if wallet payment
             if (paymentMethod === 'Wallet Payment') {
-                await Wallet.findOneAndUpdate(
-                    { user: userId },
-                    { $inc: { balance: -totalAmount } }
-                );
+                const wallet = await Wallet.findOne({ user: userId });
+                if (!wallet) {
+                    return res.json({ success: false, message: 'Wallet not found' });
+                }
+                wallet.balance -= totalAmount;
+                wallet.history.push({
+                    amount: totalAmount,
+                    status: 'debit',
+                    description: `payment for order ${placedOrders.map(order => order._id).join(', ')}`,
+                    date: new Date()
+                });
+                await wallet.save();
             }
 
             // Clear cart after successful order placement

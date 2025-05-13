@@ -136,7 +136,10 @@ const order = await Order.findById(orderId);
         if (order.paymentMethod === 'Online Payment'|| order.paymentMethod === 'Wallet Payment') {
             const wallet = await Wallet.findOne({ user: userId });
 
-            console.log('wallet', wallet);
+            console.log('wallet balance',wallet.balance);
+            console.log('order payable amount', order.payableAmount);
+
+            console.log('wallet balance', wallet.balance);
 
             if (!wallet) {
                 // Create a new wallet if it doesn't exist
@@ -162,6 +165,8 @@ const order = await Order.findById(orderId);
                 });
                 await wallet.save();
             }
+
+            console.log('Wallet updated:', wallet);
         }
 
 

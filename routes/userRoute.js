@@ -83,7 +83,7 @@ router.post("/delete-address", addressController.deleteAddress);
 
 // cart manegement
 
-router.post("/cart/add", cartController.addToCart);
+router.post("/cart/add",checkSession, cartController.addToCart);
 router.post("/cart/increment", cartController.incrementCartItem);
 router.post("/cart/decrement", cartController.decrementCartItem);
 router.post("/cart/remove", cartController.decrementOrRemoveCartItem);
@@ -118,7 +118,7 @@ router.post('/cancel-order/:id', checkSession, orderController.cancelOrder);
 // wishlist manegement
 
 router.get('/wishlist', checkSession,  wishlistController.getWishlist);
-router.post('/wishlist-add',wishlistController.addToWishlist);
+router.post('/wishlist-add', checkSession,wishlistController.addToWishlist);
 router.post('/wishlist/remove',wishlistController.removeFromWishlist);
 
 

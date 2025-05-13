@@ -8,6 +8,9 @@ const getCart = async (req, res) => {
         const userId = req.session.user._id; 
         console.log("userId",userId)
 
+        const user = req.session.user;
+        console.log("user",user)
+
         if (!userId) {
             return res.redirect('/signin');
         }
@@ -17,7 +20,8 @@ const getCart = async (req, res) => {
 
         console.log("cart",cart)
 
-        res.render('cart', { cart: cart || { items: [] } }); 
+        res.render('cart', { cart: cart || { items: [] }, user });
+
 
     } catch (error) {
         console.error("Error fetching cart:", error);
@@ -31,7 +35,7 @@ const addToCart = async (req, res) => {
         console.log(req.body)
         const userId = req.session.user._id  
 
-        if (!userId) return res.status(401).json({ message: "User not authenticated" });
+        if (!userId) return res.json({ message: "User not authenticated" });
 
         
         const product = await Product.findById(productId);
