@@ -204,6 +204,9 @@ const verifyOtp = async (req, res) => {
                 referalCode
             });
 
+
+            
+
             await newUser.save();
 
             // Create wallet for new user
