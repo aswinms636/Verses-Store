@@ -1,160 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+   
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Wishlist</title>
+    <!-- CSS Links -->
+    <link rel="stylesheet" href="css/linearicons.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/themify-icons.css">
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/owl.carousel.css">
+    <link rel="stylesheet" href="css/nice-select.css">
+    <link rel="stylesheet" href="css/nouislider.min.css">
+    <link rel="stylesheet" href="css/ion.rangeSlider.css" />
+    <link rel="stylesheet" href="css/ion.rangeSlider.skinFlat.css" />
+    <link rel="stylesheet" href="css/magnific-popup.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link href="/admin-assets/css/main.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="/styles.css"> <!-- Link to your CSS file -->
     <style>
         /* Import Google Fonts */
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: #f8f9fa;
-            color: #333;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 800px;
+        .wishlist-container {
             width: 90%;
-            background: #ffffff;
-            border-radius: 20px;
+            max-width: 1140px;
+            margin: 50px auto;
             padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            background-color: #f9f9f9;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .cart-header {
             text-align: center;
-            border: 1px solid #e0e0e0;
+            margin-bottom: 30px;
+            color: #333;
+            font-weight: 600;
+            position: relative;
+        }
+        
+        .cart-header:after {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 3px;
+            background: #ff6c00;
+            margin: 10px auto;
         }
 
-        h1 {
-            font-size: 2.2rem;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 700;
-        }
-
-        ul {
-            list-style: none;
-            padding: 0;
+        .wishlist-items {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
         .wishlist-item {
             display: flex;
             align-items: center;
-            background: #ffffff;
-            border-radius: 15px;
+            border: 1px solid #eee;
             padding: 15px;
-            margin: 15px 0;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            background: #fff;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
         }
 
         .wishlist-item:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
         .wishlist-item-image {
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             object-fit: cover;
-            border-radius: 15px;
-            margin-right: 20px;
-            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin-right: 25px;
         }
 
         .wishlist-item-info {
+            flex: 1;
             text-align: left;
         }
 
         .wishlist-item-info h3 {
-            margin: 0;
-            font-size: 1.4rem;
-            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 8px;
             color: #333;
         }
 
         .wishlist-item-info p {
-            font-size: 0.95rem;
+            margin-bottom: 6px;
             color: #666;
+            font-size: 14px;
         }
 
         .remove-btn {
-            background: #ff4b2b;
+            background: #ff6c00;
+            color: white;
             border: none;
-            padding: 10px 15px;
-            color: #fff;
-            font-size: 0.9rem;
+            padding: 8px 16px;
+            border-radius: 4px;
             cursor: pointer;
-            border-radius: 8px;
+            transition: all 0.3s;
             margin-top: 10px;
-            transition: transform 0.2s, background 0.3s;
+            font-size: 14px;
         }
 
         .remove-btn:hover {
-            background: #e63946;
-            transform: scale(1.1);
+            background: #e25e00;
         }
 
-        hr {
-            border: none;
-            height: 1px;
-            background: #e0e0e0;
-            margin: 30px 0;
+        .empty-wishlist-message {
+            font-size: 18px;
+            color: #888;
+            text-align: center;
+            padding: 50px 0;
         }
 
-        h2 {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
+        .continue-shopping {
+            display: inline-block;
+            margin-top: 20px;
+            color: #ff6c00;
+            text-decoration: none;
             font-weight: 600;
         }
 
-        input[type="text"] {
+        .continue-shopping:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .wishlist-item {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .wishlist-item-image {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+            
+            .wishlist-item-info {
+                text-align: center;
+            }
+        }
+
+        .footer-area {
+            background: #222222;
+            padding: 70px 0px;
+            color: #fff;
+            margin-top: 50px;
+        }
+
+        .footer-area h6 {
+            color: #fff;
+            margin-bottom: 25px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .footer-area p {
+            color: #777777;
+            line-height: 1.8;
+        }
+
+        .footer-social a {
+            padding-right: 25px;
+            color: #777777;
+            transition: all 0.3s ease;
+        }
+
+        .footer-social a:hover {
+            color: #ff6c00;
+        }
+
+        .single-footer-widget input {
+            border: none;
+            width: 80%;
             padding: 10px;
-            width: 70%;
-            border-radius: 10px;
-            border: 1px solid #ccc;
-            font-size: 1rem;
-            outline: none;
-            margin-bottom: 10px;
+            border-radius: 4px;
             background: #f9f9f9;
         }
 
-        button {
-            background: #007bff;
-            border: none;
-            padding: 10px 20px;
+        .single-footer-widget .click-btn {
+            background-color: #ff6c00;
             color: #fff;
-            font-size: 1rem;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: transform 0.2s, background 0.3s;
+            border: 0;
+            padding: 6px 12px;
+            border-radius: 4px;
+            margin-left: 10px;
         }
 
-        button:hover {
-            background: #0056b3;
-            transform: scale(1.1);
+        .footer-bottom {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
         }
 
-        a {
-            display: block;
-            margin-top: 20px;
-            color: #007bff;
+        .footer-text {
+            color: #777777;
+        }
+
+        .instafeed {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .instafeed li {
+            margin-bottom: 10px;
+        }
+
+        .instafeed li a {
+            color: #777777;
             text-decoration: none;
-            font-size: 1rem;
-            font-weight: 600;
             transition: color 0.3s ease;
         }
 
-        a:hover {
-            color: #0056b3;
+        .instafeed li a:hover {
+            color: #ff6c00;
         }
     </style>
     <!-- Include SweetAlert CSS and JS -->
@@ -162,38 +229,109 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.20/dist/sweetalert2.all.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>Your Wishlist</h1>
+    <!-- Start Header Area -->
+    <header class="header_area sticky-header">
+		<div class="main_menu">
+			<nav class="navbar navbar-expand-lg navbar-light main_box">
+				<div class="container">
+					<!-- Brand and toggle get grouped for better mobile display -->
+					<a class="navbar-brand logo_h" href="index.html"><img src="img/logo.png" alt=""></a>
+					<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+					 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<!-- Collect the nav links, forms, and other content for toggling -->
+					<div class="collapse navbar-collapse offset" id="navbarSupportedContent">
+						<ul class="nav navbar-nav menu_nav ml-auto">
+							<li class="nav-item active"><a class="nav-link" href="/">Home</a></li>
+							<li class="nav-item"><a class="nav-link" href="/shop">Shop</a></li>
+							<li class="nav-item"><a class="nav-link" href="/about">About</a></li>
+							
+							<% if (typeof user !== 'undefined' && user) { %>
+                                <!-- When logged in, display the user's name with a dropdown -->
+                                <li class="nav-item submenu dropdown">
+                                  <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+                                     <%= user.name %>
+                                  </a>
+                                  <ul class="dropdown-menu">
+                                    <li class="nav-item"><a class="nav-link" href="/profile">Profile</a></li>
+                                    <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+                                  </ul>
+                                </li>
+                              <% } else { %>
+                                <!-- When not logged in, display Login and Sign Up -->
+                                <li class="nav-item"><a class="nav-link" href="/signin">Sign in</a></li>
+                                <li class="nav-item"><a class="nav-link" href="/signup">Sign Up</a></li>
+                              <% } %>
+							
+						</ul>
+						<ul class="nav navbar-nav navbar-right">
+							<li class="nav-item"><a href="/cart" class="cart"><span class="ti-bag"></span></a></li>
+							<li class="nav-item">
+								<a href="/wishlist" class="wishlist" title="Wishlist">
+									<span class="ti-heart"></span>
+								</a>
+							</li>
+							<li class="nav-item">
+								<button class="search"><span class="lnr lnr-magnifier" id="search"></span></button>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</nav>
+		</div>
+	</header>
+    <!-- End Header Area -->
+
+    <!-- Start Banner Area -->
+    <section class="banner-area organic-breadcrumb">
+        <div class="container">
+            <div class="breadcrumb-banner d-flex flex-wrap align-items-center justify-content-end">
+                <div class="col-first">
+                    <h1>Wishlist</h1>
+                    <nav class="d-flex align-items-center">
+                        <a href="/">Home<span class="lnr lnr-arrow-right"></span></a>
+                        <a href="/wishlist">Wishlist</a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- End Banner Area -->
+
+    <!-- Start Wishlist Area -->
+    <div class="wishlist-container">
+        <h2 class="cart-header">Your Wishlist</h2>
 
         <% if (wishlist && wishlist.items.length > 0) { %>
-            <ul>
+            <div class="wishlist-items">
                 <% wishlist.items.forEach(item => { %>
-                    <li>
-                        <div class="wishlist-item">
-                            <a href="/product?id=<%= item.productId._id %>">
-                                <img src="/Uploads/product-Images/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>" class="wishlist-item-image">
-                                <div class="wishlist-item-info">
-                                    <h3><%= item.productId.productName %></h3>
-                                    <p><%= item.productId.description %></p>
-                                    <p><strong>Price:</strong> $<%= item.productId.salePrice %></p>
-                                </div>
-                            </a>
+                    <div class="wishlist-item">
+                        <img src="/Uploads/product-Images/<%= item.productId.productImage[0] %>" 
+                             alt="<%= item.productId.productName %>" 
+                             class="wishlist-item-image">
+                        <div class="wishlist-item-info">
+                            <h3><%= item.productId.productName %></h3>
+                            <p><%= item.productId.description %></p>
+                            <p class="price-info">Price: ₹<%= item.productId.salePrice %></p>
                             <form onsubmit="showRemoveAlert(event, '<%= item.productId._id %>')">
-                                <input type="hidden" name="productId" id="productId" value="<%= item.productId._id %>">
+                                <input type="hidden" name="productId" value="<%= item.productId._id %>">
                                 <button type="submit" class="remove-btn">Remove from Wishlist</button>
                             </form>
                         </div>
-                    </li>
+                    </div>
                 <% }) %>
-            </ul>
+            </div>
         <% } else { %>
-            <p>Your wishlist is empty.</p>
+            <div class="empty-wishlist-message">
+                <p>Your wishlist is empty</p>
+                <a href="/shop" class="continue-shopping">Continue Shopping</a>
+            </div>
         <% } %>
-
-        <hr>
-
-        <a href="/">Back to Home</a>
     </div>
+    <!-- End Wishlist Area -->
 
     <script>
         function showRemoveAlert(event, productId) {
@@ -226,7 +364,7 @@
                 if (result.success) {
                     Swal.fire({
                         icon: 'success',
-                        title: 'Success',
+                        title: '有效',
                         text: result.message
                     }).then(() => {
                         location.reload();
@@ -234,7 +372,7 @@
                 } else {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Error',
+                        title: '错误',
                         text: result.message || 'Failed to remove item!'
                     });
                 }
@@ -243,6 +381,78 @@
             }
         }
     </script>
+    
+    <!-- Required JavaScript Files -->
+    <script src="js/vendor/jquery-2.2.4.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+	<script src="js/vendor/bootstrap.min.js"></script>
+	<script src="js/jquery.ajaxchimp.min.js"></script>
+	<script src="js/jquery.nice-select.min.js"></script>
+	<script src="js/jquery.sticky.js"></script>
+	<script src="js/nouislider.min.js"></script>
+	<script src="js/countdown.js"></script>
+	<script src="js/jquery.magnific-popup.min.js"></script>
+	<script src="js/owl.carousel.min.js"></script>
     <script src="/script.js"></script> <!-- Link to your JavaScript file if needed -->
+
+    <!-- Start Footer Area -->
+    <footer class="footer-area section_gap">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3  col-md-6 col-sm-6">
+                    <div class="single-footer-widget">
+                        <h6>About Us</h6>
+                        <p>
+                            Verses Store - Your one-stop destination for discovering unique and inspiring products.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-lg-4  col-md-6 col-sm-6">
+                    <div class="single-footer-widget">
+                        <h6>Newsletter</h6>
+                        <p>Stay updated with our latest trends</p>
+                        <div class="" id="mc_embed_signup">
+                            <form target="_blank" action="#">
+                                <div class="d-flex flex-row">
+                                    <input class="form-control" name="EMAIL" placeholder="Enter Email" required="" type="email">
+                                    <button class="click-btn btn btn-default"><i class="fa fa-long-arrow-right" aria-hidden="true"></i></button>
+                                </div>
+                                <div class="info"></div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3  col-md-6 col-sm-6">
+                    <div class="single-footer-widget mail-chimp">
+                        <h6 class="mb-20">Quick Links</h6>
+                        <ul class="instafeed d-flex flex-wrap">
+                            <li><a href="/shop">Shop</a></li>
+                            <li><a href="/about">About</a></li>
+                            <li><a href="/contact">Contact</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6 col-sm-6">
+                    <div class="single-footer-widget">
+                        <h6>Follow Us</h6>
+                        <p>Let us be social</p>
+                        <div class="footer-social d-flex align-items-center">
+                            <a href="#"><i class="fa fa-facebook"></i></a>
+                            <a href="#"><i class="fa fa-twitter"></i></a>
+                            <a href="#"><i class="fa fa-instagram"></i></a>
+                            <a href="#"><i class="fa fa-linkedin"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom d-flex justify-content-center align-items-center flex-wrap">
+                <p class="footer-text m-0">
+                    Copyright &copy;<script>document.write(new Date().getFullYear());</script> 
+                    All rights reserved | Verses Store
+                </p>
+            </div>
+        </div>
+    </footer>
+    <!-- End Footer Area -->
 </body>
 </html>

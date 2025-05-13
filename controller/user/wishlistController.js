@@ -8,24 +8,34 @@ const getWishlist = async (req, res) => {
     try {
         console.log("Fetching wishlist...");
 
+        // Check if user is authenticated 
+        if (!req.session.user) {
+            return res.redirect('/signin');
+        }
+
         const userId = req.session.user._id;
         console.log("User ID:", userId);
-
-        if (!userId) return res.status(401).json({ message: "User not authenticated" });
 
         // Find the user's wishlist and populate the product details inside `items`
         const wishlist = await Wishlist.findOne({ userId }).populate('items.productId');
 
         console.log("Wishlist Data:", wishlist);
 
-        
-
-        // Render the wishlist page with the retrieved data
-        res.render('wishlist', { wishlist });
+        // Pass both wishlist and user data to the template
+        res.render('wishlist', { 
+            wishlist,
+            user: req.session.user
+        });
 
     } catch (error) {
         console.error("Error fetching wishlist:", error);
-        res.status(500).json({ message: "Server error", error });
+        
+        // Render the wishlist page with error state
+        res.render('wishlist', {
+            wishlist: null,
+            user: req.session.user,
+            error: "Failed to load wishlist. Please try again later."
+        });
     }
 };
 
@@ -109,5 +119,5 @@ const addToWishlist = async (req, res) => {
 module.exports = {
     addToWishlist,
     getWishlist,
-    removeFromWishlist
+    removeFromWishlist      
 };
