@@ -64,13 +64,17 @@ const addToWishlist = async (req, res) => {
         // Add the product to the wishlist
         wishlist.items.push({ productId, userId });
         await wishlist.save();
-
-        console.log('Wishlist updated:', wishlist);
-        res.json({ message: "Product added to wishlist", wishlist });
+        res.json({ 
+            success: true,
+            message: "Product added to wishlist successfully" 
+        });
 
     } catch (error) {
         console.error("Error adding to wishlist:", error);
-        res.status(500).json({ message: "Server error", error });
+        res.status(500).json({ 
+            success: false,
+            message: "Failed to add product to wishlist" 
+        });
     }
 };
 

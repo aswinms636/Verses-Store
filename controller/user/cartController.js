@@ -82,11 +82,17 @@ const addToCart = async (req, res) => {
         await Wishlist.updateOne({ userId }, { $pull: { items: { productId } } });
 
         
-        res.json({ message: "Product added to cart", cart });
+        res.json({ 
+            success: true,
+            message: "Product added to cart successfully" 
+        });
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Server error", error });
+        res.status(500).json({ 
+            success: false, 
+            message: "Failed to add product to cart" 
+        });
     }
 };
 
