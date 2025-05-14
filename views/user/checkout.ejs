@@ -528,86 +528,109 @@
         }
 
         async function handleRazorpayPayment(addressId) {
-            try {
-                const actualPrice = parseFloat(document.getElementById('actualPrice').textContent);
-                const payableAmount = parseFloat(document.getElementById('payableAmount').textContent);
-                const totalAmount = actualPrice; // or calculate as needed
+    try {
+        const actualPrice = parseFloat(document.getElementById('actualPrice').textContent);
+        const payableAmount = parseFloat(document.getElementById('payableAmount').textContent);
+        const totalAmount = actualPrice;
 
-                const response = await fetch("/create-order", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        addressId,
-                        totalAmount,
-                        actualPrice,
-                        payableAmount,
-                        couponCode: currentCoupon ? currentCoupon.code : null
-                    })
-                });
-
-                const data = await response.json();
-
-                if (!data.success) {
-                    throw new Error(data.message || "Failed to create order");
-                }
-
-                // Initialize Razorpay
-                const options = {
-                    key: data.key,
-                    amount: data.amount,
-                    currency: data.currency,
-                    name: "Verses Store",
-                    description: "Order Payment",
-                    order_id: data.orderId,
-                    handler: async function(response) {
-                        try {
-                            const verifyResponse = await fetch("/verify-payment", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                    razorpay_order_id: response.razorpay_order_id,
-                                    razorpay_payment_id: response.razorpay_payment_id,
-                                    razorpay_signature: response.razorpay_signature,
-                                    dbOrderId: data.dbOrderId
-                                })
-                            });
-
-                            const verifyData = await verifyResponse.json();
-
-                            if (verifyData.success) {
-                                await Swal.fire({
-                                    title: "Success!",
-                                    text: "Payment successful and order placed!",
-                                    icon: "success"
-                                });
-                                window.location.href = `/order/view/${data.dbOrderId}`;
-                            } else {
-                                throw new Error(verifyData.message || "Payment verification failed");
-                            }
-                        } catch (error) {
-                            Swal.fire("Error", error.message, "error");
-                        }
-                    },
-                    prefill: {
-                        name: document.querySelector('#addressSelect option:checked').textContent.split(',')[0],
-                        contact: document.querySelector('#addressSelect option:checked').textContent.match(/\d{10}/)?.[0] || ''
-                    },
-                    theme: {
-                        color: "#ff4757"
-                    }
-                };
-
-                const rzp = new Razorpay(options);
-                rzp.on('payment.failed', function(response) {
-                    Swal.fire("Error", "Payment failed! Please try again.", "error");
-                });
-                rzp.open();
-
-            } catch (error) {
-                console.error("Payment error:", error);
-                Swal.fire("Error", error.message || "Payment processing failed", "error");
+        // Show loading indicator
+        Swal.fire({
+            title: 'Processing',
+            text: 'Creating your order...',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
             }
+        });
+
+        const response = await fetch("/create-order", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                addressId,
+                totalAmount,
+                actualPrice,
+                payableAmount,
+                couponCode: currentCoupon ? currentCoupon.code : null
+            })
+        });
+
+        const data = await response.json();
+
+        // Close loading indicator
+        Swal.close();
+
+        if (!data.success) {
+            throw new Error(data.message || "Failed to create order");
         }
+
+        // Initialize Razorpay
+        const options = {
+            key: data.key,
+            amount: data.amount,
+            currency: "INR",
+            name: "Verses Store",
+            description: "Order Payment",
+            order_id: data.orderId,
+            handler: async function(response) {
+                try {
+                    // Show processing payment message
+                    Swal.fire({
+                        title: 'Processing',
+                        text: 'Verifying payment...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    const verifyResponse = await fetch("/verify-payment", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            dbOrderId: data.dbOrderId
+                        })
+                    });
+
+                    const verifyData = await verifyResponse.json();
+
+                    if (verifyData.success) {
+                        await Swal.fire({
+                            title: "Success!",
+                            text: "Payment successful and order placed!",
+                            icon: "success"
+                        });
+                        window.location.href = `/order/view/${data.dbOrderId}`;
+                    } else {
+                        throw new Error(verifyData.message || "Payment verification failed");
+                    }
+                } catch (error) {
+                    Swal.fire("Error", error.message, "error");
+                }
+            },
+            prefill: {
+                name: document.querySelector('#addressSelect option:checked').textContent.split(',')[0],
+                contact: document.querySelector('#addressSelect option:checked').textContent.match(/\d{10}/)?.[0] || ''
+            },
+            theme: {
+                color: "#ff4757"
+            }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.on('payment.failed', function(response) {
+            Swal.fire("Error", "Payment failed! Please try again.", "error");
+        });
+        rzp.open();
+
+    } catch (error) {
+        console.error("Payment error:", error);
+        Swal.fire("Error", error.message || "Payment processing failed", "error");
+    }
+}
 
         document.getElementById('saveAddressBtn').addEventListener('click', async (e) => {
             e.preventDefault();

@@ -50,65 +50,80 @@ const createOrder = async (req, res) => {
             });
         }
 
-        // Create Razorpay order
-        const razorpayOrder = await razorpay.orders.create({
-            amount: Math.round(payableAmount * 100), // Convert to paise
-            currency: "INR",
-            receipt: `order_${Date.now()}`
-        });
+        try {
+            // Create Razorpay order with proper error handling
+            const razorpayOrder = await razorpay.orders.create({
+                amount: Math.round(payableAmount * 100), // Convert to paise
+                currency: "INR",
+                receipt: `order_${Date.now()}`,
+                payment_capture: 1 // Auto capture payment
+            });
 
-        // Handle coupon if provided
-        let couponObjectId = null;
-        if (couponCode) {
-            const coupon = await Coupon.findOne({ code: couponCode });
-            if (coupon) {
-                couponObjectId = coupon._id;
+            if (!razorpayOrder || !razorpayOrder.id) {
+                throw new Error("Failed to create Razorpay order");
             }
+
+            // Handle coupon if provided
+            let couponObjectId = null;
+            if (couponCode) {
+                const coupon = await Coupon.findOne({ code: couponCode });
+                if (coupon) {
+                    couponObjectId = coupon._id;
+                }
+            }
+
+            // Create order in database
+            const order = new Order({
+                userId,
+                orderItems: cart.items.map(item => ({
+                    product: item.productId._id,
+                    size: item.size,
+                    quantity: item.quantity,
+                    price: item.price
+                })),
+                totalPrice: totalAmount,
+                totalAmount: payableAmount,
+                paymentMethod: "Online Payment",
+                razorpayOrderId: razorpayOrder.id,
+                paymentStatus: "Pending",
+                address: {
+                    fullname: selectedAddress.fullname,
+                    street: selectedAddress.street,
+                    city: selectedAddress.city,
+                    state: selectedAddress.state,
+                    zipCode: selectedAddress.zipCode,
+                    phone: selectedAddress.phone
+                },
+                status: "Pending",
+                actualPrice: actualPrice,
+                payableAmount: payableAmount,
+                couponApplied: couponObjectId
+            });
+
+            await order.save();
+
+            // Clear cart
+            await Cart.findOneAndUpdate(
+                { userId },
+                { $set: { items: [] } }
+            );
+
+            res.json({
+                success: true,
+                orderId: razorpayOrder.id,
+                dbOrderId: order._id,
+                amount: razorpayOrder.amount,
+                currency: razorpayOrder.currency,
+                key: process.env.RAZORPAY_KEY_ID
+            });
+
+        } catch (razorpayError) {
+            console.error("Razorpay Error:", razorpayError);
+            return res.status(500).json({
+                success: false,
+                message: "Failed to create payment order"
+            });
         }
-
-        // Create order in database
-        const order = new Order({
-            userId,
-            orderItems: cart.items.map(item => ({
-                product: item.productId._id,
-                size: item.size,
-                quantity: item.quantity,
-                price: item.price
-            })),
-            totalPrice: totalAmount,
-            totalAmount: payableAmount,
-            paymentMethod: "Online Payment",
-            razorpayOrderId: razorpayOrder.id,
-            paymentStatus: "Pending",
-            address: {
-                fullname: selectedAddress.fullname,
-                street: selectedAddress.street,
-                city: selectedAddress.city,
-                state: selectedAddress.state,
-                zipCode: selectedAddress.zipCode,
-                phone: selectedAddress.phone
-            },
-            status: "Pending",
-            actualPrice: actualPrice,
-            payableAmount: payableAmount,
-            couponApplied: couponObjectId
-        });
-
-        await Cart.findOneAndUpdate(
-            { userId },
-            { $set: { items: [] } }
-        );
-
-        await order.save();
-
-        res.json({
-            success: true,
-            orderId: razorpayOrder.id,
-            dbOrderId: order._id,
-            amount: razorpayOrder.amount,
-            currency: razorpayOrder.currency,
-            key: process.env.RAZORPAY_KEY_ID
-        });
 
     } catch (error) {
         console.error("Error Creating Order:", error);
@@ -153,7 +168,7 @@ const verifyPayment = async (req, res) => {
         order.razorpayPaymentId = razorpay_payment_id;
         order.razorpaySignature = razorpay_signature;
         order.paymentStatus = "Paid";
-        order.status = "Processing";
+        order.status = "Pending";
         order.invoiceDate = new Date();
 
         await order.save();
