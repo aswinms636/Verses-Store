@@ -453,8 +453,15 @@ const applyCoupon = async (req, res) => {
             isList: true,
             minimumPrice: { $lte: totalAmount },
             expireOn: { $gt: new Date() },
-            userId: { $nin: [userId] }
+            
         });
+
+        if(!userId.includes(userId)){
+            return res.status(400).json({
+                success: false,
+                message: 'Coupon already used'
+            });
+        }
 
         if (!coupon) {
             return res.status(400).json({
@@ -465,6 +472,12 @@ const applyCoupon = async (req, res) => {
 
         const discount = coupon.offerPrice;
         const newTotal = totalAmount - discount;
+
+        await Coupon.findByIdAndUpdate(coupon._id, {
+            $addToSet: { userId: userId }
+        });
+
+        console.log('Cpupen apply and updated',coupon)
 
         res.json({
             success: true,
