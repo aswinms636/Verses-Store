@@ -446,6 +446,13 @@ const applyCoupon = async (req, res) => {
         const { couponCode, totalAmount } = req.body;
         const userId = req.session.user._id;
 
+        if(!userId){
+            return res.status(401).json({
+                success: false,
+                message: 'User not Found'
+            });
+        }
+
         console.log('Applying coupon:', { couponCode, totalAmount, userId });
 
         const coupon = await Coupon.findOne({
@@ -456,7 +463,7 @@ const applyCoupon = async (req, res) => {
             
         });
 
-        if(!userId.includes(userId)){
+        if(coupon.userId.includes(userId)){
             return res.status(400).json({
                 success: false,
                 message: 'Coupon already used'
