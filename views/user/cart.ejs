@@ -236,6 +236,7 @@
         }
     }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -363,12 +364,48 @@
         }
     
         function removeFromCart(itemId) {
-            fetch(`/cart/remove`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ cartItemId: itemId })
-            }).then(response => response.json())
-              .then(data => location.reload());
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This item will be removed from your cart",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ff6c00',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, remove it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/cart/remove`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ cartItemId: itemId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire(
+                                'Deleted!',
+                                'Item has been removed from your cart.',
+                                'success'
+                            ).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire(
+                                'Error!',
+                                'Failed to remove item from cart.',
+                                'error'
+                            );
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire(
+                            'Error!',
+                            'Something went wrong.',
+                            'error'
+                        );
+                    });
+                }
+            });
         }
     </script>
 

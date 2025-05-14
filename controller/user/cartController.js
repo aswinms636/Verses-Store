@@ -202,49 +202,48 @@ const decrementCartItem = async (req, res) => {
 
 const decrementOrRemoveCartItem = async (req, res) => {
     try {
-        console.log('-----------------------------------')
         const { cartItemId } = req.body; 
-        console.log(req.body)
         const userId = req.session.user._id; 
 
-        console.log(userId)
-
         if (!userId) {
-            return res.status(401).json({ message: "User not authenticated" });
+            return res.status(401).json({ 
+                success: false,
+                message: "User not authenticated" 
+            });
         }
 
         let cart = await Cart.findOne({ userId }).populate('items.productId');
-        if (!cart) return res.status(404).json({ message: "Cart not found" });
-
-        
-        const itemIndex = cart.items.findIndex(i => i._id.equals(cartItemId));
-        if (itemIndex === -1) return res.status(404).json({ message: "Item not found in cart" });
-
-        const item = cart.items[itemIndex];
-        const product = item.productId;
-        if (!product) return res.status(404).json({ message: "Product not found" });
-
-
-        console.log('product',product)
-
-        
-        if (item.quantity > 1) {
-            item.quantity -= 1;
-        } else {
-            
-            cart.items.splice(itemIndex, 1);
+        if (!cart) {
+            return res.status(404).json({ 
+                success: false,
+                message: "Cart not found" 
+            });
         }
 
-        
+        const itemIndex = cart.items.findIndex(i => i._id.equals(cartItemId));
+        if (itemIndex === -1) {
+            return res.status(404).json({ 
+                success: false,
+                message: "Item not found in cart" 
+            });
+        }
+
+        cart.items.splice(itemIndex, 1);
         cart.totalPrice = cart.items.reduce((acc, curr) => acc + curr.quantity * curr.price, 0);
 
-        console.log('removed')
         await cart.save();
-        res.json({ message: "Cart updated", cart });
+        res.json({ 
+            success: true,
+            message: "Item removed from cart successfully",
+            cart 
+        });
 
     } catch (error) {
-        console.error("Error updating cart item:", error);
-        res.status(500).json({ message: "Server error" });
+        console.error("Error removing cart item:", error);
+        res.status(500).json({ 
+            success: false,
+            message: "Server error" 
+        });
     }
 }
 
