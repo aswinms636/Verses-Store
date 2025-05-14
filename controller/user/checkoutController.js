@@ -178,6 +178,13 @@ const placedOrder = async (req, res) => {
             return res.status(401).json({ success: false, message: "User not authenticated" });
         }
 
+
+        if(paymentMethod==='Cash on Delivery'){
+            if(actualPrice<1000){
+                return res.status(400).json({ success: false, message: "Minimum order value for Cash on Delivery is 1000" });
+            }
+        }
+
         // Validate address
         const addressDoc = await Address.findOne({ userId: userId, "address._id": addressId });
         if (!addressDoc || !addressDoc.address.find(addr => addr._id.toString() === addressId)) {

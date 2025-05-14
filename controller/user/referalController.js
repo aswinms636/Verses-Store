@@ -16,9 +16,9 @@ const loadReferEarn = async (req, res) => {
                 history: []
             });
             await newWallet.save();
-            res.render('refer-earn', { user, wallet: newWallet });
+           return res.render('refer-earn', { user, wallet: newWallet });
         } else {
-            res.render('refer-earn', { user, wallet });
+          return  res.render('refer-earn', { user, wallet });
         }
     } catch (error) {
         console.error('Error loading refer & earn page:', error);
