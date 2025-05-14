@@ -319,7 +319,7 @@
         <% if (cart.items.length > 0) { %>
             <div class="cart-items">
                 <% cart.items.forEach(item => { %>
-                    <div class="cart-item">
+                    <div class="cart-item" data-item-id="<%= item._id %>">
                         <img src="/Uploads/product-Images/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>" class="cart-item-image">
                         <div class="cart-item-details">
                             <h3><%= item.productId.productName %></h3>

@@ -1,6 +1,9 @@
 const Admin = require("../../models/userSchema");
 const bcrypt = require("bcrypt");
 const User = require("../../models/userSchema");
+const Order = require("../../models/orderSchema");
+const Product = require("../../models/productSchema");
+const Category = require("../../models/categorySchema");
 
 const loadlogin = async (req, res) => {
     try {
@@ -54,13 +57,228 @@ const adminLogin = async (req, res) => {
     }
 };
 
-const loadDashboard = async (req, res) => {
-    try {
-        res.render('dashboard')
-    } catch (error) {
-        res.status(500).send("Server error");
+const loadDashboard = async (req, res, next) => {
+    if (req.session.admin) {
+        try {
+            let { startDate, endDate } = req.query;
+
+            if (!startDate || !endDate || isNaN(new Date(startDate)) || isNaN(new Date(endDate))) {
+                const end = new Date();
+                const start = new Date();
+                start.setDate(end.getDate() - 7); // Default to last 7 days
+                startDate = start.toISOString().split('T')[0];
+                endDate = end.toISOString().split('T')[0];
+            }
+
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            end.setDate(end.getDate() + 1);
+
+            // Get total sales (all time)
+            const totalSalesAllTime = await Order.aggregate([
+                { 
+                    $match: { 
+                        status: { $in: ["Delivered", "Shipped"] } 
+                    } 
+                },
+                { 
+                    $group: { 
+                        _id: null, 
+                        total: { $sum: "$totalAmount" },
+                        count: { $sum: 1 }
+                    } 
+                }
+            ]);
+
+            // Get daily sales for the date range
+            const dailySalesData = await Order.aggregate([
+                {
+                    $match: {
+                        createdOn: { $gte: start, $lt: end },
+                        status: { $in: ["Delivered", "Shipped", "Pending"] }
+                    }
+                },
+                {
+                    $group: {
+                        _id: { 
+                            $dateToString: { 
+                                format: "%Y-%m-%d", 
+                                date: "$createdOn" 
+                            }
+                        },
+                        dailyTotal: { $sum: "$totalAmount" },
+                        orderCount: { $sum: 1 },
+                        items: { $sum: { $size: "$orderItems" } }
+                    }
+                },
+                { $sort: { "_id": 1 } }
+            ]);
+
+            // Get sales summary for the selected period
+            const periodSalesSummary = await Order.aggregate([
+                {
+                    $match: {
+                        createdOn: { $gte: start, $lt: end },
+                        status: { $in: ["Delivered", "Shipped", "Pending"] }
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        totalSales: { $sum: "$totalAmount" },
+                        totalOrders: { $sum: 1 },
+                        averageOrderValue: { $avg: "$totalAmount" },
+                        totalItems: { $sum: { $size: "$orderItems" } }
+                    }
+                }
+            ]);
+
+            // Rest of your existing dashboard statistics
+            const dashboardStats = await Promise.all([
+                // Total Sales
+                Order.aggregate([
+                    { $match: { createdOn: { $gte: start, $lt: end } } },
+                    { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+                ]),
+
+                // Total Orders Count
+                Order.countDocuments({ createdOn: { $gte: start, $lt: end } }),
+
+                // Returns Count
+                Order.countDocuments({ 
+                    createdOn: { $gte: start, $lt: end },
+                    status: "Returned"
+                }),
+
+                // Pending Orders
+                Order.countDocuments({ 
+                    createdOn: { $gte: start, $lt: end },
+                    status: "Pending"
+                }),
+
+                // Delivered Orders
+                Order.countDocuments({ 
+                    createdOn: { $gte: start, $lt: end },
+                    status: "Delivered"
+                }),
+
+                // Shipped Orders
+                Order.countDocuments({ 
+                    createdOn: { $gte: start, $lt: end },
+                    status: "Shipped"
+                }),
+
+                // Total Users
+                User.countDocuments({}),
+
+                // Total Discounts Given
+                Order.aggregate([
+                    { $match: { createdOn: { $gte: start, $lt: end } } },
+                    { $group: { _id: null, total: { $sum: "$couponDiscount" } } }
+                ])
+            ]);
+
+            // Top Products
+            const topProducts = await Order.aggregate([
+                { $match: { createdOn: { $gte: start, $lt: end } } },
+                { $unwind: "$orderItems" },
+                { $lookup: { 
+                    from: "products", 
+                    localField: "orderItems.product", 
+                    foreignField: "_id", 
+                    as: "product" 
+                }},
+                { $unwind: "$product" },
+                { $group: {
+                    _id: "$orderItems.product",
+                    productName: { $first: "$product.productName" },
+                    totalQuantity: { $sum: "$orderItems.quantity" },
+                    totalRevenue: { $sum: { $multiply: ["$orderItems.quantity", "$orderItems.price"] } }
+                }},
+                { $sort: { totalQuantity: -1 } },
+                { $limit: 10 }
+            ]);
+
+            // Top Categories
+            const topCategories = await Order.aggregate([
+                { $match: { createdOn: { $gte: start, $lt: end } } },
+                { $unwind: "$orderItems" },
+                { $lookup: { 
+                    from: "products", 
+                    localField: "orderItems.product", 
+                    foreignField: "_id", 
+                    as: "product" 
+                }},
+                { $unwind: "$product" },
+                { $lookup: { 
+                    from: "categories", 
+                    localField: "product.category", 
+                    foreignField: "_id", 
+                    as: "category" 
+                }},
+                { $unwind: "$category" },
+                { $group: {
+                    _id: "$category._id",
+                    categoryName: { $first: "$category.name" },
+                    totalQuantity: { $sum: "$orderItems.quantity" },
+                    totalRevenue: { $sum: { $multiply: ["$orderItems.quantity", "$orderItems.price"] } }
+                }},
+                { $sort: { totalQuantity: -1 } },
+                { $limit: 10 }
+            ]);
+
+            // Daily Sales and Orders Chart Data
+            const dailyData = await Order.aggregate([
+                { $match: { createdOn: { $gte: start, $lt: end } } },
+                { $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdOn" } },
+                    sales: { $sum: "$totalAmount" },
+                    orders: { $sum: 1 },
+                    discounts: { $sum: "$couponDiscount" }
+                }},
+                { $sort: { "_id": 1 } }
+            ]);
+
+            res.render("dashboard", {
+                stats: {
+                    // Existing stats
+                    totalSales: dashboardStats[0][0]?.total || 0,
+                    totalOrders: dashboardStats[1] || 0,
+                    returnsCount: dashboardStats[2] || 0,
+                    pendingOrders: dashboardStats[3] || 0,
+                    deliveredOrders: dashboardStats[4] || 0,
+                    shippedOrders: dashboardStats[5] || 0,
+                    totalUsers: dashboardStats[6] || 0,
+                    totalDiscounts: dashboardStats[7][0]?.total || 0,
+                    
+                    // New sales statistics
+                    allTimeSales: {
+                        total: totalSalesAllTime[0]?.total || 0,
+                        count: totalSalesAllTime[0]?.count || 0
+                    },
+                    periodSales: {
+                        total: periodSalesSummary[0]?.totalSales || 0,
+                        orders: periodSalesSummary[0]?.totalOrders || 0,
+                        averageOrder: periodSalesSummary[0]?.averageOrderValue || 0,
+                        items: periodSalesSummary[0]?.totalItems || 0
+                    }
+                },
+                dailySales: dailySalesData,
+                topProducts,
+                topCategories,
+                chartData: dailyData,
+                startDate,
+                endDate
+            });
+
+        } catch (error) {
+            console.error("Dashboard error:", error);
+            next(error);
+        }
+    } else {
+        res.redirect("/admin/login");
     }
-}
+};
 
 const logout = async (req, res) => {
     try {
@@ -140,6 +358,13 @@ const toggleUserStatus = async (req, res) => {
         });
     }
 };
+
+
+
+
+
+
+
 
 module.exports = {
     adminLogin,
