@@ -201,29 +201,50 @@ const loadDashboard = async (req, res, next) => {
 
             // Top Categories
             const topCategories = await Order.aggregate([
-                { $match: { createdOn: { $gte: start, $lt: end } } },
+                { 
+                    $match: { 
+                        createdOn: { $gte: start, $lt: end },
+                        status: { $in: ["Delivered", "Shipped"] }  // Only count completed orders
+                    } 
+                },
                 { $unwind: "$orderItems" },
-                { $lookup: { 
-                    from: "products", 
-                    localField: "orderItems.product", 
-                    foreignField: "_id", 
-                    as: "product" 
-                }},
+                {
+                    $lookup: {
+                        from: "products",
+                        localField: "orderItems.product",
+                        foreignField: "_id",
+                        as: "product"
+                    }
+                },
                 { $unwind: "$product" },
-                { $lookup: { 
-                    from: "categories", 
-                    localField: "product.category", 
-                    foreignField: "_id", 
-                    as: "category" 
-                }},
+                {
+                    $lookup: {
+                        from: "categories",
+                        localField: "product.category",
+                        foreignField: "_id",
+                        as: "category"
+                    }
+                },
                 { $unwind: "$category" },
-                { $group: {
-                    _id: "$category._id",
-                    categoryName: { $first: "$category.name" },
-                    totalQuantity: { $sum: "$orderItems.quantity" },
-                    totalRevenue: { $sum: { $multiply: ["$orderItems.quantity", "$orderItems.price"] } }
-                }},
-                { $sort: { totalQuantity: -1 } },
+                {
+                    $group: {
+                        _id: "$category._id",
+                        categoryName: { $first: "$category.name" },
+                        totalQuantity: { $sum: "$orderItems.quantity" },
+                        totalRevenue: { 
+                            $sum: { 
+                                $multiply: ["$orderItems.quantity", "$orderItems.price"] 
+                            } 
+                        },
+                        orderCount: { $sum: 1 }
+                    }
+                },
+                { 
+                    $sort: { 
+                        totalRevenue: -1,  // Sort by revenue in descending order
+                        totalQuantity: -1  // Then by quantity
+                    } 
+                },
                 { $limit: 10 }
             ]);
 
@@ -265,7 +286,11 @@ const loadDashboard = async (req, res, next) => {
                 },
                 dailySales: dailySalesData,
                 topProducts,
-                topCategories,
+                topCategories: topCategories.map(category => ({
+                    ...category,
+                    totalRevenue: Math.round(category.totalRevenue), // Round to nearest rupee
+                    totalQuantity: parseInt(category.totalQuantity)
+                })),
                 chartData: dailyData,
                 startDate,
                 endDate
