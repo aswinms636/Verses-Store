@@ -131,13 +131,16 @@
     }
 
     .date-filters .apply-filter {
+      display: flex;
+      align-items: center;
+      gap: 6px;
       background-color: var(--primary-color);
+      color: white;
       border: none;
-      color: #fff;
-      padding: 10px 16px;
+      padding: 8px 16px;
       border-radius: 6px;
       cursor: pointer;
-      transition: background-color var(--transition-speed);
+      transition: background-color 0.2s;
       font-weight: 500;
       font-size: 14px;
     }
@@ -640,6 +643,50 @@
         0% { background-position: -200% 0; }
         100% { background-position: 200% 0; }
     }
+
+    .custom-date-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .custom-date-group input[type="date"] {
+        padding: 8px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    .apply-filter {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .apply-filter:hover {
+        background-color: var(--secondary-color);
+    }
+
+    .apply-filter i {
+        font-size: 14px;
+    }
+
+    .loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    .date-separator {
+        color: #64748b;
+        font-weight: 500;
+    }
   </style>
 </head>
 <body>
@@ -654,23 +701,17 @@
       
       <div class="date-filters">
         <div class="filter-group">
-          <button class="date-filter active" data-range="1">1 Day</button>
+          <button class="date-filter" data-range="1">1 Day</button>
           <button class="date-filter" data-range="7">1 Week</button>
           <button class="date-filter" data-range="30">1 Month</button>
-          <button class="date-filter" data-range="365">1 Year</button> 
+          <button class="date-filter" data-range="365">1 Year</button>
         </div>
         <div class="custom-date-group">
-          <input type="date" id="startDate" value="2025-05-07">
+          <input type="date" id="startDate" name="startDate" required>
           <span class="date-separator">to</span>
-          <input type="date" id="endDate" value="2025-05-14">
-          <button class="apply-filter">Apply</button>
-        </div>
-        <div class="export-group">
-          <button class="export-btn" id="exportExcel">
-            <i class="fas fa-file-excel"></i> Export Excel
-          </button>
-          <button class="export-btn" id="exportPdf">
-            <i class="fas fa-file-pdf"></i> Export PDF
+          <input type="date" id="endDate" name="endDate" required>
+          <button class="apply-filter">
+            <i class="fas fa-check"></i> Apply
           </button>
         </div>
       </div>
@@ -993,6 +1034,80 @@
             </div>
         `;
     }
+
+    // Add after existing chart initialization code
+document.querySelector('.apply-filter').addEventListener('click', async function() {
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+
+    if (!startDate || !endDate) {
+        alert('Please select both start and end dates');
+        return;
+    }
+
+    if (new Date(endDate) < new Date(startDate)) {
+        alert('End date must be greater than or equal to start date');
+        return;
+    }
+
+    try {
+        // Update URL with new date parameters
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('startDate', startDate);
+        currentUrl.searchParams.set('endDate', endDate);
+        
+        // Show loading state
+        document.querySelector('.dashboard-cards').style.opacity = '0.6';
+        document.querySelector('.sales-statistics').style.opacity = '0.6';
+        
+        // Redirect to update the page with new date range
+        window.location.href = currentUrl.toString();
+
+    } catch (error) {
+        console.error('Error updating date range:', error);
+        alert('Failed to update date range. Please try again.');
+    }
+});
+
+// Update date inputs with current URL parameters
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const startDate = urlParams.get('startDate');
+    const endDate = urlParams.get('endDate');
+
+    if (startDate) {
+        document.getElementById('startDate').value = startDate;
+    }
+    if (endDate) {
+        document.getElementById('endDate').value = endDate;
+    }
+
+    // Remove active class from preset date filters when custom range is selected
+    if (startDate || endDate) {
+        document.querySelectorAll('.date-filter').forEach(btn => {
+            btn.classList.remove('active');
+        });
+    }
+});
+
+// Add click handlers for preset date filters
+document.querySelectorAll('.date-filter').forEach(button => {
+    button.addEventListener('click', function() {
+        const days = parseInt(this.dataset.range);
+        const end = new Date();
+        const start = new Date();
+        start.setDate(end.getDate() - days);
+
+        document.getElementById('startDate').value = start.toISOString().split('T')[0];
+        document.getElementById('endDate').value = end.toISOString().split('T')[0];
+
+        // Remove active class from all buttons and add to clicked button
+        document.querySelectorAll('.date-filter').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        this.classList.add('active');
+    });
+});
   </script>
 </body>
 </html>
