@@ -301,6 +301,28 @@
       margin-bottom: 15px;
     }
 
+    .view-controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    .chart-view-btn {
+      background-color: #e2e8f0;
+      border: none;
+      color: #333;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color var(--transition-speed);
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .chart-view-btn.active {
+      background-color: var(--primary-color);
+      color: #fff;
+    }
+
     .toggle-switch {
       display: inline-flex;
       align-items: center;
@@ -712,18 +734,25 @@
 
       <div class="chart-container">
         <div class="chart-controls">
-          <label class="toggle-switch">
-            <input type="checkbox" id="toggleSales" checked>
-            <span class="slider">Sales</span>
-          </label>
-          <label class="toggle-switch">
-            <input type="checkbox" id="toggleOrders" checked>
-            <span class="slider">Orders</span>
-          </label>
-          <label class="toggle-switch">
-            <input type="checkbox" id="toggleDiscounts" checked>
-            <span class="slider">Discounts</span>
-          </label>
+          <div class="view-controls">
+            <button class="chart-view-btn active" data-view="weekly">Week</button>
+            <button class="chart-view-btn" data-view="monthly">Month</button>
+            <button class="chart-view-btn" data-view="yearly">Year</button>
+          </div>
+          <div class="data-controls">
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggleSales" checked>
+              <span class="slider">Sales</span>
+            </label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggleOrders" checked>
+              <span class="slider">Orders</span>
+            </label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggleDiscounts" checked>
+              <span class="slider">Discounts</span>
+            </label>
+          </div>
         </div>
         <canvas id="salesChart"></canvas>
       </div>
@@ -808,28 +837,35 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const ctx = document.getElementById('salesChart').getContext('2d');
-        const chartData = <%- JSON.stringify(chartData) %>;
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    const chartData = <%- JSON.stringify(chartData) %>;
+    let currentChart;
+    let currentView = 'weekly';
 
-        const chart = new Chart(ctx, {
+    function initializeChart(data, view) {
+        if (currentChart) {
+            currentChart.destroy();
+        }
+
+        const config = {
             type: 'line',
             data: {
-                labels: chartData.map(d => d._id),
+                labels: data.map(d => d._id),
                 datasets: [{
                     label: 'Sales',
-                    data: chartData.map(d => d.sales),
+                    data: data.map(d => d.sales),
                     borderColor: '#4361ee',
-                    hidden: false
+                    hidden: !document.getElementById('toggleSales').checked
                 }, {
                     label: 'Orders',
-                    data: chartData.map(d => d.orders),
+                    data: data.map(d => d.orders),
                     borderColor: '#3f37c9',
-                    hidden: false
+                    hidden: !document.getElementById('toggleOrders').checked
                 }, {
                     label: 'Discounts',
-                    data: chartData.map(d => d.discounts),
+                    data: data.map(d => d.discounts),
                     borderColor: '#f72585',
-                    hidden: false
+                    hidden: !document.getElementById('toggleDiscounts').checked
                 }]
             },
             options: {
@@ -839,27 +875,79 @@
                     mode: 'index'
                 },
                 scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    },
                     y: {
-                        beginAtZero: true
+                        beginAtZero: true,
+                        grid: {
+                            color: '#f0f0f0'
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: `${view.charAt(0).toUpperCase() + view.slice(1)} Statistics`,
+                        font: {
+                            size: 16,
+                            weight: 'bold'
+                        }
                     }
                 }
             }
-        });
+        };
 
-        // Add toggle functionality
-        document.querySelectorAll('.toggle-switch input').forEach(toggle => {
-            toggle.addEventListener('change', function() {
-                const datasetIndex = {
-                    'toggleSales': 0,
-                    'toggleOrders': 1,
-                    'toggleDiscounts': 2
-                }[this.id];
-                
-                chart.data.datasets[datasetIndex].hidden = !this.checked;
-                chart.update();
-            });
+        currentChart = new Chart(ctx, config);
+    }
+
+    // Initialize with weekly view
+    initializeChart(chartData, currentView);
+
+    // Handle view changes
+    document.querySelectorAll('.chart-view-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const view = this.dataset.view;
+            if (view === currentView) return;
+
+            // Update active button
+            document.querySelector('.chart-view-btn.active').classList.remove('active');
+            this.classList.add('active');
+
+            // Show loading state
+            ctx.canvas.style.opacity = '0.5';
+
+            try {
+                // Fetch data for the selected view
+                const response = await fetch(`/admin/chart-data?view=${view}`);
+                const newData = await response.json();
+
+                currentView = view;
+                initializeChart(newData, view);
+            } catch (error) {
+                console.error('Error fetching chart data:', error);
+            } finally {
+                ctx.canvas.style.opacity = '1';
+            }
         });
     });
+
+    // Handle toggle controls
+    document.querySelectorAll('.toggle-switch input').forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            const datasetIndex = {
+                'toggleSales': 0,
+                'toggleOrders': 1,
+                'toggleDiscounts': 2
+            }[this.id];
+            
+            currentChart.data.datasets[datasetIndex].hidden = !this.checked;
+            currentChart.update();
+        });
+    });
+});
 
     function updateTopCategories(data) {
         const container = document.getElementById('topCategories');

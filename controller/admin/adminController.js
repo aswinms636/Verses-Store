@@ -384,12 +384,54 @@ const toggleUserStatus = async (req, res) => {
     }
 };
 
+const getChartData = async (req, res) => {
+    try {
+        const { view } = req.query;
+        const now = new Date();
+        let startDate, groupBy;
 
+        switch (view) {
+            case 'weekly':
+                startDate = new Date(now.setDate(now.getDate() - 7));
+                groupBy = '%Y-%m-%d';
+                break;
+            case 'monthly':
+                startDate = new Date(now.setMonth(now.getMonth() - 1));
+                groupBy = '%Y-%m-%d';
+                break;
+            case 'yearly':
+                startDate = new Date(now.setFullYear(now.getFullYear() - 1));
+                groupBy = '%Y-%m';
+                break;
+            default:
+                startDate = new Date(now.setDate(now.getDate() - 7));
+                groupBy = '%Y-%m-%d';
+        }
 
+        const data = await Order.aggregate([
+            {
+                $match: {
+                    createdOn: { $gte: startDate },
+                    status: { $in: ["Delivered", "Shipped", "Pending"] }
+                }
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: groupBy, date: "$createdOn" } },
+                    sales: { $sum: "$totalAmount" },
+                    orders: { $sum: 1 },
+                    discounts: { $sum: "$couponDiscount" }
+                }
+            },
+            { $sort: { "_id": 1 } }
+        ]);
 
-
-
-
+        res.json(data);
+    } catch (error) {
+        console.error('Error fetching chart data:', error);
+        res.status(500).json({ error: 'Failed to fetch chart data' });
+    }
+};
 
 module.exports = {
     adminLogin,
@@ -399,4 +441,5 @@ module.exports = {
     blockUser,
     unblockUser,
     toggleUserStatus,
+    getChartData
 }

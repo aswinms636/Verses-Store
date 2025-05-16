@@ -76,5 +76,8 @@ router.post('/updatecoupon',coupenController.updateCoupon)
 
 
 
+router.get('/chart-data',checkSession,adminController.getChartData);
+
+
 
 module.exports = router;
