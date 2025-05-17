@@ -6,6 +6,7 @@ const categoryController = require('../controller/admin/categoryController');
 const productController = require('../controller/admin/productController');
 const orderController = require('../controller/admin/orderController');
 const coupenController = require('../controller/admin/coupenController');
+const brandController = require('../controller/admin/brandController');
 const { isLogin,checkSession }=require('../middlewares/adminAuthetic');
 const upload= require('../middlewares/multer');
 
@@ -77,6 +78,9 @@ router.post('/updatecoupon',coupenController.updateCoupon)
 
 
 router.get('/chart-data',checkSession,adminController.getChartData);
+
+router.get('/brand',checkSession,brandController.loadBrandPage);
+router.post('/addBrand',upload.single('image'),brandController.addBrand)
 
 
 
