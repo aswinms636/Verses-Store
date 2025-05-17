@@ -263,12 +263,15 @@
                         title: 'Status Updated',
                         text: result.message,
                         confirmButtonColor: '#b0d5de'
+                    }).then(() => {
+                        // Add 1 second delay before reload
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
                     });
-                    
                 } else {
                     throw new Error(result.error);
                 }
-                location.reload();
             } catch (error) {
                 Swal.fire({
                     icon: 'error',
