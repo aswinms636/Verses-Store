@@ -218,13 +218,19 @@
                 <div class="row align-items-end">
                     <div class="col-md-6">
                         <select name="status" id="status" class="status-select">
-                            <option value="Pending" <%= order.status === 'Pending' ? 'selected' : '' %>>Pending</option>
-                            <option value="Processing" <%= order.status === 'Processing' ? 'selected' : '' %>>Processing</option>
-                            <option value="Shipped" <%= order.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
-                            <option value="Delivered" <%= order.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
-                            <option value="Cancelled" <%= order.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
-                            <option value="Return Request" <%= order.status === 'Return Request' ? 'selected' : '' %>>Return Request</option>
-                            <option value="Returned" <%= order.status === 'Returned' ? 'selected' : '' %>>Returned</option>
+                            <% if (order.status === 'Pending') { %>
+                                <option value="Pending" selected>Pending</option>
+                                <option value="Processing">Processing</option>
+                                 <option value="Shipped">Shipped</option>
+                            <% } else if (order.status === 'Processing') { %>
+                                <option value="Processing" selected>Processing</option>
+                                <option value="Shipped">Shipped</option>
+                            <% } else if (order.status === 'Shipped') { %>
+                                <option value="Shipped" selected>Shipped</option>
+                                <option value="Delivered">Delivered</option>
+                            <% } else if (order.status === 'Delivered') { %>
+                                <option value="Delivered" selected>Delivered</option>
+                            <% } %>
                         </select>
                     </div>
                     <div class="col-md-6">
@@ -241,16 +247,16 @@
         document.getElementById('statusForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const status = document.getElementById('status').value;
-            
+
             try {
                 const response = await fetch(`/admin/orders/<%= order.orderId %>/update-status`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ status })
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
                     Swal.fire({
                         icon: 'success',
@@ -258,9 +264,11 @@
                         text: result.message,
                         confirmButtonColor: '#b0d5de'
                     });
+                    
                 } else {
                     throw new Error(result.error);
                 }
+                location.reload();
             } catch (error) {
                 Swal.fire({
                     icon: 'error',
