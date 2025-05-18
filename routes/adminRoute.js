@@ -81,6 +81,9 @@ router.get('/chart-data',checkSession,adminController.getChartData);
 
 router.get('/brand',checkSession,brandController.loadBrandPage);
 router.post('/addBrand',upload.single('image'),brandController.addBrand)
+router.get('/unblockBrand',brandController.unblockBrand)
+router.get('/blockBrand',brandController.blockBrand)
+router.get('/deleteBrand',brandController.deleteBrand)
 
 
 
