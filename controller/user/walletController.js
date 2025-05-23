@@ -6,16 +6,11 @@ const crypto = require('crypto');
 const getWallet = async (req, res) => {
     try {
         const userId = req.session.user._id;
+        const page = parseInt(req.query.page) || 1;
+        const type = req.query.type || 'all'; // Get transaction type filter
+        const limit = 10;
 
-        let wallet = await Wallet.findOne({ user: userId }).populate('user', 'name email')
-        console.log("Wallet Data:", wallet);
-
-
-        if (wallet.history && wallet.history.length > 0) {
-            wallet.history.sort((a, b) => b.date - a.date);
-        }
-
-        console.log('history',wallet.history);
+        let wallet = await Wallet.findOne({ user: userId }).populate('user', 'name email');
 
         if (!wallet) {
             wallet = new Wallet({
@@ -23,15 +18,41 @@ const getWallet = async (req, res) => {
                 balance: 0,
                 history: []
             });
-
             await wallet.save();
-            console.log("New Wallet Created:", wallet);
         }
 
-        
+        // Filter transactions based on type
+        let filteredHistory = [...wallet.history];
+        if (type === 'credit') {
+            filteredHistory = wallet.history.filter(trans => trans.status === 'credit');
+        } else if (type === 'debit') {
+            filteredHistory = wallet.history.filter(trans => trans.status === 'debit');
+        }
 
-        // Pass the entire wallet object to the template
-        res.render("myWallet", { wallet });
+        // Calculate pagination for filtered results
+        const totalItems = filteredHistory.length;
+        const totalPages = Math.ceil(totalItems / limit);
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+
+        // Get paginated history
+        const paginatedHistory = filteredHistory
+            .sort((a, b) => b.date - a.date)
+            .slice(startIndex, endIndex);
+
+        res.render("myWallet", {
+            wallet: {
+                ...wallet.toObject(),
+                history: paginatedHistory
+            },
+            pagination: {
+                currentPage: page,
+                totalPages,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1,
+                type // Pass the current filter type
+            }
+        });
 
     } catch (error) {
         console.error(error);
