@@ -7,8 +7,15 @@ const getWallet = async (req, res) => {
     try {
         const userId = req.session.user._id;
 
-        let wallet = await Wallet.findOne({ user: userId }).populate('user', 'name email');
+        let wallet = await Wallet.findOne({ user: userId }).populate('user', 'name email')
         console.log("Wallet Data:", wallet);
+
+
+        if (wallet.history && wallet.history.length > 0) {
+            wallet.history.sort((a, b) => b.date - a.date);
+        }
+
+        console.log('history',wallet.history);
 
         if (!wallet) {
             wallet = new Wallet({
@@ -20,6 +27,8 @@ const getWallet = async (req, res) => {
             await wallet.save();
             console.log("New Wallet Created:", wallet);
         }
+
+        
 
         // Pass the entire wallet object to the template
         res.render("myWallet", { wallet });
