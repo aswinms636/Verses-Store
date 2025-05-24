@@ -562,18 +562,29 @@ const editProduct = async (req, res, next) => {
     const deleteSingleImg = async (req, res) => {
         try {
             const { imageNameToServer, productIdToServer } = req.body;
+            
+            // Validate inputs
+            if (!imageNameToServer || !productIdToServer) {
+                return res.status(400).json({
+                    status: false,
+                    message: "Invalid request parameters"
+                });
+            }
+
             const product = await Product.findByIdAndUpdate(
                 productIdToServer,
                 { $pull: { productImage: imageNameToServer } }
             );
 
+            if (!product) {
+                return res.status(404).json({
+                    status: false,
+                    message: "Product not found"
+                });
+            }
 
-            console.log('=======1')
-            
             const imagePath = path.join(__dirname, 'Uploads', imageNameToServer);
 
-            console.log("=======3",imagePath)
-    
             if (fs.existsSync(imagePath)) {
                 await fs.unlinkSync(imagePath);
                 console.log(`Image deleted successfully: ${imageNameToServer}`);
@@ -581,13 +592,17 @@ const editProduct = async (req, res, next) => {
                 console.log(`Image not found: ${imageNameToServer}`);
             }
 
-            console.log('=======2');
-    
-            res.send({ status: true ,message:"Image deleted successfully"});
-    
+            return res.json({ 
+                status: true,
+                message: "Image deleted successfully"
+            });
+
         } catch (error) {
             console.error('Error deleting image:', error);
-            res.redirect('/pageNotFound');
+            return res.status(500).json({
+                status: false,
+                message: "Error deleting image"
+            });
         }
     };
     
