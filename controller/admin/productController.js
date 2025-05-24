@@ -10,6 +10,7 @@ const sharp = require('sharp');
 
 
 const mongoose = require('mongoose');
+const { max } = require('moment');
 
 const uploadDir = path.join('public', 'Uploads', 'product-Images');
 
@@ -457,30 +458,47 @@ const editProduct = async (req, res, next) => {
     try {
         const id = req.params.id;
         const product = await Product.findOne({ _id: id });
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                error: "Product not found"
+            });
+        }
+
         const data = req.body;
 
         // Validate brand and category IDs
         const brand = await Brand.findById(data.brand.trim());
         if (!brand) {
-            return res.status(400).json({ 
-                success: false, 
-                error: "Invalid brand selected" 
+            return res.status(400).json({
+                success: false,
+                error: "Invalid brand selected"
             });
         }
 
         const category = await Category.findById(data.category);
         if (!category) {
-            return res.status(400).json({ 
-                success: false, 
-                error: "Invalid category selected" 
+            return res.status(400).json({
+                success: false,
+                error: "Invalid category selected"
             });
         }
 
         // Initialize images with existing images
         let images = product.productImage || [];
 
+        const maxFilesToSave = req.files.length - images.length
+        
+        console.log('file length',maxFilesToSave)
+        // Set the maximum number of files you want to save
+        let filesSaved = 0;
+
         if (req.files && req.files.length > 0) {
             for (let i = 0; i < req.files.length; i++) {
+                if (filesSaved == maxFilesToSave) {
+                    break; // Stop processing if the maximum number of files has been saved
+                }
+
                 const originalImagePath = req.files[i].path;
                 const resizedFilename = "resized-" + req.files[i].filename;
                 const resizedImagePath = path.join('public', 'Uploads', 'product-Images', resizedFilename);
@@ -489,6 +507,7 @@ const editProduct = async (req, res, next) => {
                 // Check for duplicate filenames
                 if (!images.includes(resizedFilename)) {
                     images.push(resizedFilename);
+                    filesSaved++; // Increment the count of files saved
                 }
             }
         }
@@ -505,8 +524,6 @@ const editProduct = async (req, res, next) => {
 
         console.log("-=---------=-------=", validSizes);
         console.log("img", images);
-
-       
 
         const updateFields = {
             productName: data.productName,
@@ -534,6 +551,7 @@ const editProduct = async (req, res, next) => {
         });
     }
 };
+
 
 
 
