@@ -283,7 +283,7 @@ const getAllProducts = async (req, res) => {
 
 const addProductOffer = async(req, res) => {
     try {
-        const { productId,percentage } = req.body;
+        const { productId, percentage } = req.body;
         console.log("Received data:", req.body);
         
         // Validate percentage
@@ -294,7 +294,11 @@ const addProductOffer = async(req, res) => {
             });
         }
 
-        const findProduct = await Product.findOne({ _id: productId });
+        // Find product and populate brand and category
+        const findProduct = await Product.findOne({ _id: productId })
+            .populate('brand')
+            .populate('category');
+            
         if (!findProduct) {
             return res.json({
                 status: false,
@@ -302,8 +306,8 @@ const addProductOffer = async(req, res) => {
             });
         }
 
-        const findCategory = await Category.findOne({ _id: findProduct.category });
-        if (findCategory.categoryOffer > percentage) {
+        // Check category offer
+        if (findProduct.category.categoryOffer > percentage) {
             return res.json({
                 status: false,
                 message: "Category offer is higher than product offer"
@@ -316,6 +320,7 @@ const addProductOffer = async(req, res) => {
         findProduct.productOffer = parseInt(percentage);
         
         await findProduct.save();
+        
         console.log("Product updated with offer:", {
             productId,
             originalPrice: findProduct.regularPrice,
