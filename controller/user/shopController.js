@@ -128,26 +128,33 @@ const loadShopPage = async (req, res) => {
 
 const loadProductDetails = async (req, res) => {
     try {
-        const user= req.session.user;
-        console.log(user)
+        const user = req.session.user;
         const productId = req.params.id;
-        const product = await Product.findById(productId).populate("category", "name");
+        const product = await Product.findById(productId)
+            .populate("category", "name")
+            .populate("brand", "brandName"); // Fixed typo from "bramdName" to "brandName"
 
         if (!product || product.isBlocked) {
             return res.status(404).render("singleProduct", {
                 user,
                 error: "Product not found or unavailable",
+                product: null
             });
         }
 
         res.render("singleProduct", {
             user,
             product,
-            title: product.productName, // Use productName for consistency
+            title: product.productName,
+            error: null
         });
     } catch (error) {
         console.error("Product details error:", error.message);
-        
+        res.status(500).render("singleProduct", {
+            user: req.session.user,
+            error: "An error occurred while loading the product details",
+            product: null
+        });
     }
 };
 

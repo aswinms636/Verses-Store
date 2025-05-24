@@ -489,7 +489,7 @@
 
                 <div class="product-details">
                     <h1 class="product-title"><%= product.productName %></h1>
-                    <a href="#" class="brand">Brand: <%= product.brand %></a>
+                    <a href="#" class="brand">Brand: <%= product.brand ? product.brand.brandName : 'Unknown' %></a>
 
                     <div class="price-container">
                         <% if (product.salePrice < product.regularPrice) { %>
