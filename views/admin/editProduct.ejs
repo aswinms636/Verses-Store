@@ -279,7 +279,7 @@
                                         <select class="form-select" name="category">
                                             <%for(let i=0;i<cat.length;i++){%>
                                                 <option value="<%=cat[i]._id%>" 
-                                                    <%= product.category.toString() === cat[i]._id.toString() ? 'selected' : '' %>>
+                                                    <%= product.category._id.toString() === cat[i]._id.toString() ? 'selected' : '' %>>
                                                     <%=cat[i].name%>
                                                 </option>
                                             <%}%>
