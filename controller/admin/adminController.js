@@ -4,6 +4,7 @@ const User = require("../../models/userSchema");
 const Order = require("../../models/orderSchema");
 const Product = require("../../models/productSchema");
 const Category = require("../../models/categorySchema");
+const Brand = require("../../models/brandSchema");
 
 const loadlogin = async (req, res) => {
     try {
@@ -248,6 +249,61 @@ const loadDashboard = async (req, res, next) => {
                 { $limit: 10 }
             ]);
 
+            // Top Brands
+            const topBrands = await Order.aggregate([
+                { 
+                    $match: { 
+                        createdOn: { $gte: start, $lt: end },
+                        status: { $in: ["Delivered", "Shipped"] }
+                    } 
+                },
+                { $unwind: "$orderItems" },
+                {
+                    $lookup: {
+                        from: "products",
+                        localField: "orderItems.product",
+                        foreignField: "_id",
+                        as: "product"
+                    }
+                },
+                { $unwind: "$product" },
+                {
+                    $lookup: {
+                        from: "brands",
+                        localField: "product.brand",
+                        foreignField: "_id",
+                        as: "brandInfo"
+                    }
+                },
+                { $unwind: "$brandInfo" },
+                {
+                    $group: {
+                        _id: "$brandInfo._id",
+                        brandName: { $first: "$brandInfo.brandName" },
+                        brandImage: { $first: { $arrayElemAt: ["$brandInfo.brandImage", 0] } },
+                        totalQuantity: { $sum: "$orderItems.quantity" },
+                        totalRevenue: { 
+                            $sum: { 
+                                $multiply: ["$orderItems.quantity", "$orderItems.price"] 
+                            } 
+                        },
+                        orderCount: { $sum: 1 }
+                    }
+                },
+                {
+                    $match: {
+                        _id: { $ne: null }
+                    }
+                },
+                { 
+                    $sort: { 
+                        totalRevenue: -1,
+                        totalQuantity: -1
+                    } 
+                },
+                { $limit: 10 }
+            ]);
+
             // Daily Sales and Orders Chart Data
             const dailyData = await Order.aggregate([
                 { $match: { createdOn: { $gte: start, $lt: end } } },
@@ -290,6 +346,11 @@ const loadDashboard = async (req, res, next) => {
                     ...category,
                     totalRevenue: Math.round(category.totalRevenue), // Round to nearest rupee
                     totalQuantity: parseInt(category.totalQuantity)
+                })),
+                topBrands: topBrands.map(brand => ({
+                    ...brand,
+                    totalRevenue: Math.round(brand.totalRevenue),
+                    totalQuantity: parseInt(brand.totalQuantity)
                 })),
                 chartData: dailyData,
                 startDate,
@@ -432,6 +493,8 @@ const getChartData = async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch chart data' });
     }
 };
+
+
 
 module.exports = {
     adminLogin,

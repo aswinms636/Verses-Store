@@ -778,7 +778,7 @@
           <div class="view-controls">
             <button class="chart-view-btn active" data-view="weekly">Week</button>
             <button class="chart-view-btn" data-view="monthly">Month</button>
-            <button class="chart-view-btn" data-view="yearly">Year</button>
+            <button class="chart-view-btn" data-view="yearly">Year
           </div>
           <div class="data-controls">
             <label class="toggle-switch">
@@ -846,28 +846,26 @@
         <div class="top-seller-section">
           <h3>Top 10 Best Selling Brands</h3>
           <div class="top-seller-list" id="topBrands">
-            <div class="top-seller-item">
-              <span class="rank">1</span>
-              <div class="item-details">
-                <span class="item-name">TechPro</span>
-                <span class="item-stats">Sold: 210 | Revenue: ₹42,000.00</span>
+            <% if (topBrands && topBrands.length > 0) { %>
+              <% topBrands.forEach((brand, index) => { %>
+                <div class="top-seller-item">
+                  <span class="rank"><%= index + 1 %></span>
+                  <div class="item-details">
+                    <span class="item-name"><%= brand.brandName %></span>
+                    <span class="item-stats">
+                      Sold: <%= brand.totalQuantity.toLocaleString() %> | 
+                      Revenue: ₹<%= brand.totalRevenue.toLocaleString() %>
+                    </span>
+                  </div>
+                </div>
+              <% }); %>
+            <% } else { %>
+              <div class="top-seller-item">
+                <div class="item-details">
+                  <span class="item-name">No brands data available</span>
+                </div>
               </div>
-            </div>
-            <div class="top-seller-item">
-              <span class="rank">2</span>
-              <div class="item-details">
-                <span class="item-name">FashionFusion</span>
-                <span class="item-stats">Sold: 185 | Revenue: ₹27,750.00</span>
-              </div>
-            </div>
-            <div class="top-seller-item">
-              <span class="rank">3</span>
-              <div class="item-details">
-                <span class="item-name">HomeEssentials</span>
-                <span class="item-stats">Sold: 150 | Revenue: ₹22,500.00</span>
-              </div>
-            </div>
-            <!-- More items would be added here -->
+            <% } %>
           </div>
         </div>
       </div>
@@ -1017,12 +1015,43 @@
         `).join('');
     }
 
+    function updateTopBrands(data) {
+        const container = document.getElementById('topBrands');
+        if (!data || data.length === 0) {
+            container.innerHTML = `
+                <div class="top-seller-item">
+                    <div class="item-details">
+                        <span class="item-name">No brands data available</span>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = data.map((brand, index) => `
+            <div class="top-seller-item">
+                <span class="rank">${index + 1}</span>
+                <div class="item-details">
+                    <span class="item-name">${brand.brandName}</span>
+                    <span class="item-stats">
+                        Sold: ${brand.totalQuantity.toLocaleString()} | 
+                        Revenue: ₹${brand.totalRevenue.toLocaleString()}
+                    </span>
+                </div>
+            </div>
+        `).join('');
+    }
+
     try {
         const chartData = <%- JSON.stringify(chartData || {}) %>;
         const topCategories = <%- JSON.stringify(topCategories || []) %>;
+        const topBrands = <%- JSON.stringify(topBrands || []) %>;
         
         if (topCategories && topCategories.length > 0) {
             updateTopCategories(topCategories);
+        }
+        if (topBrands && topBrands.length > 0) {
+            updateTopBrands(topBrands);
         }
     } catch (error) {
         console.error('Error loading dashboard data:', error);
@@ -1030,6 +1059,13 @@
             <div class="top-seller-item">
                 <div class="item-details">
                     <span class="item-name">Error loading categories data</span>
+                </div>
+            </div>
+        `;
+        document.getElementById('topBrands').innerHTML = `
+            <div class="top-seller-item">
+                <div class="item-details">
+                    <span class="item-name">Error loading brands data</span>
                 </div>
             </div>
         `;
