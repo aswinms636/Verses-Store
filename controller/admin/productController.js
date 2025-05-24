@@ -1,11 +1,14 @@
 const Product = require('../../models/productSchema');
 const Category = require('../../models/categorySchema');
+const Brand = require('../../models/brandSchema');
+
+
+
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
-const { pageNotFound } = require('./adminController');
-const { find } = require('../../models/userSchema');
-const { Console } = require('console');
+
+
 const mongoose = require('mongoose');
 
 const uploadDir = path.join('public', 'Uploads', 'product-Images');
@@ -17,22 +20,23 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 
-const validateImage = async (imagePath) => {
-    try {
-        const metadata = await sharp(imagePath).metadata();
-        return metadata && metadata.format; 
-    } catch (err) {
-        console.error(` Invalid or corrupt image file: ${imagePath}`, err);
-        return false;
-    }
-};
+// const validateImage = async (imagePath) => {
+//     try {
+//         const metadata = await sharp(imagePath).metadata();
+//         return metadata && metadata.format; 
+//     } catch (err) {
+//         console.error(` Invalid or corrupt image file: ${imagePath}`, err);
+//         return false;
+//     }
+// };
 
 const loadAddProduct = async (req, res) => {
     try {
         const category = await Category.find({ isListed: true });
-        res.render('addProducts', { cat: category });
+        const brands = await Brand.find({ isBlocked: false }); // Fetch brands that are not blocked
+        res.render('addProducts', { cat: category, brands: brands });
     } catch (error) {
-        console.error(' Error loading add product page:', error);
+        console.error('Error loading add product page:', error);
         res.redirect('/admin/pageNotFound');
     }
 };
@@ -44,17 +48,15 @@ const addProducts = async (req, res) => {
 
         // Validate basic fields
         if (!products.productName || !products.description || !products.brand || !products.category) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "All fields are required" 
+            return res.status(400).json({
+                success: false,
+                message: "All fields are required"
             });
         }
 
-       
         const validSizes = { 6: 0, 7: 0, 8: 0, 9: 0 };
         let totalSizeQuantity = 0;
 
-   
         if (products.sizes) {
             Object.keys(validSizes).forEach(size => {
                 const quantity = parseInt(products.sizes[size]) || 0;
@@ -63,7 +65,6 @@ const addProducts = async (req, res) => {
             });
         }
 
-       
         const declaredQuantity = parseInt(products.quantity);
         if (totalSizeQuantity !== declaredQuantity) {
             return res.status(400).json({
@@ -72,7 +73,6 @@ const addProducts = async (req, res) => {
             });
         }
 
-      
         if (!req.files || req.files.length === 0) {
             return res.status(400).json({
                 success: false,
@@ -80,26 +80,23 @@ const addProducts = async (req, res) => {
             });
         }
 
-       
         for (const file of req.files) {
             const originalImagePath = file.path;
             const resizedFilename = "resized-" + file.filename;
             const resizedImagePath = path.join('public', 'Uploads', 'product-Images', resizedFilename);
-            
+
             await sharp(originalImagePath)
                 .resize({ width: 440, height: 440 })
                 .toFile(resizedImagePath);
-                
+
             images.push(resizedFilename);
         }
 
- 
-        const productExists = await Product.findOne({ 
+        const productExists = await Product.findOne({
             productName: { $regex: new RegExp(`^${products.productName}$`, 'i') }
         });
 
         if (productExists) {
-            
             images.forEach(image => {
                 const imagePath = path.join(uploadDir, image);
                 if (fs.existsSync(imagePath)) {
@@ -112,7 +109,6 @@ const addProducts = async (req, res) => {
             });
         }
 
-      
         const category = await Category.findOne({ name: products.category });
         if (!category) {
             return res.status(400).json({
@@ -121,11 +117,19 @@ const addProducts = async (req, res) => {
             });
         }
 
-      
+        const brand = await Brand.findById(products.brand);
+        console.log('brand',brand)
+        if (!brand) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid brand"
+            });
+        }
+
         const newProduct = new Product({
             productName: products.productName,
             description: products.description,
-            brand: products.brand,
+            brand: brand._id, // Store the brand ObjectId
             category: category._id,
             regularPrice: parseFloat(products.regularPrice),
             salePrice: parseFloat(products.salePrice),
@@ -144,14 +148,8 @@ const addProducts = async (req, res) => {
 
     } catch (error) {
         // Clean up any uploaded files on error
-        if (req.files) {
-            req.files.forEach(file => {
-                if (fs.existsSync(file.path)) {
-                    fs.unlinkSync(file.path);
-                }
-            });
-        }
-        
+       
+
         console.error('Error adding product:', error);
         res.status(500).json({
             success: false,
@@ -160,87 +158,88 @@ const addProducts = async (req, res) => {
     }
 };
 
-const addProduct = async (req, res) => {
-    try {
-        const data = req.body;
-        console.log("Received data:", data);
-        console.log("Received files:", req.files);
 
-        // Validate required fields
-        if (!data.productName || !data.brand || !data.description || 
-            !data.regularPrice || !data.salePrice || !data.quantity || 
-            !data.category) {
-            return res.status(400).json({
-                success: false,
-                message: 'All fields are required'
-            });
-        }
+// const addProduct = async (req, res) => {
+//     try {
+//         const data = req.body;
+//         console.log("Received data:", data);
+//         console.log("Received files:", req.files);
 
-        // Check if product already exists
-        const existingProduct = await Product.findOne({ productName: data.productName });
-        if (existingProduct) {
-            return res.status(400).json({
-                success: false,
-                message: 'Product with this name already exists'
-            });
-        }
+//         // Validate required fields
+//         if (!data.productName || !data.brand || !data.description || 
+//             !data.regularPrice || !data.salePrice || !data.quantity || 
+//             !data.category) {
+//             return res.status(400).json({
+//                 success: false,
+//                 message: 'All fields are required'
+//             });
+//         }
 
-        // Process images
-        const images = [];
-        if (req.files && req.files.length > 0) {
-            for (const file of req.files) {
-                const filename = file.filename;
-                images.push(filename);
-            }
-        }
+//         // Check if product already exists
+//         const existingProduct = await Product.findOne({ productName: data.productName });
+//         if (existingProduct) {
+//             return res.status(400).json({
+//                 success: false,
+//                 message: 'Product with this name already exists'
+//             });
+//         }
 
-        if (images.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'At least one product image is required'
-            });
-        }
+//         // Process images
+//         const images = [];
+//         if (req.files && req.files.length > 0) {
+//             for (const file of req.files) {
+//                 const filename = file.filename;
+//                 images.push(filename);
+//             }
+//         }
 
-        // Process sizes
-        const sizes = {
-            6: parseInt(data.sizes[6]) || 0,
-            7: parseInt(data.sizes[7]) || 0,
-            8: parseInt(data.sizes[8]) || 0,
-            9: parseInt(data.sizes[9]) || 0
-        };
+//         if (images.length === 0) {
+//             return res.status(400).json({
+//                 success: false,
+//                 message: 'At least one product image is required'
+//             });
+//         }
+
+//         // Process sizes
+//         const sizes = {
+//             6: parseInt(data.sizes[6]) || 0,
+//             7: parseInt(data.sizes[7]) || 0,
+//             8: parseInt(data.sizes[8]) || 0,
+//             9: parseInt(data.sizes[9]) || 0
+//         };
 
         
         
 
        
-        const newProduct = new Product({
-            productName: data.productName,
-            brand: data.brand,
-            description: data.description,
-            regularPrice: parseFloat(data.regularPrice),
-            salePrice: parseFloat(data.salePrice),
-            quantity: parseInt(data.quantity),
-            category: data.category,
-            sizes: sizes,
-            productImage: images
-        });
+//         const newProduct = new Product({
+//             productName: data.productName,
+//             brand: data.brand,
+//             description: data.description,
+//             regularPrice: parseFloat(data.regularPrice),
+//             salePrice: parseFloat(data.salePrice),
+//             quantity: parseInt(data.quantity),
+//             category: data.category,
+//             sizes: sizes,
+//             productImage: images
+//         });
 
-        await newProduct.save();
+//         await newProduct.save();
 
       
-        res.json({
-            success: true,
-            message: 'Product updated successfully'
-        });
+//         res.json({
+//             success: true,
+//             message: 'Product updated successfully'
+//         });
 
-    } catch (error) {
-        console.error('Error adding product:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Error adding product'
-        });
-    }
-};
+//     } catch (error) {
+//         console.error('Error adding product:', error);
+//         res.status(500).json({
+//             success: false,
+//             message: error.message || 'Error adding product'
+//         });
+//     }
+// };
 
 const getAllProducts = async (req, res) => {
     try {
@@ -283,7 +282,8 @@ const getAllProducts = async (req, res) => {
 
 const addProductOffer = async(req, res) => {
     try {
-        const { productId, percentage } = req.body;
+        const { productId,percentage } = req.body;
+        console.log("Received data:", req.body);
         
         // Validate percentage
         if (!percentage || percentage <= 0 || percentage > 90) {
@@ -570,7 +570,6 @@ const editProduct = async (req, res, next) => {
 module.exports = {
     loadAddProduct,
     addProducts,
-    addProduct,
     getAllProducts,
     addProductOffer,
     removeProductOffer,

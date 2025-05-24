@@ -136,9 +136,11 @@
                             <label class="form-label">Brand</label>
                             <select class="form-select" name="brand" required>
                                 <option value="">Select Brand</option>
-                                <option value="Nike">Nike</option>
-                                <option value="Adidas">Adidas</option>
-                                <option value="Puma">Puma</option>
+                                <% for(let i=0; i<brands.length; i++) { %>
+                                    <option value="<%= brands[i]._id %>">
+                                        <%= brands[i].brandName %>
+                                    </option>
+                                <% } %>
                             </select>
                             <span id="brand-error" class="error-message"></span>
                         </div>
@@ -174,16 +176,16 @@
                                 <div class="mb-4">
                                     <label for="size-6">Size 6 Quantity:</label>
                                     <input type="number" id="size-6" name="sizes[6]" min="0" class="form-control">
-                                
+
                                     <label for="size-7">Size 7 Quantity:</label>
                                     <input type="number" id="size-7" name="sizes[7]" min="0" class="form-control">
-                                
+
                                     <label for="size-8">Size 8 Quantity:</label>
                                     <input type="number" id="size-8" name="sizes[8]" min="0" class="form-control">
-                                
+
                                     <label for="size-9">Size 9 Quantity:</label>
                                     <input type="number" id="size-9" name="sizes[9]" min="0" class="form-control">
-                                
+
                                     <!-- Size validation error message -->
                                     <small id="size-error" class="text-danger"></small>
                                 </div>
@@ -270,7 +272,7 @@
             if (!image) return;
 
             image.src = e.target.result;
-            
+
             // Wait for image to load before initializing Cropper
             image.onload = function() {
                 const cropperContainer = document.getElementById(`cropper${index}`);
@@ -401,7 +403,7 @@
 
     document.getElementById('productForm').addEventListener('submit', async function(event) {
         event.preventDefault();
-        
+
         // Clear previous errors
         clearErrorMessages();
 
@@ -478,7 +480,7 @@
         for (const [id, label] of Object.entries(fields)) {
             const element = document.getElementById(id) || document.querySelector(`[name="${id}"]`);
             const errorElement = document.getElementById(`${id.replace('_', '')}-error`);
-            
+
             if (element && errorElement) {
                 if (!element.value.trim()) {
                     errorElement.textContent = `${label} is required.`;
