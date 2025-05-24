@@ -49,7 +49,7 @@ router.post("/removeProductOffer",productController.removeProductOffer)
 router.get('/blockProduct',checkSession,productController.blockProduct)
 router.get('/unblockProduct',checkSession,productController.unblockProduct)
 router.get('/editProduct',checkSession,productController.loadEditProduct)
-router.post('/editProduct/:id', upload.array('productImages', 4), productController.editProduct);
+router.post('/editProduct/:id', upload.array('productImages',4), productController.editProduct);
 router.post('/deleteImage',checkSession,productController.deleteSingleImg);
 
 

@@ -211,15 +211,19 @@
                                     <input type="text" name="productName" value="<%=product.productName%>" class="form-control" id="product_name">
                                     <div id="productName-error" class="error-message"></div>
                                 </div>
-                                <div class="col-lg-4 mb-4">
-                                    <label class="form-label">Brand</label>
-                                    <select class="form-select" name="brand" required>
-                                        <option value="">Select Brand</option>
-                                        <option value="Nike" <%= product.brand === 'Nike' ? 'selected' : '' %>>Nike</option>
-                                        <option value="Adidas" <%= product.brand === 'Adidas' ? 'selected' : '' %>>Adidas</option>
-                                        <option value="Puma" <%= product.brand === 'Puma' ? 'selected' : '' %>>Puma</option>
-                                    </select>
-                                    <div id="brand-error" class="error-message"></div>
+                                <div class="col-lg-4">
+                                    <div class="mb-4">
+                                        <label class="form-label">Brand</label>
+                                        <select class="form-select" name="brand">
+                                            <%for(let i=0;i<brands.length;i++){%>
+                                                <option value="<%=brands[i]._id%>" 
+                                                    <%= product.brand._id.toString() === brands[i]._id.toString() ? 'selected' : '' %>>
+                                                    <%=brands[i].brandName%>
+                                                </option>
+                                            <%}%>
+                                        </select>
+                                        <div id="brand-error" class="error-message"></div>
+                                    </div>
                                 </div>
                                 <div class="mb-4">
                                     <label class="form-label">Description</label>
@@ -249,37 +253,40 @@
                                     </div>
                                 </div>
 
-                                    <div class="row">
-                                        <div class="col-lg-4">
-                                            <div class="mb-4">
-                                                <label for="size-6">Size 6 Quantity:</label>
-                                                <input type="number" id="size-6" name="sizes[6]" min="0" class="form-control" value="<%= product.sizes[6] %>">
-
-                                                <label for="size-7">Size 7 Quantity:</label>
-                                                <input type="number" id="size-7" name="sizes[7]" min="0" class="form-control" value="<%= product.sizes[7] %>">
-
-                                                <label for="size-8">Size 8 Quantity:</label>
-                                                <input type="number" id="size-8" name="sizes[8]" min="0" class="form-control" value="<%= product.sizes[8] %>">
-
-                                                <label for="size-9">Size 9 Quantity:</label>
-                                                <input type="number" id="size-9" name="sizes[9]" min="0" class="form-control" value="<%= product.sizes[9] %>">
-
-                                                <!-- Size validation error message -->
-                                                <small id="size-error" class="text-danger"></small>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div class="row">
                                     <div class="col-lg-4">
                                         <div class="mb-4">
-                                            <label class="form-label">Category</label>
-                                            <select class="form-select" name="category">
-                                                <%for(let i=0;i<cat.length;i++){%>
-                                                    <option value="<%=cat[i].name%>"><%=cat[i].name%></option>
-                                                <%}%>
-                                            </select>
-                                            <div id="category-error" class="error-message"></div>
+                                            <label for="size-6">Size 6 Quantity:</label>
+                                            <input type="number" id="size-6" name="sizes[6]" min="0" class="form-control" value="<%= product.sizes[6] %>">
+
+                                            <label for="size-7">Size 7 Quantity:</label>
+                                            <input type="number" id="size-7" name="sizes[7]" min="0" class="form-control" value="<%= product.sizes[7] %>">
+
+                                            <label for="size-8">Size 8 Quantity:</label>
+                                            <input type="number" id="size-8" name="sizes[8]" min="0" class="form-control" value="<%= product.sizes[8] %>">
+
+                                            <label for="size-9">Size 9 Quantity:</label>
+                                            <input type="number" id="size-9" name="sizes[9]" min="0" class="form-control" value="<%= product.sizes[9] %>">
+
+                                            <!-- Size validation error message -->
+                                            <small id="size-error" class="text-danger"></small>
                                         </div>
                                     </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class="mb-4">
+                                        <label class="form-label">Category</label>
+                                        <select class="form-select" name="category">
+                                            <%for(let i=0;i<cat.length;i++){%>
+                                                <option value="<%=cat[i]._id%>" 
+                                                    <%= product.category.toString() === cat[i]._id.toString() ? 'selected' : '' %>>
+                                                    <%=cat[i].name%>
+                                                </option>
+                                            <%}%>
+                                        </select>
+                                        <div id="category-error" class="error-message"></div>
+                                    </div>
+                                </div>
 
                                 <div class="card mb-4">
                                     <div class="card-header">
@@ -542,7 +549,7 @@
             }
 
             // Validate Category
-            if (!category) {
+            if (!category || category.trim() === "") {
                 displayErrorMessage('category-error', 'Please select a category');
                 isValid = false;
             }
@@ -648,15 +655,21 @@
         // Initialize brand select
         document.addEventListener('DOMContentLoaded', function() {
             const brandSelect = document.querySelector('select[name="brand"]');
-            const currentBrand = '<%= product.brand %>';
+            const categorySelect = document.querySelector('select[name="category"]');
 
-            if (currentBrand && brandSelect) {
+            if (brandSelect) {
                 // Set the selected value
                 brandSelect.value = currentBrand;
 
                 // Add change event listener
                 brandSelect.addEventListener('change', function(e) {
                     console.log('Brand changed to:', e.target.value);
+                });
+            }
+
+            if (categorySelect) {
+                categorySelect.addEventListener('change', function(e) {
+                    clearErrorMessage('category-error');
                 });
             }
 

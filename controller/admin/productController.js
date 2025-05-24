@@ -430,23 +430,25 @@ const unblockProduct=async(req,res)=>{
 }
 
 
-const loadEditProduct=async(req,res)=>{
+const loadEditProduct = async (req, res) => {
     try {
-        
-        const id=req.query.id;
-        const product=await Product.findOne({_id:id})
-        const category=await Category.find({})
+        const id = req.query.id;
+        const product = await Product.findOne({ _id: id })
+            .populate('brand')
+            .populate('category');
+            
+        const categories = await Category.find({ isListed: true });
+        const brands = await Brand.find({ isBlocked: false });
 
-        res.render("editProduct",{
-            product:product,
-            cat:category,
-            category:category
-
-        })
+        res.render("editProduct", {
+            product: product,
+            cat: categories,
+            brands: brands
+        });
 
     } catch (error) {
+        console.error('Error loading edit product page:', error);
         res.redirect('/pageNotFound');
-        
     }
 }
 
@@ -457,16 +459,21 @@ const editProduct = async (req, res, next) => {
         const product = await Product.findOne({ _id: id });
         const data = req.body;
 
-        console.log("file------------", req.files);
-        const existingProduct = await Product.findOne({
-            productName: data.productName,
-            _id: { $ne: id }
-        });
+        // Validate brand and category IDs
+        const brand = await Brand.findById(data.brand.trim());
+        if (!brand) {
+            return res.status(400).json({ 
+                success: false, 
+                error: "Invalid brand selected" 
+            });
+        }
 
-        console.log("data", data);
-
-        if (existingProduct) {
-            return res.status(400).json({ error: "Product with this name already exists. Please try with another name" });
+        const category = await Category.findById(data.category);
+        if (!category) {
+            return res.status(400).json({ 
+                success: false, 
+                error: "Invalid category selected" 
+            });
         }
 
         // Initialize images with existing images
@@ -499,30 +506,32 @@ const editProduct = async (req, res, next) => {
         console.log("-=---------=-------=", validSizes);
         console.log("img", images);
 
-        const category = await Category.findOne({ name: data.category });
+       
 
         const updateFields = {
             productName: data.productName,
             description: data.descriptionData,
-            brand: data.brand,
+            brand: brand._id,
             category: category._id,
-            regularPrice: data.regularPrice,
-            salePrice: data.salePrice,
+            regularPrice: parseFloat(data.regularPrice),
+            salePrice: parseFloat(data.salePrice),
             quantity: parseInt(data.quantity),
             sizes: validSizes,
             productImage: images
         };
 
-        console.log("updateFields", updateFields);
         await Product.findByIdAndUpdate(id, updateFields, { new: true });
-        console.log("succ--------------------")
+
         res.json({
             success: true,
             message: 'Product updated successfully'
         });
     } catch (error) {
         console.error(error);
-        next(error);
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Error updating product'
+        });
     }
 };
 
