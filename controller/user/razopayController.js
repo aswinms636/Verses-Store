@@ -13,14 +13,30 @@ const razorpay = new Razorpay({
 
 const createOrder = async (req, res) => {
     try {
-        const { totalAmount, addressId, couponCode, actualPrice, payableAmount } = req.body;
+        const { totalAmount, addressId, couponCode, actualPrice, payableAmount, taxAmount, gstAmount, subTotal } = req.body;
         const userId = req.session.user._id;
 
-        // Validate required fields
-        if (!totalAmount || !actualPrice || !payableAmount) {
+        // Validate required fields and calculations
+        if (!totalAmount || !actualPrice || !payableAmount || !subTotal) {
             return res.status(400).json({
                 success: false,
                 message: "Missing required payment information"
+            });
+        }
+
+        // Validate tax calculations
+        const expectedTaxAmount = parseFloat((subTotal * 0.02).toFixed(2));
+        const expectedGstAmount = parseFloat((subTotal * 0.02).toFixed(2));
+        const expectedActualPrice = parseFloat((subTotal + expectedTaxAmount + expectedGstAmount).toFixed(2));
+
+        // Validate calculations with small tolerance for floating-point arithmetic
+        const tolerance = 0.01;
+        if (Math.abs(taxAmount - expectedTaxAmount) > tolerance ||
+            Math.abs(gstAmount - expectedGstAmount) > tolerance ||
+            Math.abs(actualPrice - expectedActualPrice) > tolerance) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid price calculations"
             });
         }
 
@@ -51,12 +67,12 @@ const createOrder = async (req, res) => {
         }
 
         try {
-            // Create Razorpay order with proper error handling
+            // Create Razorpay order
             const razorpayOrder = await razorpay.orders.create({
                 amount: Math.round(payableAmount * 100), // Convert to paise
                 currency: "INR",
                 receipt: `order_${Date.now()}`,
-                payment_capture: 1 // Auto capture payment
+                payment_capture: 1
             });
 
             if (!razorpayOrder || !razorpayOrder.id) {
@@ -65,14 +81,16 @@ const createOrder = async (req, res) => {
 
             // Handle coupon if provided
             let couponObjectId = null;
+            let couponDiscount = 0;
             if (couponCode) {
                 const coupon = await Coupon.findOne({ code: couponCode });
                 if (coupon) {
                     couponObjectId = coupon._id;
+                    couponDiscount = coupon.offerPrice;
                 }
             }
 
-            // Create order in database
+            // Create order in database with tax details
             const order = new Order({
                 userId,
                 orderItems: cart.items.map(item => ({
@@ -97,7 +115,11 @@ const createOrder = async (req, res) => {
                 status: "Pending",
                 actualPrice: actualPrice,
                 payableAmount: payableAmount,
-                couponApplied: couponObjectId
+                couponApplied: couponObjectId,
+                couponDiscount: couponDiscount,
+                taxAmount: taxAmount,
+                gstAmount: gstAmount,
+                subTotal: subTotal
             });
 
             await order.save();

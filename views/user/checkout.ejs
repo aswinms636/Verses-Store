@@ -561,28 +561,20 @@ async function placeOrder() {
 
         async function handleRazorpayPayment(addressId) {
     try {
-        const actualPrice = parseFloat(document.getElementById('actualPrice').textContent);
-        const payableAmount = parseFloat(document.getElementById('payableAmount').textContent);
-        const totalAmount = actualPrice;
-
-        // Show loading indicator
-        Swal.fire({
-            title: 'Processing',
-            text: 'Creating your order...',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
+        const amounts = validateOrderAmounts(); // Your existing validation function
+        if (!amounts) return;
 
         const response = await fetch("/create-order", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 addressId,
-                totalAmount,
-                actualPrice,
-                payableAmount,
+                totalAmount: amounts.subTotal,
+                actualPrice: amounts.actualPrice,
+                payableAmount: amounts.finalAmount,
+                taxAmount: amounts.taxAmount,
+                gstAmount: amounts.gstAmount,
+                subTotal: amounts.subTotal,
                 couponCode: currentCoupon ? currentCoupon.code : null
             })
         });
@@ -660,7 +652,7 @@ async function placeOrder() {
 
     } catch (error) {
         console.error("Payment error:", error);
-        Swal.fire("Error", error.message || "Payment processing failed", "error");
+        Swal.fire("Error", "Payment processing failed", "error");
     }
 }
 
