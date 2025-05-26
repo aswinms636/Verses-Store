@@ -204,9 +204,6 @@ const verifyOtp = async (req, res) => {
                 referalCode
             });
 
-
-            
-
             await newUser.save();
 
             // Create wallet for new user
@@ -259,17 +256,25 @@ const verifyOtp = async (req, res) => {
             delete req.session.otp;
             delete req.session.userData;
             
-            return res.redirect('/signin');
+            return res.json({
+                success: true,
+                message: 'Account created successfully! Please login to continue.'
+            });
         }
 
-        return res.redirect('/verifyOtp');
+        return res.json({
+            success: false,
+            message: 'Invalid OTP. Please try again.'
+        });
 
     } catch (error) {
         console.error('Error verifying OTP:', error);
-        return res.status(500).send('Server error');
+        return res.json({
+            success: false,
+            message: 'Server error occurred'
+        });
     }
 };
-
 
 
 

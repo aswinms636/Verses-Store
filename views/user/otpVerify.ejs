@@ -15,7 +15,8 @@
   <div class="bg-white shadow-lg rounded-lg p-4 p-md-5 max-w-xs md:max-w-md w-100 text-center">
     <h2 class="fs-4 fw-bold text-gray-800 mb-3">Verify Your OTP</h2>
     <p class="text-gray-600 mb-3">Enter the 6-digit OTP sent to your email.</p>
-    <form id="otpForm" action="/verifyOtp" method="post">
+    <!-- Replace the existing form element with this -->
+    <form id="otpForm" onsubmit="handleSubmit(event)">
       <div class="d-flex justify-content-center gap-2 mb-3">
         <input type="text" name="otp1" maxlength="1" class="otp-input form-control text-center fw-semibold" style="width: 45px; height: 45px;" />
         <input type="text" name="otp2" maxlength="1" class="otp-input form-control text-center fw-semibold" style="width: 45px; height: 45px;" />
@@ -143,6 +144,57 @@
             text: 'Failed to resend OTP. Please try again.',
           });
         });
+    }
+
+    // Add new function to handle form submission
+    async function handleSubmit(e) {
+        e.preventDefault();
+        
+        let combinedOtp = '';
+        otpInputs.forEach((input) => (combinedOtp += input.value));
+        
+        try {
+            const response = await fetch('/verifyOtp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ otp: combinedOtp })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: data.message,
+                    showConfirmButton: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '/signin';
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: data.message,
+                    showConfirmButton: true
+                });
+
+                // Clear OTP inputs
+                otpInputs.forEach(input => input.value = '');
+                otpInputs[0].focus();
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Something went wrong. Please try again.',
+                showConfirmButton: true
+            });
+        }
     }
   </script>
 
