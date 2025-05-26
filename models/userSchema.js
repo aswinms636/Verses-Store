@@ -62,7 +62,11 @@ const userSchema = new Schema({
             type: Date,
             default: Date.now
         }
-    }]
+    }],
+    profilePhoto: {
+        type: String,
+        default: 'default-profile.jpg'
+    }
 });
 
 

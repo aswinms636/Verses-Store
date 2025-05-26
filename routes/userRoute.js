@@ -38,6 +38,8 @@ router.get("/otpVerify",userController.loadFFOtpPage)
 router.post('/otpVerify',userController.otpVerify)
 router.get('/newPassword',userController.loadPasswordPage)
 router.post('/changePassword',userController.changePassword)
+router.post('/upload-profile-photo',  profileController.uploadProfilePhoto);
+router.post('/remove-profile-photo',  profileController.removeProfilePhoto);
 
 
 //google Signin

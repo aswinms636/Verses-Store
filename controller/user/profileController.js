@@ -3,6 +3,9 @@ const Address=require("../../models/addressSchema")
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 // Store OTPs temporarily (in production, use Redis or similar)
 const otpStore = new Map();
@@ -232,11 +235,119 @@ const changePassword = async (req, res) => {
     }
 };
 
+// Configure multer for profile photo uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'public/Uploads/profile-photos');
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 1024 * 1024 * 5 }, // 5MB limit
+    fileFilter: (req, file, cb) => {
+        const filetypes = /jpeg|jpg|png|webp/;
+        const mimetype = filetypes.test(file.mimetype);
+        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+        
+        if (mimetype && extname) {
+            return cb(null, true);
+        }
+        cb(new Error('Only .png, .jpg, .jpeg, and .webp files are allowed!'));
+    }
+}).single('profilePhoto');
+
+// Add these new controller methods
+const uploadProfilePhoto = async (req, res) => {
+    try {
+        upload(req, res, async (err) => {
+            if (err) {
+                return res.json({
+                    success: false,
+                    message: err.message
+                });
+            }
+
+            if (!req.file) {
+                return res.json({
+                    success: false,
+                    message: 'Please select an image to upload'
+                });
+            }
+
+            const userId = req.session.user._id;
+            const user = await User.findById(userId);
+
+            // Delete old profile photo if it exists and isn't the default
+            if (user.profilePhoto && user.profilePhoto !== 'default-profile.jpg') {
+                const oldPhotoPath = path.join('public/uploads/profile-photos', user.profilePhoto);
+                if (fs.existsSync(oldPhotoPath)) {
+                    fs.unlinkSync(oldPhotoPath);
+                }
+            }
+
+            // Update user profile photo
+            user.profilePhoto = req.file.filename;
+            await user.save();
+            req.session.user = user;
+
+            res.json({
+                success: true,
+                message: 'Profile photo updated successfully',
+                photoUrl: `/uploads/profile-photos/${req.file.filename}`
+            });
+        });
+    } catch (error) {
+        console.error('Error uploading profile photo:', error);
+        res.json({
+            success: false,
+            message: 'Failed to upload profile photo'
+        });
+    }
+};
+
+const removeProfilePhoto = async (req, res) => {
+    try {
+        const userId = req.session.user._id;
+        const user = await User.findById(userId);
+
+        if (user.profilePhoto && user.profilePhoto !== 'default-profile.jpg') {
+            const photoPath = path.join('public/uploads/profile-photos', user.profilePhoto);
+            if (fs.existsSync(photoPath)) {
+                fs.unlinkSync(photoPath);
+            }
+        }
+
+        user.profilePhoto = 'default-profile.jpg';
+        await user.save();
+        req.session.user = user;
+
+        res.json({
+            success: true,
+            message: 'Profile photo removed successfully',
+            photoUrl: '/uploads/profile-photos/default-profile.jpg'
+        });
+    } catch (error) {
+        console.error('Error removing profile photo:', error);
+        res.json({
+            success: false,
+            message: 'Failed to remove profile photo'
+        });
+    }
+};
+
+// Add to module.exports
 module.exports = {  
     loadProfilePage,
     editProfile,
     sendPasswordOtp,
     verifyPasswordOtp,
-    changePassword
+    changePassword,
+    uploadProfilePhoto,
+    removeProfilePhoto
   
 };

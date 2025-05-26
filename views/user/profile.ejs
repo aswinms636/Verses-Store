@@ -36,6 +36,23 @@
       vertical-align: middle;
       margin-left: 5px;
     }
+    .profile-photo-actions {
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .profile-img:hover + .profile-photo-actions,
+    .profile-photo-actions:hover {
+        opacity: 1;
+    }
+
+    .profile-img {
+        transition: filter 0.3s;
+    }
+
+    .profile-img:hover {
+        filter: brightness(0.8);
+    }
   </style>
 </head>
 <body>
@@ -47,23 +64,32 @@
       <!-- Profile Header -->
       <div class="profile-header mb-4 d-flex flex-column flex-md-row align-items-center">
         <div class="me-md-4 mb-3 mb-md-0 text-center">
-          <img src="/Uploads/Profile-photos/cool-profile-pictures-for-tiktok-5-678x1024.webp" alt="Profile Picture" class="profile-img">
+          <div class="position-relative">
+              <img src="/uploads/profile-photos/<%= user.profilePhoto || 'default-profile.jpg' %>" 
+                   alt="Profile Picture" 
+                   class="profile-img" 
+                   id="profile-image">
+              
+              <div class="profile-photo-actions position-absolute bottom-0 start-50 translate-middle-x mb-2">
+                  <label for="profile-photo-upload" class="btn btn-sm btn-light me-2">
+                      <i class="fas fa-camera"></i>
+                  </label>
+                  <% if (user.profilePhoto && user.profilePhoto !== 'default-profile.jpg') { %>
+                      <button class="btn btn-sm btn-danger" id="remove-photo-btn">
+                          <i class="fas fa-trash"></i>
+                      </button>
+                  <% } %>
+              </div>
+          </div>
+          <input type="file" 
+                 id="profile-photo-upload" 
+                 accept="image/*" 
+                 style="display: none;">
         </div>
         <div class="d-flex flex-column">
           <h2 id="display-name"><%= user.name || "Not provided" %></h2>
           <div class="mb-2">
-            <span id="verification-status">
-              <% if(user.emailVerified) { %>
-                <span class="badge bg-success email-badge"><i class="fas fa-check-circle me-1"></i> Verified</span>
-              <% } else { %>
-                <span class="badge bg-warning email-badge">
-                  <i class="fas fa-exclamation-circle me-1"></i> Unverified
-                  <button id="verify-email-btn" class="btn btn-link text-white p-0 ms-1" style="font-size: 0.75rem; text-decoration: underline;">
-                    Verify Now
-                  </button>
-                </span>
-              <% } %>
-            </span>
+            
           </div>
           <button id="edit-profile-btn" class="btn btn-primary edit-btn align-self-start">
             <i class="fas fa-edit me-2"></i> Edit Profile
@@ -510,6 +536,84 @@
         document.getElementById('new-password').value = '';
         document.getElementById('confirm-password').value = '';
       });
+
+      const profilePhotoUpload = document.getElementById('profile-photo-upload');
+      const removePhotoBtn = document.getElementById('remove-photo-btn');
+      const profileImage = document.getElementById('profile-image');
+
+      profilePhotoUpload.addEventListener('change', async function(e) {
+          if (!e.target.files.length) return;
+
+          const formData = new FormData();
+          formData.append('profilePhoto', e.target.files[0]);
+
+          try {
+              const response = await fetch('/upload-profile-photo', {
+                  method: 'POST',
+                  body: formData
+              });
+
+              const data = await response.json();
+              if (data.success) {
+                  profileImage.src = data.photoUrl;
+                  location.reload(); // Reload to show remove button
+              } else {
+                  Swal.fire({
+                      icon: 'error',
+                      title: 'Upload Failed',
+                      text: data.message
+                  });
+              }
+          } catch (error) {
+              console.error('Error:', error);
+              Swal.fire({
+                  icon: 'error',
+                  title: 'Upload Failed',
+                  text: 'An error occurred while uploading the photo'
+              });
+          }
+      });
+
+      if (removePhotoBtn) {
+          removePhotoBtn.addEventListener('click', async function() {
+              try {
+                  const result = await Swal.fire({
+                      title: 'Remove Profile Photo?',
+                      text: 'Are you sure you want to remove your profile photo?',
+                      icon: 'warning',
+                      showCancelButton: true,
+                      confirmButtonColor: '#d33',
+                      cancelButtonColor: '#3085d6',
+                      confirmButtonText: 'Yes, remove it!'
+                  });
+
+                  if (result.isConfirmed) {
+                      const response = await fetch('/remove-profile-photo', {
+                          method: 'POST'
+                      });
+
+                      const data = await response.json();
+                      if (data.success) {
+                          profileImage.src = data.photoUrl;
+                          location.reload(); // Reload to hide remove button
+                      } else {
+                          Swal.fire({
+                              icon: 'error',
+                              title: 'Removal Failed',
+                              text: data.message
+                          });
+                      }
+                  }
+              } catch (error) {
+                  console.error('Error:', error);
+                  Swal.fire({
+                      icon: 'error',
+                      title: 'Removal Failed',
+                      text: 'An error occurred while removing the photo'
+                  });
+              }
+          });
+      }
     });
   </script>
 </body>
