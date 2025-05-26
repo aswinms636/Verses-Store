@@ -65,7 +65,7 @@
       <div class="profile-header mb-4 d-flex flex-column flex-md-row align-items-center">
         <div class="me-md-4 mb-3 mb-md-0 text-center">
           <div class="position-relative">
-              <img src="/uploads/profile-photos/<%= user.profilePhoto || 'download.jpg' %>" 
+              <img src="/Uploads/Profile-photos/ user.profilePhoto || 'download.jpg' %>" 
                    alt="Profile Picture" 
                    class="profile-img" 
                    id="profile-image">
@@ -74,7 +74,7 @@
                   <label for="profile-photo-upload" class="btn btn-sm btn-light me-2">
                       <i class="fas fa-camera"></i>
                   </label>
-                  <% if (user.profilePhoto && user.profilePhoto !== 'default-profile.jpg') { %>
+                  <% if (user.profilePhoto && user.profilePhoto !== 'download.jpg') { %>
                       <button class="btn btn-sm btn-danger" id="remove-photo-btn">
                           <i class="fas fa-trash"></i>
                       </button>
