@@ -309,10 +309,24 @@
             border-radius: 5px;
         }
 
+        .breakdown-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .breakdown-item.total {
+            font-weight: bold;
+            font-size: 1.1em;
+            border-bottom: none;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid #ddd;
+        }
+
         .coupon-discount {
             color: #28a745;
-            font-weight: bold;
-            margin: 10px 0;
         }
     </style>
 </head>
@@ -440,8 +454,14 @@
                         Coupon Discount: ₹<span id="discountAmount">0</span>
                     </div>
                     <div class="price-breakdown">
-                        <div>Actual Price: ₹<span id="actualPrice"><%= totalAmount.toFixed(2) %></span></div>
-                        <div>Payable Amount: ₹<span id="payableAmount"><%= totalAmount.toFixed(2) %></span></div>
+                        <div class="breakdown-item">Sub Total: ₹<span id="subTotal"><%= totalAmount.toFixed(2) %></span></div>
+                        <div class="breakdown-item">Tax (2%): ₹<span id="taxAmount">0.00</span></div>
+                        <div class="breakdown-item">GST (2%): ₹<span id="gstAmount">0.00</span></div>
+                        <div class="breakdown-item">Actual Price: ₹<span id="actualPrice"><%= totalAmount.toFixed(2) %></span></div>
+                        <div id="couponDiscount" style="display: none;" class="breakdown-item coupon-discount">
+                            Coupon Discount: ₹<span id="discountAmount">0.00</span>
+                        </div>
+                        <div class="breakdown-item total">Final Amount: ₹<span id="payableAmount"><%= totalAmount.toFixed(2) %></span></div>
                     </div>
                     <div id="availableCoupons" class="available-coupons">
                         <h3>Available Coupons</h3>
@@ -476,56 +496,68 @@
             select.selectedIndex = 0;
         }
 
-        async function placeOrder() {
-            try {
-                const addressId = document.getElementById("addressSelect").value;
-                const paymentMethod = document.getElementById("paymentMethod").value;
+        // Modify the placeOrder function to include subtotal validation and proper amount calculations
 
-                if (!addressId) {
-                    return Swal.fire("Error", "Please select an address", "error");
-                }
+async function placeOrder() {
+    try {
+        const addressId = document.getElementById("addressSelect").value;
+        const paymentMethod = document.getElementById("paymentMethod").value;
 
-                const actualPrice = parseFloat(document.getElementById('actualPrice').textContent);
-                const payableAmount = parseFloat(document.getElementById('payableAmount').textContent);
+        if (!addressId) {
+            return Swal.fire("Error", "Please select an address", "error");
+        }
 
-                if (paymentMethod === "Online Payment") {
-                    await handleRazorpayPayment(addressId);
-                } else {
-                    const orderData = {
-                        addressId,
-                        paymentMethod,
-                        couponCode: currentCoupon ? currentCoupon.code : null,
-                        actualPrice,
-                        payableAmount
-                    };
+        // Get and validate all amounts
+        const amounts = validateOrderAmounts();
+        if (!amounts) {
+            return;
+        }
 
-                    const response = await fetch("/place", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(orderData)
-                    });
+        // Additional validation for Cash on Delivery
+        if (paymentMethod === "Cash on Delivery" && amounts.actualPrice < 1000) {
+            return Swal.fire("Error", "Minimum order value for Cash on Delivery is ₹1000", "error");
+        }
 
-                    const data = await response.json();
+        if (paymentMethod === "Online Payment") {
+            await handleRazorpayPayment(addressId);
+        } else {
+            const orderData = {
+                addressId,
+                paymentMethod,
+                couponCode: currentCoupon ? currentCoupon.code : null,
+                subTotal: amounts.subTotal,
+                taxAmount: amounts.taxAmount,
+                gstAmount: amounts.gstAmount,
+                actualPrice: amounts.actualPrice,
+                payableAmount: amounts.finalAmount // Use finalAmount instead of payableAmount
+            };
 
-                    if (data.success) {
-                        await Swal.fire({
-                            title: "Success!",
-                            text: "Your order has been placed successfully",
-                            icon: "success"
-                        });
-                        
-                        // Redirect to the first order's detail page if multiple orders were created
-                        const orderId = Array.isArray(data.orders) ? data.orders[0] : data.orders;
-                        window.location.href = `/order/view/${orderId}`;
-                    } else {
-                        Swal.fire("Error", data.message || "Order placement failed", "error");
-                    }
-                }
-            } catch (error) {
-                console.error("Order placement error:", error);
-                Swal.fire("Error", "Failed to place order. Please try again.", "error");
+            const response = await fetch("/place", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(orderData)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                await Swal.fire({
+                    title: "Success!",
+                    text: "Your order has been placed successfully",
+                    icon: "success"
+                });
+                
+                const orderId = Array.isArray(data.orders) ? data.orders[0] : data.orders;
+                window.location.href = `/order/view/${orderId}`;
+            } else {
+                Swal.fire("Error", data.message || "Order placement failed", "error");
             }
         }
+    } catch (error) {
+        console.error("Order placement error:", error);
+        Swal.fire("Error", "Failed to place order. Please try again.", "error");
+    }
+}
 
         async function handleRazorpayPayment(addressId) {
     try {
@@ -790,7 +822,7 @@
         async function applyCoupon() {
             try {
                 const couponCode = document.getElementById('couponCode').value;
-                const totalAmount = parseFloat(document.getElementById('actualPrice').textContent);
+                const actualPrice = parseFloat(document.getElementById('actualPrice').textContent);
 
                 if (!couponCode) {
                     return Swal.fire('Error', 'Please enter a coupon code', 'error');
@@ -801,7 +833,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         couponCode,
-                        totalAmount
+                        totalAmount: actualPrice
                     })
                 });
 
@@ -812,7 +844,7 @@
                     
                     document.getElementById('discountAmount').textContent = data.discount.toFixed(2);
                     document.getElementById('couponDiscount').style.display = 'block';
-                    document.getElementById('payableAmount').textContent = data.newTotal.toFixed(2);
+                    calculateTotalAmount(); // Recalculate all amounts
                     document.getElementById('removeCouponBtn').style.display = 'block';
                     document.getElementById('couponCode').disabled = true;
                     
@@ -856,8 +888,125 @@
             }
         }
 
-        // Load available coupons when page loads
-        document.addEventListener('DOMContentLoaded', loadAvailableCoupons);
+        // Add this function after the DOMContentLoaded event listener
+
+function calculateTotalAmount() {
+    const subTotal = parseFloat(document.getElementById('subTotal').textContent);
+    const taxRate = 0.02; // 2%
+    const gstRate = 0.02; // 2%
+
+    const taxAmount = subTotal * taxRate;
+    const gstAmount = subTotal * gstRate;
+    const actualPrice = subTotal + taxAmount + gstAmount;
+    
+    // Get coupon discount if applied
+    const discountElement = document.getElementById('discountAmount');
+    const couponDiscount = discountElement && discountElement.parentElement.style.display !== 'none' 
+        ? parseFloat(discountElement.textContent) 
+        : 0;
+
+    const finalAmount = actualPrice - couponDiscount;
+
+    // Update UI
+    document.getElementById('taxAmount').textContent = taxAmount.toFixed(2);
+    document.getElementById('gstAmount').textContent = gstAmount.toFixed(2);
+    document.getElementById('actualPrice').textContent = actualPrice.toFixed(2);
+    document.getElementById('payableAmount').textContent = finalAmount.toFixed(2);
+
+    return {
+        subTotal,
+        taxAmount,
+        gstAmount,
+        actualPrice,
+        finalAmount
+    };
+}
+
+// Call calculateTotalAmount on page load
+document.addEventListener('DOMContentLoaded', () => {
+    calculateTotalAmount();
+    loadAvailableCoupons();
+});
+
+// Update the validateOrderAmounts function to be more precise
+function validateOrderAmounts() {
+    const subTotal = parseFloat(document.getElementById('subTotal').textContent);
+    const taxAmount = parseFloat(document.getElementById('taxAmount').textContent);
+    const gstAmount = parseFloat(document.getElementById('gstAmount').textContent);
+    const actualPrice = parseFloat(document.getElementById('actualPrice').textContent);
+    const payableAmount = parseFloat(document.getElementById('payableAmount').textContent);
+
+    // More strict validation
+    if (isNaN(subTotal) || subTotal <= 0) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid Amount',
+            text: 'Cart subtotal must be greater than 0'
+        });
+        return false;
+    }
+
+    // Calculate expected values with precise rounding
+    const expectedTax = Math.round((subTotal * 0.02) * 100) / 100;
+    const expectedGst = Math.round((subTotal * 0.02) * 100) / 100;
+    const expectedActual = Math.round((subTotal + expectedTax + expectedGst) * 100) / 100;
+
+    // Get coupon discount
+    const discountElement = document.getElementById('discountAmount');
+    const couponDiscount = discountElement && discountElement.parentElement.style.display !== 'none' 
+        ? parseFloat(discountElement.textContent) 
+        : 0;
+
+    // Calculate final amount
+    const expectedFinal = Math.round((expectedActual - couponDiscount) * 100) / 100;
+
+    // Validate calculations with small tolerance for floating-point arithmetic
+    const tolerance = 0.01;
+    if (Math.abs(taxAmount - expectedTax) > tolerance ||
+        Math.abs(gstAmount - expectedGst) > tolerance ||
+        Math.abs(actualPrice - expectedActual) > tolerance ||
+        Math.abs(payableAmount - expectedFinal) > tolerance) {
+        
+        Swal.fire({
+            icon: 'error',
+            title: 'Calculation Error',
+            text: 'Please refresh the page and try again'
+        });
+        return false;
+    }
+
+    return {
+        subTotal,
+        taxAmount,
+        gstAmount,
+        actualPrice,
+        finalAmount: expectedFinal
+    };
+}
+
+// Modify your order submission event listener
+document.getElementById('place-order-btn').addEventListener('click', async function(e) {
+    e.preventDefault();
+
+    const amounts = validateOrderAmounts();
+    if (!amounts) {
+        return;
+    }
+
+    // Rest of your order submission code...
+    const orderData = {
+        addressId: selectedAddressId,
+        paymentMethod: selectedPaymentMethod,
+        couponCode: currentCoupon?.code || null,
+        subTotal: amounts.subTotal,
+        taxAmount: amounts.taxAmount,
+        gstAmount: amounts.gstAmount,
+        actualPrice: amounts.actualPrice,
+        payableAmount: amounts.payableAmount
+    };
+
+    // Continue with order submission...
+});
     </script>
 </body>
 

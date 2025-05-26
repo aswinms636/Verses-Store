@@ -171,18 +171,45 @@ const addAddress = async (req, res) => {
 
 const placedOrder = async (req, res) => {
     try {
-        const { addressId, paymentMethod, couponCode, actualPrice, payableAmount } = req.body;
+        const { addressId, paymentMethod, couponCode, actualPrice, payableAmount, taxAmount, gstAmount, subTotal } = req.body;
         const userId = req.session.user._id;
 
-        if (!userId) {
-            return res.status(401).json({ success: false, message: "User not authenticated" });
+        // Add validation for subtotal and related amounts
+        if (!subTotal || subTotal <= 0) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Invalid subtotal amount" 
+            });
         }
 
+        // Validate tax and GST calculations
+        const expectedTaxAmount = parseFloat((subTotal * 0.02).toFixed(2));
+        const expectedGstAmount = parseFloat((subTotal * 0.02).toFixed(2));
+        const expectedActualPrice = parseFloat((subTotal + expectedTaxAmount + expectedGstAmount).toFixed(2));
 
-        if(paymentMethod==='Cash on Delivery'){
-            if(actualPrice<1000){
-                return res.status(400).json({ success: false, message: "Minimum order value for Cash on Delivery is 1000" });
+        if (Math.abs(taxAmount - expectedTaxAmount) > 0.01 || 
+            Math.abs(gstAmount - expectedGstAmount) > 0.01 || 
+            Math.abs(actualPrice - expectedActualPrice) > 0.01) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid price calculations detected"
+            });
+        }
+
+        // Validate final payable amount
+        let expectedPayableAmount = expectedActualPrice;
+        if (couponCode) {
+            const coupon = await Coupon.findOne({ name: couponCode });
+            if (coupon) {
+                expectedPayableAmount -= coupon.offerPrice;
             }
+        }
+
+        if (Math.abs(payableAmount - expectedPayableAmount) > 0.01) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid final amount calculation"
+            });
         }
 
         // Validate address
@@ -271,6 +298,9 @@ const placedOrder = async (req, res) => {
                         quantity: item.quantity,
                         price: item.price
                     }],
+                    subTotal: subTotal,
+                    taxAmount: taxAmount,
+                    gstAmount: gstAmount,
                     totalPrice: totalPrice,
                     totalAmount: totalPrice,
                     paymentMethod,

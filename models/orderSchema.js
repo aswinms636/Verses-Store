@@ -124,6 +124,20 @@ const orderSchema = new Schema({
     couponDiscount: {
         type: Number,
         default: 0
+    },
+    taxAmount: {
+        type: Number,
+        required: true,
+        default: 0
+    },
+    gstAmount: {
+        type: Number,
+        required: true,
+        default: 0
+    },
+    subTotal: {
+        type: Number,
+        required: true
     }
 });
 
