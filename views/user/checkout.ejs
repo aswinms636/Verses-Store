@@ -564,6 +564,16 @@ async function placeOrder() {
         const amounts = validateOrderAmounts(); // Your existing validation function
         if (!amounts) return;
 
+        // Show loading indicator while creating order
+        Swal.fire({
+            title: 'Processing',
+            text: 'Creating your order...',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
         const response = await fetch("/create-order", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -651,6 +661,8 @@ async function placeOrder() {
         rzp.open();
 
     } catch (error) {
+        // Close loading indicator if there's an error
+        Swal.close();
         console.error("Payment error:", error);
         Swal.fire("Error", "Payment processing failed", "error");
     }
