@@ -15,15 +15,24 @@ const getUserOrders = async (req, res) => {
             return res.redirect('/signin');
         }
 
-        
+        // Pagination parameters
+        const page = parseInt(req.query.page) || 1;
+        const limit = 5; // Number of orders per page
+        const skip = (page - 1) * limit;
 
-        // Fetch orders with populated product details
+        // Get total count of orders
+        const totalOrders = await Order.countDocuments({ userId });
+        const totalPages = Math.ceil(totalOrders / limit);
+
+        // Fetch paginated orders with populated product details
         const orders = await Order.find({ userId })
             .populate({
                 path: 'orderItems.product',
                 select: 'productName productImage price' 
             })
-            .sort({ createdOn: -1 });
+            .sort({ createdOn: -1 })
+            .skip(skip)
+            .limit(limit);
 
         // Format orders for rendering
         const formattedOrders = orders.map(order => {
@@ -45,11 +54,16 @@ const getUserOrders = async (req, res) => {
             };
         });
 
-
         res.render('myorders', { 
             orders: formattedOrders,
             error: false,
-            user: req.session.user
+            user: req.session.user,
+            pagination: {
+                page,
+                totalPages,
+                hasNext: page < totalPages,
+                hasPrev: page > 1
+            }
         });
 
     } catch (error) {
@@ -57,7 +71,13 @@ const getUserOrders = async (req, res) => {
         res.render('myOrders', { 
             orders: [],
             error: true,
-            user: req.session.user
+            user: req.session.user,
+            pagination: {
+                page: 1,
+                totalPages: 1,
+                hasNext: false,
+                hasPrev: false
+            }
         });
     }
 };
