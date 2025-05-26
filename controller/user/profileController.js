@@ -283,8 +283,8 @@ const uploadProfilePhoto = async (req, res) => {
             const user = await User.findById(userId);
 
             // Delete old profile photo if it exists and isn't the default
-            if (user.profilePhoto && user.profilePhoto !== '.jpg') {
-                const oldPhotoPath = path.join('public/Uploads/Profile-photos', user.profilePhoto);
+            if (user.profilePhoto && user.profilePhoto !== 'default-profile.jpg') {
+                const oldPhotoPath = path.join('public/uploads/profile-photos', user.profilePhoto);
                 if (fs.existsSync(oldPhotoPath)) {
                     fs.unlinkSync(oldPhotoPath);
                 }
@@ -298,7 +298,7 @@ const uploadProfilePhoto = async (req, res) => {
             res.json({
                 success: true,
                 message: 'Profile photo updated successfully',
-                photoUrl: `/Uploads/Profile-photos/${req.file.filename}`
+                photoUrl: `/uploads/profile-photos/${req.file.filename}`
             });
         });
     } catch (error) {
@@ -315,14 +315,14 @@ const removeProfilePhoto = async (req, res) => {
         const userId = req.session.user._id;
         const user = await User.findById(userId);
 
-        if (user.profilePhoto && user.profilePhoto !== 'download.jpg') {
-            const photoPath = path.join('public/Uploads/Profile-photos', user.profilePhoto);
+        if (user.profilePhoto && user.profilePhoto !== 'default-profile.jpg') {
+            const photoPath = path.join('public/uploads/profile-photos', user.profilePhoto);
             if (fs.existsSync(photoPath)) {
                 fs.unlinkSync(photoPath);
             }
         }
 
-        user.profilePhoto = 'download.jpg';
+        user.profilePhoto = 'default-profile.jpg';
         await user.save();
         req.session.user = user;
 

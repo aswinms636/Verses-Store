@@ -65,7 +65,7 @@
       <div class="profile-header mb-4 d-flex flex-column flex-md-row align-items-center">
         <div class="me-md-4 mb-3 mb-md-0 text-center">
           <div class="position-relative">
-              <img src="/Uploads/Profile-photos/ user.profilePhoto || 'download.jpg' %>" 
+              <img src="/uploads/profile-photos/<%= user.profilePhoto || 'download.jpg' %>" 
                    alt="Profile Picture" 
                    class="profile-img" 
                    id="profile-image">
@@ -74,7 +74,7 @@
                   <label for="profile-photo-upload" class="btn btn-sm btn-light me-2">
                       <i class="fas fa-camera"></i>
                   </label>
-                  <% if (user.profilePhoto && user.profilePhoto !== 'download.jpg') { %>
+                  <% if (user.profilePhoto && user.profilePhoto !== 'default-profile.jpg') { %>
                       <button class="btn btn-sm btn-danger" id="remove-photo-btn">
                           <i class="fas fa-trash"></i>
                       </button>
@@ -619,39 +619,71 @@
       if (removePhotoBtn) {
           removePhotoBtn.addEventListener('click', async function() {
               try {
+                  // Show confirmation dialog
                   const result = await Swal.fire({
                       title: 'Remove Profile Photo?',
-                      text: 'Are you sure you want to remove your profile photo?',
+                      text: 'This action cannot be undone.',
                       icon: 'warning',
                       showCancelButton: true,
-                      confirmButtonColor: '#d33',
-                      cancelButtonColor: '#3085d6',
-                      confirmButtonText: 'Yes, remove it!'
+                      confirmButtonColor: '#dc3545',
+                      cancelButtonColor: '#6c757d',
+                      confirmButtonText: 'Yes, remove it',
+                      cancelButtonText: 'Cancel',
+                      reverseButtons: true
                   });
 
                   if (result.isConfirmed) {
+                      // Show loading state
+                      Swal.fire({
+                          title: 'Removing...',
+                          text: 'Please wait while we remove your photo',
+                          allowOutsideClick: false,
+                          allowEscapeKey: false,
+                          showConfirmButton: false,
+                          didOpen: () => {
+                              Swal.showLoading();
+                          }
+                      });
+
                       const response = await fetch('/remove-profile-photo', {
-                          method: 'POST'
+                          method: 'POST',
+                          headers: {
+                              'Content-Type': 'application/json'
+                          }
                       });
 
                       const data = await response.json();
                       if (data.success) {
+                          // Success notification
+                          await Swal.fire({
+                              icon: 'success',
+                              title: 'Photo Removed!',
+                              text: 'Your profile photo has been removed successfully',
+                              showConfirmButton: false,
+                              timer: 1500
+                          });
+                          
+                          // Update UI and reload page
                           profileImage.src = data.photoUrl;
-                          location.reload(); // Reload to hide remove button
+                          location.reload();
                       } else {
+                          // Error notification
                           Swal.fire({
                               icon: 'error',
                               title: 'Removal Failed',
-                              text: data.message
+                              text: data.message || 'Failed to remove profile photo',
+                              confirmButtonColor: '#3085d6'
                           });
                       }
                   }
               } catch (error) {
                   console.error('Error:', error);
+                  // Network/unexpected error notification
                   Swal.fire({
                       icon: 'error',
-                      title: 'Removal Failed',
-                      text: 'An error occurred while removing the photo'
+                      title: 'Oops...',
+                      text: 'An unexpected error occurred while removing the photo',
+                      confirmButtonColor: '#3085d6'
                   });
               }
           });
