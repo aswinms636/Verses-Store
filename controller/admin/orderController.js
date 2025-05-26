@@ -5,15 +5,25 @@ const Wallet = require('../../models/walletSchema');
 
 const getAllOrders = async (req, res) => {
     try {
+        // Add pagination parameters
+        const page = parseInt(req.query.page) || 1;
+        const limit = 5; // Orders per page
+        const skip = (page - 1) * limit;
+
+        // Get total count for pagination
+        const totalOrders = await Order.countDocuments();
+        const totalPages = Math.ceil(totalOrders / limit);
+
         const orders = await Order.find()
             .populate({
                 path: 'orderItems.product',
                 select: 'productName productImage'
             })
             .populate('userId', 'name email')
-            .sort({ createdOn: -1 });
+            .sort({ createdOn: -1 })
+            .skip(skip)
+            .limit(limit);
 
-        
         const formattedOrders = orders.map(order => {
             return {
                 _id: order._id,
@@ -36,7 +46,14 @@ const getAllOrders = async (req, res) => {
 
         res.render('orders', { 
             orders: formattedOrders,
-            title: 'All Orders'
+            title: 'All Orders',
+            currentPage: page,
+            totalPages: totalPages,
+            hasNextPage: page < totalPages,
+            hasPreviousPage: page > 1,
+            nextPage: page + 1,
+            previousPage: page - 1,
+            lastPage: totalPages
         });
     } catch (error) {
         console.error('Error fetching orders:', error);
