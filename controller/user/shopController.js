@@ -34,8 +34,9 @@ const loadShopPage = async (req, res) => {
         // Add search filter
         if (searchQuery) {
             query.$or = [
-                { productName: { $regex: searchQuery, $options: "i" } },
-                { description: { $regex: searchQuery, $options: "i" } },
+                { productName: { $regex: new RegExp(searchQuery, 'i') } },
+                { description: { $regex: new RegExp(searchQuery, 'i') } },
+                { 'brand.brandName': { $regex: new RegExp(searchQuery, 'i') } }
             ];
         }
 
@@ -45,7 +46,7 @@ const loadShopPage = async (req, res) => {
             if (categoryExists && categoryExists.isListed) {
                 query.category = category;
             } else {
-                query.category = null; // Invalid category, no results
+                query.category = null; 
             }
         }
 
