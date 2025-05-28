@@ -224,8 +224,10 @@
             text: data.message,
             timer: 1500,
             showConfirmButton: false
+          })
+          .then(() => {
+            location.reload();
           });
-          location.reload();
         } else {
           Swal.fire({
             icon: 'error',

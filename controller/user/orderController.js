@@ -153,7 +153,7 @@ const order = await Order.findById(orderId);
 
 
         // Check if payment method is online
-        if (order.paymentMethod === 'Online Payment'|| order.paymentMethod === 'Wallet Payment') {
+        if (order.paymentMethod === 'Online Payment' && order.paymentStatus=== 'Paid' || order.paymentMethod === 'Wallet Payment') {
             const wallet = await Wallet.findOne({ user: userId });
 
             console.log('wallet balance',wallet.balance);
