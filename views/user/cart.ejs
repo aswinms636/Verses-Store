@@ -342,7 +342,7 @@
             </div>
             <div class="cart-summary">
                 <h3>Total: ₹<%= cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0) %></h3>
-                <a href="/checkout"><button class="checkout-btn">Proceed to Checkout</button></a>
+                <button class="checkout-btn">Proceed to Checkout</button>
             </div>
         <% } else { %>
             <div class="empty-cart-message">
@@ -407,6 +407,60 @@
                 }
             });
         }
+
+        // Replace the existing checkout button handler with this
+        document.querySelector('.checkout-btn').addEventListener('click', async function(e) {
+            e.preventDefault();
+
+            try {
+                // Show loading state
+                Swal.fire({
+                    title: 'Checking stock availability...',
+                    text: 'Please wait',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                const response = await fetch('/checkout', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                // Close loading state
+                Swal.close();
+
+                if (data.success === false) {
+                    // Show error message
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: data.message,
+                        confirmButtonColor: '#ff6c00'
+                    });
+                    return;
+                }
+
+                // If successful, redirect to checkout page
+                window.location.href = '/checkout';
+
+            } catch (error) {
+                console.error('Checkout error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Something went wrong! Please try again.',
+                    confirmButtonColor: '#ff6c00'
+                });
+            }
+        });
     </script>
 
     <%- include("../../views/partials/user/footer") %>

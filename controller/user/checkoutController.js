@@ -17,49 +17,86 @@ const getCheckoutPage = async (req, res) => {
         }
 
         const userId = req.session.user._id;
-
-       
         const cart = await Cart.findOne({ userId }).populate("items.productId");
 
+        // Check if cart exists and has items
+        if (!cart || !cart.items.length) {
+            return res.json({
+                success: false,
+                message: "Your cart is empty"
+            });
+        }
+        
+        // Verify stock for each item
+        let stockError = null;
+        for (const item of cart.items) {
+            const product = await Product.findOne({ _id: item.productId._id });
+            
+            if (!product) {
+                stockError = {
+                    success: false,
+                    message: `Product ${item.productId.productName} is no longer available`
+                };
+                break;
+            }
+
+            // Check size availability from the sizes object
+            const sizeStock = product.sizes[item.size];
+
+            if (typeof sizeStock === 'undefined' || sizeStock < item.quantity) {
+                stockError = {
+                    success: false,
+                    message: `Insufficient stock for ${product.productName}, size ${item.size}. Available: ${sizeStock || 0}`
+                };
+                break;
+            }
+        }
+
+        // If there's a stock error, return it
+        if (stockError) {
+            return res.status(400).json(stockError);
+        }
        
         const userAddressDoc = await Address.findOne({ userId });
-
         let cartItems = [];
         let totalAmount = 0;
         let userAddresses = userAddressDoc ? userAddressDoc.address : [];
 
-        console.log("userAddress",userAddresses);
-        
-
-        console.log("User Addressesssssss:", userAddresses);
-        console.log("Cart Data:", cart);
-
-
         if (cart && cart.items.length > 0) {
             cartItems = cart.items.map(item => ({
-                productId: item.productId._id, 
-                productName: item.productId.productName, 
+                productId: item.productId._id,
+                productName: item.productId.productName,
                 size: item.size,
                 quantity: item.quantity,
-                price: item.price,  
-                image: item.productId.productImage.length > 0 ? item.productId.productImage[0] : "/default-image.jpg", 
+                price: item.price,
+                image: item.productId.productImage?.length > 0 ? item.productId.productImage[0] : "/default-image.jpg",
                 totalPrice: item.quantity * item.price
             }));
             
             totalAmount = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
         }
 
-        console.log("carttttttttttttt",cartItems);
-        
+        // Return success response with data
+        if (req.xhr || req.headers.accept.includes('application/json')) {
+            return res.json({
+                success: true,
+                message: "Stock verification successful"
+            });
+        }
 
+        // Render checkout page if it's a regular request
         res.render("checkout", {
             cartItems,
             userAddresses,
             totalAmount
         });
+
     } catch (error) {
         console.error("Error in getCheckoutPage:", error);
-        res.status(500).send("Server error");
+        res.status(500).json({
+            success: false,
+            message: "An error occurred while processing your request"
+        });
     }
 };
 
