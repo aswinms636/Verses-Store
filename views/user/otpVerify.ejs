@@ -176,12 +176,27 @@
                     }
                 });
             } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: data.message,
-                    showConfirmButton: true
-                });
+                if (data.expired) {
+                    // Handle expired OTP
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'OTP Expired',
+                        text: data.message,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Resend OTP'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            resendOtp();
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid OTP',
+                        text: data.message,
+                        showConfirmButton: true
+                    });
+                }
 
                 // Clear OTP inputs
                 otpInputs.forEach(input => input.value = '');

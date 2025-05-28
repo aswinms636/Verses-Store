@@ -97,6 +97,13 @@ function generateOtp(){
     return Math.floor(100000 + Math.random()*900000).toString();
 }
 
+function generateOtpWithExpiry() {
+    return {
+        code: Math.floor(100000 + Math.random() * 900000).toString(),
+        expiresAt: Date.now() + 5* 60 * 1000 // 10 minutes expiry
+    };
+}
+
 async function otpSend(email, otp) {
     try {
         const transporter = nodemailer.createTransport({
@@ -162,12 +169,13 @@ const signup = async (req, res) => {
         // Generate unique referral code
         const newReferralCode = crypto.randomBytes(4).toString('hex');
 
-        const otp = generateOtp();
-        const emailSent = await otpSend(email, otp);
+        const otpData = generateOtpWithExpiry();
+        const emailSent = await otpSend(email, otpData.code);
        
         
-        console.log('otp',otp)
-        req.session.otp = otp;
+        console.log('otp', otpData.code);
+        req.session.otp = otpData.code;
+        req.session.otpExpiry = otpData.expiresAt;
         req.session.userData = { 
             name, 
             email, 
@@ -190,6 +198,15 @@ const signup = async (req, res) => {
 const verifyOtp = async (req, res) => {
     try {
         const { otp } = req.body;
+
+        // Check if OTP has expired
+        if (!req.session.otpExpiry || Date.now() > req.session.otpExpiry) {
+            return res.json({
+                success: false,
+                message: 'OTP has expired. Please request a new one.',
+                expired: true
+            });
+        }
 
         if (req.session.otp === otp) {
             const { name, email, password, referalCode, referredBy } = req.session.userData;
@@ -253,7 +270,9 @@ const verifyOtp = async (req, res) => {
                 }
             }
 
+            // Clean up session
             delete req.session.otp;
+            delete req.session.otpExpiry;
             delete req.session.userData;
             
             return res.json({
@@ -418,12 +437,13 @@ const resendOtp = async(req, res) => {
         const email = req.session.email;
         console.log('resend', email);
 
-        const otp = generateOtp();
-        const sent = await otpSend(email, otp);
+        const otpData = generateOtpWithExpiry();
+        const sent = await otpSend(email, otpData.code);
 
-        console.log('sent',sent)
+        console.log('sent', sent)
         if (sent) {
-            req.session.otp = otp;
+            req.session.otp = otpData.code;
+            req.session.otpExpiry = otpData.expiresAt;
             return res.json({
                 success: true,
                 message: 'OTP has been resent to your email'
