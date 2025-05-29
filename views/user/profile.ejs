@@ -688,6 +688,71 @@
               }
           });
       }
+
+      // Get elements
+      editBtn.addEventListener('click', function() {
+          infoDisplay.style.display = 'none';
+          editForm.style.display = 'block';
+      });
+
+      cancelBtn.addEventListener('click', function() {
+          editForm.style.display = 'none';
+          infoDisplay.style.display = 'block';
+      });
+
+      form.addEventListener('submit', async function(e) {
+          e.preventDefault();
+
+          const formData = {
+              name: document.getElementById('name').value,
+              email: document.getElementById('email').value,
+              phone: document.getElementById('phone').value
+          };
+
+          try {
+              const response = await fetch('/edit-profile', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify(formData)
+              });
+
+              const data = await response.json();
+              
+              if (data.success) {
+                  // Update display values
+                  document.getElementById('display-name').textContent = data.user.name || 'Not provided';
+                  document.getElementById('display-email').textContent = data.user.email || 'Not provided';
+                  document.getElementById('display-phone').textContent = data.user.phone || 'Not provided';
+                  
+                  // Hide form and show display
+                  editForm.style.display = 'none';
+                  infoDisplay.style.display = 'block';
+                  
+                  Swal.fire({
+                      icon: 'success',
+                      title: 'Success!',
+                      text: data.message,
+                      showConfirmButton: false,
+                      timer: 1500
+                  });
+              } else {
+                  Swal.fire({
+                      icon: 'error',
+                      title: 'Error',
+                      text: data.message
+                  });
+              }
+          } catch (error) {
+              console.error('Error:', error);
+              Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: 'Failed to update profile'
+              });
+          }
+      });
     });
   </script>
 </body>

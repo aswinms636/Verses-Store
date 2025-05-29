@@ -29,31 +29,73 @@ const loadProfilePage= (req, res) => {
 
 const editProfile = async (req, res) => {
     try {
-        const userId = req.session.user._id; // Assuming you have user authentication middleware
+        const userId = req.session.user._id;
         const { name, email, phone } = req.body;
 
-        console.log('1')
+        // Basic validation
+        if (!name || !email) {
+            return res.json({ 
+                success: false, 
+                message: 'Name and email are required' 
+            });
+        }
 
-        // Find the user by ID and update the fields
+        // Email format validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.json({ 
+                success: false, 
+                message: 'Please enter a valid email address' 
+            });
+        }
+
+        // Check if email already exists for another user
+        const existingUser = await User.findOne({ 
+            email, 
+            _id: { $ne: userId } 
+        });
+        
+        if (existingUser) {
+            return res.json({ 
+                success: false, 
+                message: 'Email address is already in use' 
+            });
+        }
+
+        // Update user
         const updatedUser = await User.findByIdAndUpdate(
             userId,
-            { name, email, phone },
+            { 
+                name: name.trim(),
+                email: email.trim(),
+                phone: phone ? phone.trim() : ''
+            },
             { new: true, runValidators: true }
         );
 
-        console.log('2',updatedUser)
-
         if (!updatedUser) {
-            return res.json({ success:false, message: 'User not found' });
+            return res.json({ 
+                success: false, 
+                message: 'User not found' 
+            });
         }
 
-        console.log("3");
+        // Update session user data
+        req.session.user = updatedUser;
         
-        // Send a success response
-        res.status(200).json({ success:true, message: 'Profile updated successfully', user: updatedUser });
+        // Send success response
+        res.json({ 
+            success: true, 
+            message: 'Profile updated successfully', 
+            user: updatedUser 
+        });
+
     } catch (error) {
-        console.error(error);
-        res.json({ success:false, message: 'Internal Server Error' });
+        console.error('Profile update error:', error);
+        res.json({ 
+            success: false, 
+            message: 'Failed to update profile' 
+        });
     }
 };
 
