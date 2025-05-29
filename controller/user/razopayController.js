@@ -17,10 +17,10 @@ const createOrder = async (req, res) => {
         const userId = req.session.user._id;
 
         // Validate required fields and calculations
-        if (!totalAmount || !actualPrice || !payableAmount || !subTotal) {
+        if (!totalAmount || !actualPrice || !payableAmount || !subTotal || !addressId) {
             return res.status(400).json({
                 success: false,
-                message: "Missing required payment information"
+                message: "Missing required payment information or address"
             });
         }
 
@@ -40,23 +40,6 @@ const createOrder = async (req, res) => {
             });
         }
 
-        // Validate address
-        const addressDoc = await Address.findOne({
-            userId: userId,
-            'address._id': addressId
-        });
-
-        if (!addressDoc) {
-            return res.status(400).json({
-                success: false,
-                message: "Address not found"
-            });
-        }
-
-        const selectedAddress = addressDoc.address.find(
-            addr => addr._id.toString() === addressId
-        );
-
         // Get cart items
         const cart = await Cart.findOne({ userId }).populate('items.productId');
         if (!cart || cart.items.length === 0) {
@@ -66,10 +49,30 @@ const createOrder = async (req, res) => {
             });
         }
 
+        // Validate address
+        const address = await Address.findOne({ userId });
+
+        if (!address) {
+            return res.status(400).json({
+                success: false,
+                message: "No addresses found for user"
+            });
+        }
+
+        // Find the specific address in the address array
+        const selectedAddress = address.address.find(addr => addr._id.toString() === addressId);
+
+        if (!selectedAddress) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid address selected"
+            });
+        }
+
         try {
             // Create Razorpay order
             const razorpayOrder = await razorpay.orders.create({
-                amount: Math.round(payableAmount * 100), // Convert to paise
+                amount: Math.round(payableAmount * 100),
                 currency: "INR",
                 receipt: `order_${Date.now()}`,
                 payment_capture: 1
@@ -90,28 +93,22 @@ const createOrder = async (req, res) => {
                 }
             }
 
-            // Create order in database with tax details
+            // Create order in database according to orderSchema
             const order = new Order({
                 userId,
                 orderItems: cart.items.map(item => ({
                     product: item.productId._id,
                     size: item.size,
                     quantity: item.quantity,
-                    price: item.price
+                    price: item.price,
+                    status: 'Pending'
                 })),
                 totalPrice: totalAmount,
                 totalAmount: payableAmount,
                 paymentMethod: "Online Payment",
                 razorpayOrderId: razorpayOrder.id,
                 paymentStatus: "Pending",
-                address: {
-                    fullname: selectedAddress.fullname,
-                    street: selectedAddress.street,
-                    city: selectedAddress.city,
-                    state: selectedAddress.state,
-                    zipCode: selectedAddress.zipCode,
-                    phone: selectedAddress.phone
-                },
+                address: selectedAddress._id, // Just store the address _id as per schema
                 status: "Pending",
                 actualPrice: actualPrice,
                 payableAmount: payableAmount,
@@ -124,7 +121,7 @@ const createOrder = async (req, res) => {
 
             await order.save();
 
-            // Clear cart
+            // Clear cart after successful order creation
             await Cart.findOneAndUpdate(
                 { userId },
                 { $set: { items: [] } }

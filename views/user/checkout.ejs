@@ -562,7 +562,7 @@ async function placeOrder() {
 
         async function handleRazorpayPayment(addressId) {
     try {
-        const amounts = validateOrderAmounts(); // Your existing validation function
+        const amounts = validateOrderAmounts();
         if (!amounts) return;
 
         // Show loading indicator while creating order
@@ -579,7 +579,7 @@ async function placeOrder() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                addressId,
+                addressId: addressId, // Ensure addressId is properly passed
                 totalAmount: amounts.subTotal,
                 actualPrice: amounts.actualPrice,
                 payableAmount: amounts.finalAmount,
