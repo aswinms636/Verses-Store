@@ -181,34 +181,38 @@ const editAddress = async (req, res) => {
 
   const deleteAddress = async (req, res) => {
     try {
-      const {  addressId } = req.body;
-      const userId=req.session.user._id
-     
-      console.log("=------=", userId, addressId);
+        const { addressId } = req.body;
+        const userId = req.session.user._id;
 
-      const user = await Address.findOne({ userId });
-      if (!user) {
-        return res.json({ success: false, message: 'User not found' });
-      }
-  
-      
-      const addressIndex = user.address.findIndex(addr => addr._id.toString() === addressId);
+        console.log("Deleting address:", { userId, addressId });
 
-      if (addressIndex === -1) {
-        return res.json({ success: false, message: 'Address not found' });
-      }
-  
-      user.address.splice(addressIndex, 1);
-  
+        // Find the address document and pull the matching address from the array
+        const result = await Address.updateOne(
+            { userId: userId },
+            { $pull: { address: { _id: addressId } } }
+        );
 
-     
-      await user.save();
-      res.json({ success: true, message: 'Address deleted successfully' });
+        if (result.modifiedCount === 0) {
+            return res.json({ 
+                success: false, 
+                message: 'Address not found or already deleted' 
+            });
+        }
+
+        res.json({ 
+            success: true, 
+            message: 'Address deleted successfully' 
+        });
+
     } catch (error) {
-      console.error('Error deleting address:', error);
-      res.json({ success: false, message: 'Internal Server Error' });
+        console.error('Error deleting address:', error);
+        res.json({ 
+            success: false, 
+            message: 'Internal Server Error',
+            error: error.message 
+        });
     }
-  };
+};
   
   
 
@@ -224,4 +228,3 @@ module.exports = {
 
 
 
- 
