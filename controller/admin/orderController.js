@@ -2,6 +2,7 @@ const Order = require("../../models/orderSchema");
 const User = require("../../models/userSchema");
 const Product = require('../../models/productSchema');
 const Wallet = require('../../models/walletSchema');
+const Address=require('../../models/addressSchema')
 
 const getAllOrders = async (req, res) => {
     try {
@@ -63,20 +64,30 @@ const getAllOrders = async (req, res) => {
 
 const getOrderDetails = async(req,res)=>{
     try {
-        
         const orderId = req.params.orderId;
-        const order = await Order.findOne({ orderId })
-        .populate('userId','name email')
-        .populate('orderItems.product','productName productImage');
 
-        if(!order){
-            return res.status(404).send('Order Not Found ');
+        // Changed from findById to findOne with orderId
+        const order = await Order.findOne({ orderId })
+            .populate('userId','name email')
+            .populate('orderItems.product','productName productImage');
+
+        if(!order) {
+            return res.status(404).send('Order Not Found');
         }
 
+        const userAddress = await Address.findOne({ userId: order.userId });
+        if (!userAddress) {
+            return res.status(404).send('User Address Not Found');
+        }     
 
-        res.render('orderDetailsAdmin',
-            {order}
-        )
+        const address = userAddress.address.find(
+            (addr) => addr._id.toString() === order.address.toString()
+        );
+
+        res.render('orderDetailsAdmin', {
+            order,
+            address,
+        });
 
     } catch (error) {
         console.error('Error fetching order details:', error);
