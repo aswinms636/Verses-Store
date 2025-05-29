@@ -7,6 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const moment = require('moment');
 const easyinvoice = require('easyinvoice');
+const Address = require('../../models/addressSchema');
 
 const getUserOrders = async (req, res) => {
     try {
@@ -85,23 +86,50 @@ const getUserOrders = async (req, res) => {
 const viewOrderDetails = async (req, res) => {
     try {
         const orderId = req.params.id;
-        const order = await Order.findById(orderId).populate('orderItems.product') .exec();
 
-        console.log('orderID',orderId)
 
-        if (!order) {
-            return res.status(404).send('Order not found');
-        }
+        const orders=await Order.findById(orderId)
+        const user=req.session.user._id
+        const userAddress= await Address.findOne({ userId: user })
+
+        console.log('userAddress',userAddress)
+
+        const address=userAddress.address.find((addr) => addr._id.toString() === orders.address.toString());
+
+        console.log('address',address)
+
+
 
         
-        if (order.userId.toString() !== req.session.user._id.toString()) {
-            return res.status(403).send('Unauthorized');
+        const order = await Order.findById(orderId)
+            .populate({
+                path: 'orderItems.product',
+                select: 'productName productImage price'
+            })
+            
+            .lean()
+            .exec();
+
+        if (!order) {
+            return res.status(404).render('orderFullDetails', {
+                error: true,
+                message: 'Order not found'
+            });
         }
 
-        res.render('orderFullDetails', { order });
+        res.render('orderFullDetails', {
+            order,
+            address,
+            error: false,
+            message: ''
+        });
+
     } catch (err) {
         console.error('Error loading order details:', err);
-        res.status(500).send('Internal Server Error');
+        res.status(500).render('orderFullDetails', {
+            error: true,
+            message: 'Internal Server Error'
+        });
     }
 };
 
