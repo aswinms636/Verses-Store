@@ -41,12 +41,29 @@ const addAddress = async (req, res) =>{
         
         const {fullname,phone,street,city,landmark,state,zipCode} = req.body;
 
-        console.log(req.body);
+        console.log("req.body",req.body);
+
+        const newAddressData={
+                fullname:fullname,
+                phone:phone,
+                street:street,
+                city:city,
+                landmark:landmark,
+                state:state,
+                zipCode:zipCode,
+                
+            }
         
 
-          console.log("2");
-          
-        const  newAddress = new Address({
+        const existingAddress=await Address.findOne({userId:userId})
+        console.log('existing',existingAddress)
+
+        if(existingAddress){
+            existingAddress.address.push(newAddressData)
+            console.log('updated address',existingAddress)
+            existingAddress.save()
+        }else{
+            const  newAddress = new Address({
             userId:userId,
             address:[
 
@@ -60,17 +77,12 @@ const addAddress = async (req, res) =>{
                 
             }
             ]
-
         });
-        
-        
-
-        await newAddress.save();
+         await newAddress.save();
         console.log("22");
         console.log(newAddress);
-        
-
-        
+        }
+          
         res.json({success: true , message: "Address added successfully"});
 
     } catch (error) {
