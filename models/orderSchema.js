@@ -87,12 +87,9 @@ const orderSchema = new Schema({
         required: true
     },
     address: {
-        fullname: String,
-        street: String,
-        city: String,
-        state: String,
-        zipCode: String,
-        phone: String 
+        type: Schema.Types.ObjectId,
+        required: true,
+        ref: 'Address'
     },
     invoiceDate: {
         type: Date

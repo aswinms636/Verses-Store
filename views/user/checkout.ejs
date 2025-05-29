@@ -356,10 +356,11 @@
             <!-- Shipping Address -->
             <div class="card">
                 <h2>Shipping Address</h2>
+                <!-- Update the address select dropdown -->
                 <select id="addressSelect" class="dropdown">
                     <% if (userAddresses && userAddresses.length > 0) { %>
                         <% userAddresses.forEach(address => { %>
-                            <option value="<%= address._id %>">
+                            <option value="<%= address._id.toString() %>">
                                 <%= address.fullname %>, <%= address.street %>, <%= address.city %>, <%= address.state %> - <%= address.zipCode %>
                             </option>
                         <% }) %>
@@ -496,7 +497,7 @@
             select.selectedIndex = 0;
         }
 
-        // Modify the placeOrder function to include subtotal validation and proper amount calculations
+        // Replace or update the placeOrder function in your script section
 
 async function placeOrder() {
     try {
@@ -522,14 +523,14 @@ async function placeOrder() {
             await handleRazorpayPayment(addressId);
         } else {
             const orderData = {
-                addressId,
+                addressId, // Make sure this is properly passed
                 paymentMethod,
                 couponCode: currentCoupon ? currentCoupon.code : null,
                 subTotal: amounts.subTotal,
                 taxAmount: amounts.taxAmount,
                 gstAmount: amounts.gstAmount,
                 actualPrice: amounts.actualPrice,
-                payableAmount: amounts.finalAmount // Use finalAmount instead of payableAmount
+                payableAmount: amounts.finalAmount
             };
 
             const response = await fetch("/place", {

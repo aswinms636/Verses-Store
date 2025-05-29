@@ -408,7 +408,7 @@
             });
         }
 
-        // Replace the existing checkout button handler with this
+        // Replace the existing checkout button handler with this new version
         document.querySelector('.checkout-btn').addEventListener('click', async function(e) {
             e.preventDefault();
 
@@ -427,26 +427,27 @@
                 const response = await fetch('/checkout', {
                     method: 'GET',
                     headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
+                        'Accept': 'application/json'
                     }
                 });
 
                 const data = await response.json();
 
-                // Close loading state
-                Swal.close();
+               
+                
 
-                if (data.success === false) {
+                if (!data.success) {
                     // Show error message
                     Swal.fire({
                         icon: 'error',
                         title: 'Oops...',
-                        text: data.message,
+                        text: data.message || 'Something went wrong!',
                         confirmButtonColor: '#ff6c00'
                     });
                     return;
                 }
+
+                Swal.close();
 
                 // If successful, redirect to checkout page
                 window.location.href = '/checkout';

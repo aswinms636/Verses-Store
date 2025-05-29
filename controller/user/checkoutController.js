@@ -30,6 +30,7 @@ const getCheckoutPage = async (req, res) => {
             
             if (!product) {
                 return res.status(400).json({
+                    success: false,
                     message: `Product not found`
                 });
             }
@@ -39,6 +40,7 @@ const getCheckoutPage = async (req, res) => {
 
             if (typeof sizeStock === 'undefined' || sizeStock < item.quantity) {
                 return res.status(400).json({
+                    success: false,
                     message: `Insufficient stock for product ${product.productName}, size ${item.size}. Available: ${sizeStock || 0}`,
                 });
             }
@@ -64,14 +66,28 @@ const getCheckoutPage = async (req, res) => {
             totalAmount = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
         }
 
-        res.render("checkout", {
+        // Check the request's Accept header to determine the response type
+        if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+            return res.json({
+                success: true, 
+                message: "Checkout page loaded successfully"
+            });
+        }
+
+        return res.render("checkout", {
             cartItems,
             userAddresses,
             totalAmount
         });
     } catch (error) {
         console.error("Error in getCheckoutPage:", error);
-        res.status(500).send("Server error");
+        if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+            return res.status(500).json({ 
+                success: false, 
+                message: "Server error" 
+            });
+        }
+        return res.status(500).send("Server error");
     }
 };
 
@@ -186,6 +202,21 @@ const placedOrder = async (req, res) => {
         const { addressId, paymentMethod, couponCode, actualPrice, payableAmount, taxAmount, gstAmount, subTotal } = req.body;
         const userId = req.session.user._id;
 
+        // Validate address
+        const addressDoc = await Address.findOne({ 
+            userId: userId, 
+            "address._id": addressId 
+        });
+
+        if (!addressDoc || !addressDoc.address.find(addr => addr._id.toString() === addressId)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Invalid address selected" 
+            });
+        }
+
+        const selectedAddress = addressDoc.address.find(addr => addr._id.toString() === addressId);
+
         // Add validation for subtotal and related amounts
         if (!subTotal || subTotal <= 0) {
             return res.status(400).json({ 
@@ -223,14 +254,6 @@ const placedOrder = async (req, res) => {
                 message: "Invalid final amount calculation"
             });
         }
-
-        // Validate address
-        const addressDoc = await Address.findOne({ userId: userId, "address._id": addressId });
-        if (!addressDoc || !addressDoc.address.find(addr => addr._id.toString() === addressId)) {
-            return res.status(400).json({ success: false, message: "Invalid address selected" });
-        }
-
-        const selectedAddress = addressDoc.address.find(addr => addr._id.toString() === addressId);
 
         // Get cart with populated product details
         const cart = await Cart.findOne({ userId }).populate('items.productId');
@@ -316,14 +339,7 @@ const placedOrder = async (req, res) => {
                     totalPrice: totalPrice,
                     totalAmount: totalPrice,
                     paymentMethod,
-                    address: {
-                        fullname: selectedAddress.fullname,
-                        street: selectedAddress.street,
-                        city: selectedAddress.city,
-                        state: selectedAddress.state,
-                        zipCode: selectedAddress.zipCode,
-                        phone: selectedAddress.phone
-                    },
+                    address: addressId, // Store the address ID instead of the address object
                     status: "Pending",
                     actualPrice,
                     payableAmount,
