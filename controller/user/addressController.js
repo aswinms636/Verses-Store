@@ -1,5 +1,6 @@
 const Address = require('../../models/addressSchema');
 const User = require('../../models/userSchema');
+const mongoose = require('mongoose');
 
 
 
@@ -81,50 +82,101 @@ const addAddress = async (req, res) =>{
 
 const editAddress = async (req, res) => {
     try {
-      const { id, fullname, city, street, landmark, state, zipCode, phone } = req.body;
+        const { id, fullname, city, street, landmark, state, zipCode, phone } = req.body;
+        const userId = req.session.user._id;
 
-      console.log('req.body-====================',req.body);
-  
-      
-      const addressDoc = await Address.findOne({ "address._id": id });
+        // Start a session for transaction
+        const session = await mongoose.startSession();
+        session.startTransaction();
 
-      console.log(addressDoc)
-  
-      if (!addressDoc) {
-        return res.status(404).json({ success: false, message: "Address not found." });
-      }
-  
-     
-      const addressToUpdate = addressDoc.address.id(id);
+        try {
+            // Update address in Address collection
+            const addressDoc = await Address.findOne({ "address._id": id });
+            
+            if (!addressDoc) {
+                throw new Error("Address not found.");
+            }
 
-      console.log('-------',addressToUpdate)
-  
-      if (!addressToUpdate) {
-        return res.status(404).json({ success: false, message: "Address not found." });
-      }
-  
-      
-      addressToUpdate.fullname = fullname;
-      addressToUpdate.city = city;
-      addressToUpdate.street = street;
-      addressToUpdate.landmark = landmark;
-      addressToUpdate.state = state;
-      addressToUpdate.zipCode = zipCode;
-      addressToUpdate.phone = phone;
-  
-      
-      await addressDoc.save();
+            const addressToUpdate = addressDoc.address.id(id);
+            
+            if (!addressToUpdate) {
+                throw new Error("Address not found.");
+            }
 
+            // Store old address values for comparison
+            const oldAddress = {
+                fullname: addressToUpdate.fullname,
+                city: addressToUpdate.city,
+                street: addressToUpdate.street,
+                landmark: addressToUpdate.landmark,
+                state: addressToUpdate.state,
+                zipCode: addressToUpdate.zipCode,
+                phone: addressToUpdate.phone
+            };
 
-      console.log("-------------------------------");
-      
-  
-      res.status(200).json({ success: true, message: "Address updated successfully!" });
+            // Update address values
+            addressToUpdate.fullname = fullname;
+            addressToUpdate.city = city;
+            addressToUpdate.street = street;
+            addressToUpdate.landmark = landmark;
+            addressToUpdate.state = state;
+            addressToUpdate.zipCode = zipCode;
+            addressToUpdate.phone = phone;
+
+            await addressDoc.save({ session });
+
+            // Find and update matching addresses in orders
+            const orders = await Order.find({
+                userId: userId,
+                'address.fullname': oldAddress.fullname,
+                'address.street': oldAddress.street,
+                'address.city': oldAddress.city,
+                'address.state': oldAddress.state,
+                'address.zipCode': oldAddress.zipCode,
+                'address.phone': oldAddress.phone
+            });
+
+            // Update matching orders
+            if (orders.length > 0) {
+                const updatePromises = orders.map(order => {
+                    order.address = {
+                        fullname,
+                        street,
+                        city,
+                        state,
+                        zipCode,
+                        phone
+                    };
+                    return order.save({ session });
+                });
+
+                await Promise.all(updatePromises);
+            }
+
+            // Commit transaction
+            await session.commitTransaction();
+            session.endSession();
+
+            res.status(200).json({
+                success: true,
+                message: "Address updated successfully in both address book and orders!"
+            });
+
+        } catch (error) {
+            // Rollback transaction on error
+            await session.abortTransaction();
+            session.endSession();
+            throw error;
+        }
+
     } catch (error) {
-      console.error("Error updating address:", error);
-      res.status(500).json({ success: false, message: "Failed to update address." });
+        console.error("Error updating address:", error);
+        res.status(500).json({
+            success: false,
+            message: error.message || "Failed to update address."
+        });
     }
-  };
+};
   
 
   const deleteAddress = async (req, res) => {
@@ -172,26 +224,4 @@ module.exports = {
 
 
 
-  // try {
-  //   const {name,description}=req.body
-
-  //   const existingCatogory=Category.findOne(name)
-
-  //   if(existingCatogory){
-  //     res.json({message:"Category already existing"})
-  //   }
-
-
-  //  const category= new Category{
-  //   name:name,
-  //   description:description
-  //  }
-
-
-  //  category.save()
-
-  //  res.json({message:" category added successfully"})
-    
-  // } catch (error) {
-  //   res.json({message:"server errror"})
-  // }
+ 

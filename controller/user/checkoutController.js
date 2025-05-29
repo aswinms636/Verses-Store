@@ -21,43 +21,31 @@ const getCheckoutPage = async (req, res) => {
 
         // Check if cart exists and has items
         if (!cart || !cart.items.length) {
-            return res.json({
-                success: false,
-                message: "Your cart is empty"
-            });
+            return res.redirect("/cart");
         }
         
         // Verify stock for each item
-        let stockError = null;
         for (const item of cart.items) {
             const product = await Product.findOne({ _id: item.productId._id });
             
             if (!product) {
-                stockError = {
-                    success: false,
-                    message: `Product ${item.productId.productName} is no longer available`
-                };
-                break;
+                return res.status(400).json({
+                    message: `Product not found`
+                });
             }
 
             // Check size availability from the sizes object
             const sizeStock = product.sizes[item.size];
 
             if (typeof sizeStock === 'undefined' || sizeStock < item.quantity) {
-                stockError = {
-                    success: false,
-                    message: `Insufficient stock for ${product.productName}, size ${item.size}. Available: ${sizeStock || 0}`
-                };
-                break;
+                return res.status(400).json({
+                    message: `Insufficient stock for product ${product.productName}, size ${item.size}. Available: ${sizeStock || 0}`,
+                });
             }
-        }
-
-        // If there's a stock error, return it
-        if (stockError) {
-            return res.status(400).json(stockError);
         }
        
         const userAddressDoc = await Address.findOne({ userId });
+
         let cartItems = [];
         let totalAmount = 0;
         let userAddresses = userAddressDoc ? userAddressDoc.address : [];
@@ -76,27 +64,14 @@ const getCheckoutPage = async (req, res) => {
             totalAmount = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
         }
 
-        // Return success response with data
-        if (req.xhr || req.headers.accept.includes('application/json')) {
-            return res.json({
-                success: true,
-                message: "Stock verification successful"
-            });
-        }
-
-        // Render checkout page if it's a regular request
         res.render("checkout", {
             cartItems,
             userAddresses,
             totalAmount
         });
-
     } catch (error) {
         console.error("Error in getCheckoutPage:", error);
-        res.status(500).json({
-            success: false,
-            message: "An error occurred while processing your request"
-        });
+        res.status(500).send("Server error");
     }
 };
 
