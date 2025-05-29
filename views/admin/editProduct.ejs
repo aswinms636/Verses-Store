@@ -543,7 +543,7 @@
                 displayErrorMessage('salePrice-error', 'Please enter a valid sale price');
                 isValid = false;
             }
-            if (parseFloat(salePrice) >= parseFloat(price)) {
+            if (parseFloat(salePrice) > parseFloat(price)) {
                 displayErrorMessage('salePrice-error', 'Sale price must be less than regular price');
                 isValid = false;
             }
