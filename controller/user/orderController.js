@@ -314,6 +314,16 @@ const downloadInvoice = async (req, res) => {
             });
         }
 
+
+        const userAddress = await Address.findOne({ userId: order.userId._id });
+        const address = userAddress.address.find(addr => addr._id.toString() === order.address.toString());
+        if (!address) {
+            return res.status(404).json({
+                success: false,
+                message: 'Address not found for this order'
+            });
+        }
+
         // Format products for invoice
         const products = order.orderItems.map(item => ({
             description: item.product.productName,
@@ -332,18 +342,18 @@ const downloadInvoice = async (req, res) => {
             marginBottom: 25,
             logo: 'https://public/images/your-logo.png', // Add your logo URL here
             sender: {
-                company: 'Your Company Name',
+                company: 'Verses Store',
                 address: 'Your Company Address',
                 zip: 'ZIP Code',
                 city: 'City',
                 country: 'Country'
             },
             client: {
-                company: order.address.fullname,
-                address: order.address.street,
-                zip: order.address.zipCode,
-                city: order.address.city,
-                state: order.address.state,
+                company: address.fullname,
+                address: address.street,
+                zip: address.zipCode,
+                city: address.city,
+                state: address.state,
                 country: 'India'
             },
             information: {
