@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-   
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Wishlist</title>
@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="css/magnific-popup.css">
     <link rel="stylesheet" href="css/main.css">
     <link href="/admin-assets/css/main.css" rel="stylesheet" type="text/css" />
-    <link rel="stylesheet" href="/styles.css"> <!-- Link to your CSS file -->
+    <link rel="stylesheet" href="/styles.css">
     <style>
         /* Import Google Fonts */
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
@@ -40,7 +40,7 @@
             font-weight: 600;
             position: relative;
         }
-        
+
         .cart-header:after {
             content: '';
             display: block;
@@ -137,12 +137,12 @@
                 flex-direction: column;
                 text-align: center;
             }
-            
+
             .wishlist-item-image {
                 margin-right: 0;
                 margin-bottom: 15px;
             }
-            
+
             .wishlist-item-info {
                 text-align: center;
             }
@@ -231,25 +231,25 @@
 <body>
     <!-- Start Header Area -->
     <header class="header_area sticky-header">
-		<div class="main_menu">
-			<nav class="navbar navbar-expand-lg navbar-light main_box">
-				<div class="container">
-					<!-- Brand and toggle get grouped for better mobile display -->
-					<a class="navbar-brand logo_h" href="index.html"><img src="img/logo.png" alt=""></a>
-					<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-					 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-					</button>
-					<!-- Collect the nav links, forms, and other content for toggling -->
-					<div class="collapse navbar-collapse offset" id="navbarSupportedContent">
-						<ul class="nav navbar-nav menu_nav ml-auto">
-							<li class="nav-item active"><a class="nav-link" href="/">Home</a></li>
-							<li class="nav-item"><a class="nav-link" href="/shop">Shop</a></li>
-							<li class="nav-item"><a class="nav-link" href="/about">About</a></li>
-							
-							<% if (typeof user !== 'undefined' && user) { %>
+        <div class="main_menu">
+            <nav class="navbar navbar-expand-lg navbar-light main_box">
+                <div class="container">
+                    <!-- Brand and toggle get grouped for better mobile display -->
+                    <a class="navbar-brand logo_h" href="index.html"><img src="img/logo.png" alt=""></a>
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                     aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <!-- Collect the nav links, forms, and other content for toggling -->
+                    <div class="collapse navbar-collapse offset" id="navbarSupportedContent">
+                        <ul class="nav navbar-nav menu_nav ml-auto">
+                            <li class="nav-item active"><a class="nav-link" href="/">Home</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/shop">Shop</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/about">About</a></li>
+
+                            <% if (typeof user !== 'undefined' && user) { %>
                                 <!-- When logged in, display the user's name with a dropdown -->
                                 <li class="nav-item submenu dropdown">
                                   <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
@@ -265,24 +265,24 @@
                                 <li class="nav-item"><a class="nav-link" href="/signin">Sign in</a></li>
                                 <li class="nav-item"><a class="nav-link" href="/signup">Sign Up</a></li>
                               <% } %>
-							
-						</ul>
-						<ul class="nav navbar-nav navbar-right">
-							<li class="nav-item"><a href="/cart" class="cart"><span class="ti-bag"></span></a></li>
-							<li class="nav-item">
-								<a href="/wishlist" class="wishlist" title="Wishlist">
-									<span class="ti-heart"></span>
-								</a>
-							</li>
-							<li class="nav-item">
-								<button class="search"><span class="lnr lnr-magnifier" id="search"></span></button>
-							</li>
-						</ul>
-					</div>
-				</div>
-			</nav>
-		</div>
-	</header>
+
+                        </ul>
+                        <ul class="nav navbar-nav navbar-right">
+                            <li class="nav-item"><a href="/cart" class="cart"><span class="ti-bag"></span></a></li>
+                            <li class="nav-item">
+                                <a href="/wishlist" class="wishlist" title="Wishlist">
+                                    <span class="ti-heart"></span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <button class="search"><span class="lnr lnr-magnifier" id="search"></span></button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
     <!-- End Header Area -->
 
     <!-- Start Banner Area -->
@@ -308,21 +308,27 @@
         <% if (wishlist && wishlist.items.length > 0) { %>
             <div class="wishlist-items">
                 <% wishlist.items.forEach(item => { %>
-                    <div class="wishlist-item">
-                        <a href="/productDetails/<%= item.productId._id %>"><img src="/Uploads/product-Images/<%= item.productId.productImage[0] %>" 
-                             alt="<%= item.productId.productName %>" 
-                             class="wishlist-item-image"></a>
-                        <div class="wishlist-item-info">
-                            <h3><%= item.productId.productName %></h3>
-                            <p><%= item.productId.description %></p>
-                            <p class="price-info">Price: ₹<%= item.productId.salePrice %></p>
-                            <form onsubmit="showRemoveAlert(event, '<%= item.productId._id %>')">
-                                <input type="hidden" name="productId" value="<%= item.productId._id %>">
-                                <button type="submit" class="remove-btn">Remove from Wishlist</button>
-                            </form>
+                    <% if (item.productId) { %>
+                        <div class="wishlist-item">
+                            <a href="/productDetails/<%= item.productId._id %>">
+                                <img src="/Uploads/product-Images/<%= item.productId.productImage[0] %>"
+                                     alt="<%= item.productId.productName %>"
+                                     class="wishlist-item-image">
+                            </a>
+                            <div class="wishlist-item-info">
+                                <h3><%= item.productId.productName %></h3>
+                                <p><%= item.productId.description %></p>
+                                <p class="price-info">Price: ₹<%= item.productId.salePrice %></p>
+                                <form onsubmit="showRemoveAlert(event, '<%= item.productId._id %>')">
+                                    <input type="hidden" name="productId" value="<%= item.productId._id %>">
+                                    <button type="submit" class="remove-btn">Remove from Wishlist</button>
+                                </form>
+                            </div>
                         </div>
-                    </div>
-                <% }) %>
+                    <% } else { %>
+                        <p>Product not available</p>
+                    <% } %>
+                <% }); %>
             </div>
         <% } else { %>
             <div class="empty-wishlist-message">
@@ -364,7 +370,7 @@
                 if (result.success) {
                     Swal.fire({
                         icon: 'success',
-                        title: '有效',
+                        title: 'Success',
                         text: result.message
                     }).then(() => {
                         location.reload();
@@ -372,7 +378,7 @@
                 } else {
                     Swal.fire({
                         icon: 'error',
-                        title: '错误',
+                        title: 'Error',
                         text: result.message || 'Failed to remove item!'
                     });
                 }
@@ -381,19 +387,19 @@
             }
         }
     </script>
-    
+
     <!-- Required JavaScript Files -->
     <script src="js/vendor/jquery-2.2.4.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
-	<script src="js/vendor/bootstrap.min.js"></script>
-	<script src="js/jquery.ajaxchimp.min.js"></script>
-	<script src="js/jquery.nice-select.min.js"></script>
-	<script src="js/jquery.sticky.js"></script>
-	<script src="js/nouislider.min.js"></script>
-	<script src="js/countdown.js"></script>
-	<script src="js/jquery.magnific-popup.min.js"></script>
-	<script src="js/owl.carousel.min.js"></script>
-    <script src="/script.js"></script> <!-- Link to your JavaScript file if needed -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+    <script src="js/vendor/bootstrap.min.js"></script>
+    <script src="js/jquery.ajaxchimp.min.js"></script>
+    <script src="js/jquery.nice-select.min.js"></script>
+    <script src="js/jquery.sticky.js"></script>
+    <script src="js/nouislider.min.js"></script>
+    <script src="js/countdown.js"></script>
+    <script src="js/jquery.magnific-popup.min.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="/script.js"></script>
 
     <!-- Start Footer Area -->
     <footer class="footer-area section_gap">
@@ -447,7 +453,7 @@
             </div>
             <div class="footer-bottom d-flex justify-content-center align-items-center flex-wrap">
                 <p class="footer-text m-0">
-                    Copyright &copy;<script>document.write(new Date().getFullYear());</script> 
+                    Copyright &copy;<script>document.write(new Date().getFullYear());</script>
                     All rights reserved | Verses Store
                 </p>
             </div>

@@ -1,7 +1,7 @@
 const Cart = require("../../models/cartSchema");
 const Product = require("../../models/productSchema");
 const Wishlist = require("../../models/wishlistSchema");
-const mongoose = require('mongoose');
+
 
 
 const getWishlist = async (req, res) => {
