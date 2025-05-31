@@ -110,6 +110,10 @@ const addCategoryOffer = async (req, res) => {
         // Update product prices in this category
         const products = await Product.find({ category: categoryId });
         for (const product of products) {
+            if(product.productOffer > offerPercentage){
+                return res.json({status: false, message: "Product offer is greater than category offer"});
+            }
+
             if (!product.productOffer || product.productOffer < offerPercentage) {
                 const discountAmount = Math.floor(product.regularPrice * (offerPercentage / 100));
                 product.salePrice = product.regularPrice - discountAmount;

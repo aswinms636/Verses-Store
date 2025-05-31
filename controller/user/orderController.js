@@ -314,7 +314,6 @@ const downloadInvoice = async (req, res) => {
             });
         }
 
-
         const userAddress = await Address.findOne({ userId: order.userId._id });
         const address = userAddress.address.find(addr => addr._id.toString() === order.address.toString());
         if (!address) {
@@ -328,14 +327,21 @@ const downloadInvoice = async (req, res) => {
         const products = order.orderItems.map(item => ({
             description: item.product.productName,
             quantity: item.quantity,
-            price: item.price,
+            price: order.totalAmount,
             size: item.size,
-            'tax-rate': 0
+            'tax-rate': item.gstAmount || 0 // Include GST rate for each product
         }));
+
+
+        console.log('products', products);
+
+        
+            
+
 
         const data = {
             currency: 'INR',
-            taxNotation: 'vat',
+            taxNotation: 'gst', // Changed to 'gst' for GST
             marginTop: 25,
             marginRight: 25,
             marginLeft: 25,
@@ -343,10 +349,10 @@ const downloadInvoice = async (req, res) => {
             logo: 'https://public/images/your-logo.png', // Add your logo URL here
             sender: {
                 company: 'Verses Store',
-                address: 'Your Company Address',
-                zip: 'ZIP Code',
-                city: 'City',
-                country: 'Country'
+                address: 'Karukappilly building 3rd floor, Near St. Antony\'s Church,Kakkanad',
+                zip: '652512',
+                city: 'Kochi',
+                country: 'India'
             },
             client: {
                 company: address.fullname,
@@ -362,10 +368,10 @@ const downloadInvoice = async (req, res) => {
                 'due-date': moment(order.createdOn).format('YYYY-MM-DD')
             },
             products: products,
-            'bottom-notice': 'Thank you for your purchase!',
+            'bottom-notice': `Thank you for your purchase!\nGST Amount: ${order.gstAmount*2 || 0}`,
             settings: {
                 currency: 'INR',
-                'tax-notation': 'vat',
+                'tax-notation': 'gst', // Changed to 'gst' for GST
                 'margin-top': 50,
                 'margin-right': 50,
                 'margin-left': 50,
@@ -380,7 +386,7 @@ const downloadInvoice = async (req, res) => {
         // Set headers for PDF download
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename=invoice_${orderId}.pdf`);
-        
+
         // Send the PDF
         res.send(pdfBuffer);
 
@@ -392,6 +398,8 @@ const downloadInvoice = async (req, res) => {
         });
     }
 };
+
+
 
 
 module.exports = {
