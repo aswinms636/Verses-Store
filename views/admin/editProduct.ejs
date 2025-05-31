@@ -240,7 +240,7 @@
                                     </div>
                                     <div class="col-lg-4">
                                         <div class="mb-4">
-                                            <label class="form-label">Sale price</label>
+                                            <label class="form-label">Offer Price</label>
                                             <input name="salePrice" type="text" value="<%=product.salePrice%>" class="form-control">
                                             <div id="salePrice-error" class="error-message"></div>
                                         </div>
@@ -540,11 +540,11 @@
 
             // Validate Sale Price
             if (!salePrice || !/^\d+(\.\d{1,2})?$/.test(salePrice) || parseFloat(salePrice) < 0) {
-                displayErrorMessage('salePrice-error', 'Please enter a valid sale price');
+                displayErrorMessage('salePrice-error', 'Please enter a valid offer price');
                 isValid = false;
             }
             if (parseFloat(salePrice) > parseFloat(price)) {
-                displayErrorMessage('salePrice-error', 'Sale price must be less than regular price');
+                displayErrorMessage('salePrice-error', 'offer price must be less than  or equal to regular price');
                 isValid = false;
             }
 

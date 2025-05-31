@@ -117,6 +117,7 @@ const addProducts = async (req, res) => {
                 message: "Invalid category"
             });
         }
+        
 
         const brand = await Brand.findById(products.brand);
         console.log('brand',brand)
@@ -406,6 +407,11 @@ const editProduct = async (req, res, next) => {
                 error: "Invalid category selected"
             });
         }
+
+        if(category){
+            data.salePrice=data.regularPrice - Math.floor(data.regularPrice * (category.categoryOffer / 100));
+        }
+        console.log('update offer price',data.salePrice)
 
         // Initialize images with existing images
         let images = product.productImage || [];
