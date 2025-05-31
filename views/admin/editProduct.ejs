@@ -347,6 +347,23 @@
         document.getElementById("imageInput").addEventListener("change", handleFileSelect);
 
         function handleFileSelect(event) {
+            const fileInput = event.target;
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!validTypes.includes(file.type)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Format',
+                text: 'Only images are allowed'
+            });
+            fileInput.value = '';
+            return;
+        }
+
+
+
             const addedImagesContainer = document.getElementById("addedImagesContainer");
             const files = event.target.files;
             for (let i = 0; i < files.length; i++) {
