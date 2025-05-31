@@ -117,7 +117,12 @@ const addProducts = async (req, res) => {
                 message: "Invalid category"
             });
         }
-        
+
+
+         if(category){
+            products.salePrice=products.regularPrice - Math.floor(products.regularPrice * (category.categoryOffer / 100));
+        }
+        console.log('update offer price',products.salePrice)
 
         const brand = await Brand.findById(products.brand);
         console.log('brand',brand)
