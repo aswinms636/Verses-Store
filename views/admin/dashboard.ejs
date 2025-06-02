@@ -424,6 +424,22 @@
       background-color: #f0f5ff;
     }
 
+    .top-seller-item .item-stats {
+      font-size: 13px;
+      color: #64748b;
+      display: block;
+      margin-top: 4px;
+    }
+
+    .top-seller-item[data-cancelled="true"] {
+      border-left: 3px solid #dc3545;
+      background-color: #fff5f5;
+    }
+
+    .top-seller-item[data-cancelled="true"]:hover {
+      background-color: #fff0f0;
+    }
+
     .rank {
       width: 30px;
       height: 30px;
@@ -866,6 +882,34 @@
                 </div>
               </div>
             <% } %>
+          </div>
+        </div>
+
+        <div class="top-seller-section">
+          <h3>Recent Cancelled Orders</h3>
+          <div class="top-seller-list" id="topCanceled">
+              <% if (topCanceledOrders && topCanceledOrders.length > 0) { %>
+                  <% topCanceledOrders.forEach((order, index) => { %>
+                      <div class="top-seller-item">
+                          <span class="rank"><%= index + 1 %></span>
+                          <div class="item-details">
+                              <span class="item-name">Order #<%= order.orderId %></span>
+                              <span class="item-stats">
+                                  Customer: <%= order.user.name %> | 
+                                  Amount: ₹<%= order.totalAmount.toLocaleString() %> |
+                                  Date: <%= new Date(order.createdOn).toLocaleDateString() %> |
+                                  Payment: <%= order.paymentMethod %>
+                              </span>
+                          </div>
+                      </div>
+                  <% }); %>
+              <% } else { %>
+                  <div class="top-seller-item">
+                      <div class="item-details">
+                          <span class="item-name">No cancelled orders in this period</span>
+                      </div>
+                  </div>
+              <% } %>
           </div>
         </div>
       </div>

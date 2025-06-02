@@ -316,6 +316,36 @@ const loadDashboard = async (req, res, next) => {
                 { $sort: { "_id": 1 } }
             ]);
 
+            // Top Canceled Orders
+            const topCanceledOrders = await Order.aggregate([
+                {
+                    $match: {
+                        status: 'Cancelled',
+                        createdOn: { $gte: start, $lt: end }
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: 'userId',
+                        foreignField: '_id',
+                        as: 'user'
+                    }
+                },
+                { $unwind: '$user' },
+                {
+                    $project: {
+                        orderId: 1,
+                        createdOn: 1,
+                        totalAmount: 1,
+                        'user.name': 1,
+                        paymentMethod: 1
+                    }
+                },
+                { $sort: { createdOn: -1 } },
+                { $limit: 10 }
+            ]);
+
             res.render("dashboard", {
                 stats: {
                     // Existing stats
@@ -353,6 +383,7 @@ const loadDashboard = async (req, res, next) => {
                     totalQuantity: parseInt(brand.totalQuantity)
                 })),
                 chartData: dailyData,
+                topCanceledOrders,
                 startDate,
                 endDate
             });
