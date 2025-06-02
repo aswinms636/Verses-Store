@@ -33,7 +33,7 @@ class ReportGenerator {
         worksheet.addRow(['Period', `${period.startDate} to ${period.endDate}`]);
         worksheet.addRow(['Total Sales', `₹${data.periodSales.total}`]);
         worksheet.addRow(['Total Orders', data.periodSales.orders]);
-        worksheet.addRow(['Average Order Value', `₹${data.periodSales.averageOrder}`]);
+        
         worksheet.addRow(['Total Items Sold', data.periodSales.items]);
 
         // Style the headers
@@ -68,7 +68,7 @@ class ReportGenerator {
         doc.fontSize(12);
         doc.text(`Total Sales: ₹${data.periodSales.total}`);
         doc.text(`Total Orders: ${data.periodSales.orders}`);
-        doc.text(`Average Order Value: ₹${data.periodSales.averageOrder}`);
+        
         doc.text(`Total Items Sold: ${data.periodSales.items}`);
         doc.moveDown();
 

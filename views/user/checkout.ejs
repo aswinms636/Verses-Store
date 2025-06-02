@@ -549,7 +549,7 @@ async function placeOrder() {
                 });
                 
                 const orderId = Array.isArray(data.orders) ? data.orders[0] : data.orders;
-                window.location.href = `/order/view/${orderId}`;
+                window.location.href = `/orders`;
             } else {
                 Swal.fire("Error", data.message || "Order placement failed", "error");
             }
@@ -638,7 +638,7 @@ async function placeOrder() {
                             text: "Payment successful and order placed!",
                             icon: "success"
                         });
-                        window.location.href = `/order/view/${data.dbOrderId}`;
+                        window.location.href = '/orders'
                     } else {
                         throw new Error(verifyData.message || "Payment verification failed");
                     }
