@@ -27,6 +27,82 @@
             border: none;
             cursor: pointer;
         }
+
+        .password-requirements {
+            padding: 10px 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            margin: 0;
+            font-size: 0.85rem;
+            width: 100%;
+        }
+
+        .password-requirements div {
+            margin: 5px 0;
+            color: #6c757d;
+        }
+
+        .password-requirements .fas {
+            margin-right: 8px;
+            font-size: 0.7rem;
+        }
+
+        .password-requirements .text-success {
+            color: #28a745 !important;
+        }
+
+        .login_box_area {
+            padding: 50px 0;
+        }
+
+        .login_box_img {
+            height: 100%;
+            position: relative;
+        }
+
+        .login_box_img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .login_form_inner {
+            background: #fff;
+            padding: 40px 30px;
+            height: 100%;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.07);
+            border-radius: 4px;
+        }
+
+        .row.height-match {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .height-match > [class*='col-'] {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        /* Make sure form takes full width */
+        .login_form {
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .login_box_area {
+                padding: 30px 0;
+            }
+            
+            .login_form_inner {
+                padding: 30px 20px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -53,7 +129,7 @@
     <!--================Register Box Area =================-->
     <section class="login_box_area section_gap">
         <div class="container">
-            <div class="row">
+            <div class="row height-match">
                 <div class="col-lg-6">
                     <div class="login_box_img">
                         <img class="img-fluid" src="img/login.jpg" alt="Register">
@@ -76,6 +152,26 @@
                                 <button type="button" id="togglePassword" class="toggle-password"><i class="fa-solid fa-eye"></i></button>
                                 <span class="error-message" id="passwordError" style="color: red;"></span>
                             </div>
+                            
+                            <!-- Password requirements indicators -->
+                            <div class="password-requirements mt-2">
+                                <div id="length-check" class="text-muted">
+                                    <i class="fas fa-circle"></i> At least 8 characters
+                                </div>
+                                <div id="uppercase-check" class="text-muted">
+                                    <i class="fas fa-circle"></i> One uppercase letter
+                                </div>
+                                <div id="lowercase-check" class="text-muted">
+                                    <i class="fas fa-circle"></i> One lowercase letter
+                                </div>
+                                <div id="number-check" class="text-muted">
+                                    <i class="fas fa-circle"></i> One number         
+                                </div>
+                                <div id="special-check" class="text-muted">
+                                    <i class="fas fa-circle"></i> One special character
+                                </div>
+                            </div>
+                            
                             <div class="col-md-12 form-group password-container">
                                 <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password">
                                 <button type="button" id="toggleConfirmPassword" class="toggle-password"><i class="fa-solid fa-eye"></i></button>
@@ -116,8 +212,38 @@
     <!-- Include SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-         document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function() {
         const form = document.getElementById("registerForm");
+
+        // Password validation function
+        function validatePassword(password) {
+            const requirements = {
+                length: password.length >= 8,
+                uppercase: /[A-Z]/.test(password),
+                lowercase: /[a-z]/.test(password),
+                number: /[0-9]/.test(password),
+                special: /[@$!%*?&]/.test(password)
+            };
+
+            // Update UI indicators
+            document.getElementById('length-check').className = 
+                requirements.length ? 'text-success' : 'text-muted';
+            document.getElementById('uppercase-check').className = 
+                requirements.uppercase ? 'text-success' : 'text-muted';
+            document.getElementById('lowercase-check').className = 
+                requirements.lowercase ? 'text-success' : 'text-muted';
+            document.getElementById('number-check').className = 
+                requirements.number ? 'text-success' : 'text-muted';
+            document.getElementById('special-check').className = 
+                requirements.special ? 'text-success' : 'text-muted';
+
+            return Object.values(requirements).every(req => req);
+        }
+
+        // Live password validation
+        document.getElementById('password').addEventListener('input', function() {
+            validatePassword(this.value);
+        });
         
         form.addEventListener("submit", function(event) {
             // Clear previous error messages
@@ -131,12 +257,13 @@
             let email = document.getElementById("email").value.trim();
             let password = document.getElementById("password").value;
             let confirmPassword = document.getElementById("confirmPassword").value;
-            const referralCode=document.getElementById('referralCode').value
-    
+            const referralCode = document.getElementById('referralCode').value;
+
             if (!name) {
                 document.getElementById("nameError").textContent = "Name is required.";
                 hasErrors = true;
             }
+            
             if (!email) {
                 document.getElementById("emailError").textContent = "Email is required.";
                 hasErrors = true;
@@ -144,13 +271,17 @@
                 document.getElementById("emailError").textContent = "Invalid email format.";
                 hasErrors = true;
             }
+            
+            // Updated password validation
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
             if (!password) {
                 document.getElementById("passwordError").textContent = "Password is required.";
                 hasErrors = true;
-            } else if (password.length < 6) {
-                document.getElementById("passwordError").textContent = "Password must be at least 6 characters long.";
+            } else if (!passwordRegex.test(password)) {
+                document.getElementById("passwordError").textContent = "Password must meet all requirements.";
                 hasErrors = true;
             }
+            
             if (password !== confirmPassword) {
                 document.getElementById("confirmPasswordError").textContent = "Passwords do not match.";
                 hasErrors = true;
@@ -160,12 +291,12 @@
                 event.preventDefault();
             }
         });
-    
+
         // Function to toggle password visibility
         function togglePasswordVisibility(inputId, button) {
             let passwordField = document.getElementById(inputId);
             let icon = button.querySelector("i");
-    
+
             if (passwordField.type === "password") {
                 passwordField.type = "text";
                 icon.classList.replace("fa-eye", "fa-eye-slash");
@@ -174,12 +305,12 @@
                 icon.classList.replace("fa-eye-slash", "fa-eye");
             }
         }
-    
+
         // Attach event listeners to the eye buttons
         document.getElementById("togglePassword").addEventListener("click", function() {
             togglePasswordVisibility("password", this);
         });
-    
+
         document.getElementById("toggleConfirmPassword").addEventListener("click", function() {
             togglePasswordVisibility("confirmPassword", this);
         });

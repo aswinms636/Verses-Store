@@ -270,10 +270,16 @@ const verifyOtp = async (req, res) => {
                 }
             }
 
+
+            const user= await User.findOne({ email: email });
+            req.session.user = user; // Store user in session
+            console.log('User created successfully:', user); 
+
             // Clean up session
             delete req.session.otp;
             delete req.session.otpExpiry;
-            delete req.session.userData;
+           
+            delete req.session.userData // Store user data in session
             
             return res.json({
                 success: true,
