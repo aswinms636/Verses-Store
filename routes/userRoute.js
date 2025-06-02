@@ -96,15 +96,14 @@ router.get("/cart", checkSession,cartController.getCart);
 
 // checkout manegement
 
-router.get("/checkout", checkoutController.getCheckoutPage);
-router.post("/order/place", checkoutController.placeOrder);
-router.post("/address/add",checkoutController.addAddress);
-router.post("/place",checkoutController.placedOrder);
-router.get("/order/view/:orderId",checkoutController.viewOrder);
-router.get('/coupons/available', checkoutController.getAvailableCoupons);
-router.post('/coupons/apply', checkoutController.applyCoupon);
-router.post('/coupons/remove', checkoutController.removeCoupon);
-
+router.get("/checkout", checkSession, checkoutController.getCheckoutPage);
+router.post("/order/place", checkSession, checkoutController.placeOrder);
+router.post("/address/add", checkSession, checkoutController.addAddress);
+router.post("/place", checkSession, checkoutController.placedOrder);
+router.get("/order/view/:orderId", checkSession, checkoutController.viewOrder);
+router.get('/coupons/available', checkSession, checkoutController.getAvailableCoupons); // Remove :id parameter
+router.post('/coupons/apply', checkSession, checkoutController.applyCoupon);
+router.post('/coupons/remove', checkSession, checkoutController.removeCoupon);
 
 
 

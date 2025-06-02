@@ -236,8 +236,21 @@ const verifyPasswordOtp = async (req, res) => {
 const changePassword = async (req, res) => {
     try {
         const userId = req.session.user._id;
-        const { newPassword, confirmPassword } = req.body;
-        console.log('req.body',req.body)
+        const { newPassword, confirmPassword, currentPassword } = req.body;
+        console.log('req.body', req.body);
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.json({ success: false, message: 'User not found' });
+        }
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.json({
+                success: false,
+                message: 'Current password is incorrect'
+            }); 
+        }  // Added missing closing brace here
 
         // Validate inputs
         if (!newPassword || !confirmPassword) {
@@ -257,12 +270,7 @@ const changePassword = async (req, res) => {
             });
         }
 
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.json({ success: false, message: 'User not found' });
-        }
-
-        // Remove current password verification since we already verified via OTP
+        // Hash and save new password
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         user.password = hashedPassword;
         await user.save();

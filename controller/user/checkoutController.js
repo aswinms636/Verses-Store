@@ -469,7 +469,8 @@ const viewOrder = async (req, res) => {
 
 const getAvailableCoupons = async (req, res) => {
     try {
-        const { totalAmount } = req.query;
+        const { totalAmount } = req.params.id;
+        console.log('req',req.params.id)
         const userId = req.session.user._id;
 
         console.log('Fetching coupons for:', { totalAmount, userId });
@@ -484,6 +485,7 @@ const getAvailableCoupons = async (req, res) => {
         });
 
         console.log('Found coupons:', coupons);
+        
 
         res.json({
             success: true,

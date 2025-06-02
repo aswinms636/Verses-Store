@@ -792,7 +792,10 @@ async function placeOrder() {
         async function loadAvailableCoupons() {
             try {
                 const totalAmount = parseFloat(document.getElementById('actualPrice').textContent);
-                const response = await fetch(`/coupons/available?totalAmount=${totalAmount}`);
+                const response = await fetch(`/coupons/available/${totalAmount}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
                 const data = await response.json();
                 
                 const couponsDiv = document.getElementById('couponsList');
