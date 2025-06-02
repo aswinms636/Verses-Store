@@ -5,6 +5,7 @@ const Order = require("../../models/orderSchema");
 const Product = require("../../models/productSchema");
 const Category = require("../../models/categorySchema");
 const Brand = require("../../models/brandSchema");
+const ReportGenerator = require('../../helpers/pdf');
 
 const loadlogin = async (req, res) => {
     try {
@@ -525,7 +526,80 @@ const getChartData = async (req, res) => {
     }
 };
 
+const exportSalesReport = async (req, res) => {
+    try {
+        const { format, startDate, endDate } = req.query;
+        
+        // Fetch the report data (use your existing query logic)
+        const reportData = await generateReportData(startDate, endDate);
+        
+        const period = {
+            startDate: new Date(startDate).toLocaleDateString(),
+            endDate: new Date(endDate).toLocaleDateString()
+        };
 
+        let buffer;
+        let filename;
+        let contentType;
+
+        if (format === 'excel') {
+            buffer = await ReportGenerator.generateExcel(reportData, period);
+            filename = `sales-report-${startDate}-to-${endDate}.xlsx`;
+            contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        } else if (format === 'pdf') {
+            buffer = await ReportGenerator.generatePDF(reportData, period);
+            filename = `sales-report-${startDate}-to-${endDate}.pdf`;
+            contentType = 'application/pdf';
+        } else {
+            throw new Error('Invalid format specified');
+        }
+
+        res.setHeader('Content-Type', contentType);
+        res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+        res.send(buffer);
+
+    } catch (error) {
+        console.error('Export error:', error);
+        res.status(500).json({ error: 'Failed to generate report' });
+    }
+};
+
+// Add this helper function
+async function generateReportData(startDate, endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    end.setDate(end.getDate() + 1);
+
+    // Your existing query logic to fetch sales data
+    const dailySales = await Order.aggregate([
+        {
+            $match: {
+                createdOn: { $gte: start, $lt: end },
+                status: { $in: ["Delivered", "Shipped"] }
+            }
+        },
+        {
+            $group: {
+                _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdOn" } },
+                dailyTotal: { $sum: "$totalAmount" },
+                orderCount: { $sum: 1 },
+                items: { $sum: { $size: "$orderItems" } },
+                discounts: { $sum: "$couponDiscount" }
+            }
+        },
+        { $sort: { "_id": 1 } }
+    ]);
+
+    // Calculate period totals
+    const periodSales = dailySales.reduce((acc, day) => ({
+        total: acc.total + day.dailyTotal,
+        orders: acc.orders + day.orderCount,
+        items: acc.items + day.items,
+        averageOrder: acc.total / acc.orders
+    }), { total: 0, orders: 0, items: 0 });
+
+    return { dailySales, periodSales };
+}
 
 module.exports = {
     adminLogin,
@@ -535,5 +609,6 @@ module.exports = {
     blockUser,
     unblockUser,
     toggleUserStatus,
-    getChartData
+    getChartData,
+    exportSalesReport
 }

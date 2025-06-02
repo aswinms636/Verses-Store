@@ -85,6 +85,8 @@ router.get('/unblockBrand',brandController.unblockBrand)
 router.get('/blockBrand',brandController.blockBrand)
 router.get('/deleteBrand',brandController.deleteBrand)
 
+router.get('/export-sales', adminController.exportSalesReport);
+
 
 
 module.exports = router;
