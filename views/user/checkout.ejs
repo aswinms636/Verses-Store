@@ -271,15 +271,18 @@
 
         .coupon-section {
             margin: 20px 0;
-            padding: 15px;
+            padding: 20px;
             border: 1px solid #ddd;
             border-radius: 8px;
+            width: 100%;
+            grid-column: 1 / -1;
         }
 
         .coupons-container {
             margin-top: 20px;
             display: grid;
             gap: 20px;
+            grid-template-columns: 1fr;
         }
 
         .coupons-section {
@@ -288,64 +291,285 @@
             padding: 15px;
         }
 
-        .coupons-section h3 {
-            color: #333;
-            font-size: 1.1rem;
-            margin-bottom: 10px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #dee2e6;
-        }
-
         .coupons-list {
             display: grid;
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            overflow-x: auto;
         }
 
         .coupon-item {
             background: white;
             border: 1px solid #dee2e6;
             border-radius: 6px;
-            padding: 12px;
+            padding: 15px;
             transition: all 0.3s ease;
-        }
-
-        .coupon-item.available {
-            border-left: 4px solid #28a745;
-            cursor: pointer;
-        }
-
-        .coupon-item.used {
-            border-left: 4px solid #dc3545;
-            opacity: 0.7;
-        }
-
-        .coupon-item:hover.available {
-            transform: translateY(-2px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
         }
 
         .coupon-details {
-            display: grid;
-            gap: 5px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .coupon-info {
+            flex: 1;
         }
 
         .coupon-name {
             font-weight: bold;
             color: #333;
+            margin-bottom: 5px;
+            font-size: 1.1em;
         }
 
         .coupon-discount {
             color: #28a745;
+            font-size: 1em;
+            margin-right: 15px;
         }
 
         .coupon-minimum {
-            font-size: 0.9em;
             color: #666;
+            font-size: 0.9em;
+            margin-right: 15px;
         }
 
         .coupon-expiry {
-            font-size: 0.85em;
             color: #999;
+            font-size: 0.85em;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .coupons-list {
+                grid-template-columns: 1fr;
+            }
+
+            .coupon-details {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .coupon-info {
+                width: 100%;
+            }
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-size: 0.8rem;
+            margin-top: 2px;
+            display: block;
+            min-height: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-control.error {
+            border-color: #dc3545;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 800px;
+            max-width: 95%;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .form-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #ff4757;
+            box-shadow: 0 0 0 2px rgba(255, 71, 87, 0.1);
+            outline: none;
+        }
+
+        .button-group {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .save-btn {
+            flex: 1;
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #ff4757, #ff6b6b);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .save-btn:hover {
+            background: linear-gradient(45deg, #ff6b6b, #ff4757);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.3);
+        }
+
+        .cancel-btn {
+            flex: 1;
+            padding: 12px 25px;
+            background: #f1f2f6;
+            color: #2f3542;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .cancel-btn:hover {
+            background: #dfe4ea;
+            transform: translateY(-2px);
+        }
+
+        .modal-header {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f1f2f6;
+        }
+
+        .modal-header h2 {
+            color: #2f3542;
+            font-size: 1.8rem;
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .form-container {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                padding: 20px;
+                width: 95%;
+            }
+        }
+
+        .coupon-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            width: 100%;
+            grid-column: 1 / -1;
+        }
+
+        .coupons-container {
+            margin-top: 20px;
+            display: grid;
+            gap: 20px;
+            grid-template-columns: 1fr;
+        }
+
+        .coupons-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .coupons-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            overflow-x: auto;
+        }
+
+        .coupon-item {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .coupon-details {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .coupon-info {
+            flex: 1;
+        }
+
+        .coupon-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 1.1em;
+        }
+
+        .coupon-discount {
+            color: #28a745;
+            font-size: 1em;
+            margin-right: 15px;
+        }
+
+        .coupon-minimum {
+            color: #666;
+            font-size: 0.9em;
+            margin-right: 15px;
+        }
+
+        .coupon-expiry {
+            color: #999;
+            font-size: 0.85em;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .coupons-list {
+                grid-template-columns: 1fr;
+            }
+
+            .coupon-details {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .coupon-info {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -445,6 +669,25 @@
 
             </div>
 
+            <div class="coupon-section">
+                
+                <div id="couponDiscount" style="display: none;" class="coupon-discount">
+                    Coupon Discount: ₹<span id="discountAmount">0</span>
+                </div>
+
+                <div class="coupons-container">
+                    <div id="availableCoupons" class="coupons-section">
+                        <h3>Available Coupons</h3>
+                        <div id="availableCouponsList" class="coupons-list"></div>
+                    </div>
+                    
+                    <div id="usedCoupons" class="coupons-section">
+                        <h3>Used Coupons</h3>
+                        <div id="usedCouponsList" class="coupons-list"></div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <!-- Right Section (Order Summary) -->
@@ -484,17 +727,7 @@
                         <div class="breakdown-item total">Final Amount: ₹<span id="payableAmount"><%= totalAmount.toFixed(2) %></span></div>
                     </div>
 
-                    <div class="coupons-container">
-                        <div id="availableCoupons" class="coupons-section">
-                            <h3>Available Coupons</h3>
-                            <div id="availableCouponsList" class="coupons-list"></div>
-                        </div>
-                        
-                        <div id="usedCoupons" class="coupons-section">
-                            <h3>Used Coupons</h3>
-                            <div id="usedCouponsList" class="coupons-list"></div>
-                        </div>
-                    </div>
+                    
                 </div>
             </div>
         </div>
