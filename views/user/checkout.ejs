@@ -276,57 +276,76 @@
             border-radius: 8px;
         }
 
-        .available-coupons {
-            margin-top: 15px;
+        .coupons-container {
+            margin-top: 20px;
+            display: grid;
+            gap: 20px;
+        }
+
+        .coupons-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .coupons-section h3 {
+            color: #333;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .coupons-list {
+            display: grid;
+            gap: 10px;
         }
 
         .coupon-item {
-            padding: 10px;
-            margin: 5px 0;
-            background: #f5f5f5;
-            border-radius: 5px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .coupon-item.available {
+            border-left: 4px solid #28a745;
             cursor: pointer;
         }
 
-        .coupon-item:hover {
-            background: #e9e9e9;
+        .coupon-item.used {
+            border-left: 4px solid #dc3545;
+            opacity: 0.7;
         }
 
-        .coupon-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
+        .coupon-item:hover.available {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
-        .remove-coupon {
-            background: linear-gradient(90deg, #ff4d4d, #ff0000) !important;
+        .coupon-details {
+            display: grid;
+            gap: 5px;
         }
 
-        .price-breakdown {
-            margin-top: 15px;
-            padding: 10px;
-            background: #f5f5f5;
-            border-radius: 5px;
-        }
-
-        .breakdown-item {
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .breakdown-item.total {
+        .coupon-name {
             font-weight: bold;
-            font-size: 1.1em;
-            border-bottom: none;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 2px solid #ddd;
+            color: #333;
         }
 
         .coupon-discount {
             color: #28a745;
+        }
+
+        .coupon-minimum {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .coupon-expiry {
+            font-size: 0.85em;
+            color: #999;
         }
     </style>
 </head>
@@ -363,7 +382,7 @@
                             <option value="<%= address._id.toString() %>">
                                 <%= address.fullname %>, <%= address.street %>, <%= address.city %>, <%= address.state %> - <%= address.zipCode %>
                             </option>
-                        <% }) %>
+                        <% }); %>
                     <% } else { %>
                         <option disabled selected>No saved addresses. Add one below.</option>
                     <% } %>
@@ -464,9 +483,17 @@
                         </div>
                         <div class="breakdown-item total">Final Amount: ₹<span id="payableAmount"><%= totalAmount.toFixed(2) %></span></div>
                     </div>
-                    <div id="availableCoupons" class="available-coupons">
-                        <h3>Available Coupons</h3>
-                        <div id="couponsList"></div>
+
+                    <div class="coupons-container">
+                        <div id="availableCoupons" class="coupons-section">
+                            <h3>Available Coupons</h3>
+                            <div id="availableCouponsList" class="coupons-list"></div>
+                        </div>
+                        
+                        <div id="usedCoupons" class="coupons-section">
+                            <h3>Used Coupons</h3>
+                            <div id="usedCouponsList" class="coupons-list"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -670,160 +697,208 @@ async function placeOrder() {
 }
 
         document.getElementById('saveAddressBtn').addEventListener('click', async (e) => {
-            e.preventDefault();
+    e.preventDefault();
 
-            // Reset previous error messages
-            clearErrors();
+    // Reset previous error messages
+    clearErrors();
 
-            // Get form values
-            const formData = {
-                fullname: document.getElementById('fullname').value.trim(),
-                street: document.getElementById('street').value.trim(),
-                phone: document.getElementById('phone').value.trim(),
-                city: document.getElementById('city').value.trim(),
-                landmark: document.getElementById('landmark').value.trim(),
-                state: document.getElementById('state').value.trim(),
-                zipCode: document.getElementById('zipCode').value.trim()
-            };
+    // Get form values with validation functions
+    const formData = {
+        fullname: getValidatedInput('fullname', 'Full name'),
+        phone: getValidatedInput('phone', 'Phone number', /^\d{10}$/),
+        street: getValidatedInput('street', 'Street address'),
+        city: getValidatedInput('city', 'City'),
+        landmark: document.getElementById('landmark').value.trim(),
+        state: getValidatedInput('state', 'State'),
+        zipCode: getValidatedInput('zipCode', 'ZIP code', /^\d{6}$/)
+    };
 
-            // Client-side validation
-            let hasErrors = false;
+    // Check if there are any validation errors
+    if (Object.values(formData).includes(null)) {
+        return;
+    }
 
-            if (!formData.fullname) {
-                showError('fullname', 'Full name is required');
-                hasErrors = true;
-            }
-
-            if (!formData.phone) {
-                showError('phone', 'Phone number is required');
-                hasErrors = true;
-            } else if (!/^\d{10}$/.test(formData.phone)) {
-                showError('phone', 'Please enter a valid 10-digit phone number');
-                hasErrors = true;
-            }
-
-            if (!formData.street) {
-                showError('street', 'Street address is required');
-                hasErrors = true;
-            }
-
-            if (!formData.city) {
-                showError('city', 'City is required');
-                hasErrors = true;
-            }
-
-            if (!formData.state) {
-                showError('state', 'State is required');
-                hasErrors = true;
-            }
-
-            if (!formData.zipCode) {
-                showError('zipCode', 'ZIP code is required');
-                hasErrors = true;
-            } else if (!/^\d{6}$/.test(formData.zipCode)) {
-                showError('zipCode', 'Please enter a valid 6-digit ZIP code');
-                hasErrors = true;
-            }
-
-            if (hasErrors) {
-                return;
-            }
-
-            try {
-                const response = await fetch('/address/add', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success!',
-                        text: 'Address saved successfully'
-                    }).then(() => {
-                        location.reload();
-                    });
-                } else {
-                    // Handle server-side validation errors
-                    if (data.errors) {
-                        Object.keys(data.errors).forEach(field => {
-                            showError(field, data.errors[field]);
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error!',
-                            text: data.message || 'Failed to save address'
-                        });
-                    }
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error!',
-                    text: 'An error occurred while saving the address'
-                });
-            }
+    try {
+        const response = await fetch('/address/add', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(formData)
         });
 
-        function showError(fieldId, message) {
-            const errorSpan = document.getElementById(`${fieldId}-error`);
-            const inputField = document.getElementById(fieldId);
-            if (errorSpan) {
-                errorSpan.textContent = message;
-            }
-            if (inputField) {
-                inputField.classList.add('error');
-            }
+        const data = await response.json();
+
+        if (data.success) {
+            await Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: 'Address saved successfully'
+            });
+            window.location.reload();
+        } else {
+            handleValidationErrors(data.errors);
         }
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'An error occurred while saving the address'
+        });
+    }
+});
 
-        function clearErrors() {
-            const errorMessages = document.getElementsByClassName('error-message');
-            const inputs = document.getElementsByClassName('form-control');
+// Helper functions for validation and error handling
+function getValidatedInput(fieldId, fieldName, pattern = null) {
+    const value = document.getElementById(fieldId).value.trim();
+    
+    if (!value) {
+        showError(fieldId, `${fieldName} is required`);
+        return null;
+    }
 
-            Array.from(errorMessages).forEach(span => span.textContent = '');
-            Array.from(inputs).forEach(input => input.classList.remove('error'));
-        }
+    if (pattern && !pattern.test(value)) {
+        showError(fieldId, `Please enter a valid ${fieldName.toLowerCase()}`);
+        return null;
+    }
 
-        async function loadAvailableCoupons() {
+    return value;
+}
+
+function handleValidationErrors(errors) {
+    if (errors && typeof errors === 'object') {
+        Object.entries(errors).forEach(([field, message]) => {
+            showError(field, message);
+        });
+    } else {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Failed to save address'
+        });
+    }
+}
+
+// Update the showError function to be more robust
+function showError(fieldId, message) {
+    const errorSpan = document.getElementById(`${fieldId}-error`);
+    const inputField = document.getElementById(fieldId);
+    
+    if (errorSpan) {
+        errorSpan.textContent = message;
+        errorSpan.style.display = 'block';
+    }
+    
+    if (inputField) {
+        inputField.classList.add('error');
+        inputField.setAttribute('aria-invalid', 'true');
+    }
+}
+
+// Update the clearErrors function to be more comprehensive
+function clearErrors() {
+    const errorMessages = document.getElementsByClassName('error-message');
+    const inputs = document.getElementsByClassName('form-control');
+
+    Array.from(errorMessages).forEach(span => {
+        span.textContent = '';
+        span.style.display = 'none';
+    });
+
+    Array.from(inputs).forEach(input => {
+        input.classList.remove('error');
+        input.removeAttribute('aria-invalid');
+    });
+}
+
+        async function loadAllCoupons() {
             try {
-                const totalAmount = parseFloat(document.getElementById('actualPrice').textContent);
-                const response = await fetch(`/coupons/available/${totalAmount}`, {
+                // Get the actual price from the element
+                const actualPrice = parseFloat(document.getElementById('actualPrice').textContent);
+                if (isNaN(actualPrice)) {
+                    console.error('Invalid actual price');
+                    return;
+                }
+
+                console.log('Fetching coupons for amount:', actualPrice); // Debug log
+
+                const response = await fetch(`/coupons/available/${actualPrice}`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' }
                 });
-                const data = await response.json();
-                
-                const couponsDiv = document.getElementById('couponsList');
-                couponsDiv.innerHTML = '';
 
-                if (data.success && data.coupons && data.coupons.length > 0) {
-                    data.coupons.forEach(coupon => {
-                        const couponElement = document.createElement('div');
-                        couponElement.className = 'coupon-item';
-                        couponElement.innerHTML = `
-                            <strong>${coupon.name}</strong><br>
-                            Save ₹${coupon.offerPrice} on orders above ₹${coupon.minimumPrice}<br>
-                            Valid till: ${new Date(coupon.expireOn).toLocaleDateString()}
-                        `;
-                        couponElement.onclick = () => {
-                            document.getElementById('couponCode').value = coupon.name;
-                            applyCoupon();
-                        };
-                        couponsDiv.appendChild(couponElement);
-                    });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Received coupon data:', data); // Debug log
+                
+                if (data.success) {
+                    // Display available coupons
+                    const availableList = document.getElementById('availableCouponsList');
+                    availableList.innerHTML = '';
+                    
+                    if (data.availableCoupons && data.availableCoupons.length > 0) {
+                        data.availableCoupons.forEach(coupon => {
+                            const couponElement = createCouponElement(coupon, true);
+                            availableList.appendChild(couponElement);
+                        });
+                    } else {
+                        availableList.innerHTML = '<p class="no-coupons">No available coupons</p>';
+                    }
+
+                    // Display used coupons
+                    const usedList = document.getElementById('usedCouponsList');
+                    usedList.innerHTML = '';
+                    
+                    if (data.usedCoupons && data.usedCoupons.length > 0) {
+                        data.usedCoupons.forEach(coupon => {
+                            const couponElement = createCouponElement(coupon, false);
+                            usedList.appendChild(couponElement);
+                        });
+                    } else {
+                        usedList.innerHTML = '<p class="no-coupons">No used coupons</p>';
+                    }
                 } else {
-                    couponsDiv.innerHTML = '<p>No coupons available</p>';
+                    console.error('Failed to load coupons:', data.message);
                 }
             } catch (error) {
                 console.error('Error loading coupons:', error);
-                couponsDiv.innerHTML = '<p>Error loading coupons</p>';
             }
         }
+
+        function createCouponElement(coupon, isAvailable) {
+            const div = document.createElement('div');
+            div.className = `coupon-item ${isAvailable ? 'available' : 'used'}`;
+            
+            const expiryDate = new Date(coupon.expireOn).toLocaleDateString();
+            
+            div.innerHTML = `
+                <div class="coupon-details">
+                    <span class="coupon-name">${coupon.name}</span>
+                    <span class="coupon-discount">Save ₹${coupon.offerPrice}</span>
+                    <span class="coupon-minimum">Min. Order: ₹${coupon.minimumPrice}</span>
+                    <span class="coupon-expiry">Valid till: ${expiryDate}</span>
+                </div>
+            `;
+
+            if (isAvailable) {
+                div.onclick = () => {
+                    document.getElementById('couponCode').value = coupon.name;
+                    applyCoupon();
+                }
+            }
+
+            return div;
+        }
+
+document.addEventListener('DOMContentLoaded', () => {
+    calculateTotalAmount();
+    loadAllCoupons(); // Replace loadAvailableCoupons with loadAllCoupons
+});
 
         let currentCoupon = null;
 
@@ -933,7 +1008,7 @@ function calculateTotalAmount() {
 // Call calculateTotalAmount on page load
 document.addEventListener('DOMContentLoaded', () => {
     calculateTotalAmount();
-    loadAvailableCoupons();
+    loadAllCoupons();
 });
 
 // Update the validateOrderAmounts function to be more precise

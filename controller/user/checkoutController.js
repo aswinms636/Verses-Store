@@ -469,34 +469,66 @@ const viewOrder = async (req, res) => {
 
 const getAvailableCoupons = async (req, res) => {
     try {
-        const { totalAmount } = req.params.id;
-        console.log('req',req.params.id)
+
+        console.log('Received request for available coupons'); // Debug log
+        const totalAmount = parseFloat(req.params.id);
         const userId = req.session.user._id;
-
-        console.log('Fetching coupons for:', { totalAmount, userId });
-
         const currentDate = new Date();
-        
-        const coupons = await Coupon.find({
+
+        console.log('Received request for coupons:', { totalAmount, userId }); // Debug log
+
+        // Validate inputs
+        if (isNaN(totalAmount) || totalAmount <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid total amount'
+            });
+        }
+
+        // Fetch all valid coupons
+        const allCoupons = await Coupon.find({
             isList: true,
             minimumPrice: { $lte: totalAmount },
-            expireOn: { $gt: currentDate },
-            userId: { $nin: [userId] }
+            expireOn: { $gt: currentDate }
         });
 
-        console.log('Found coupons:', coupons);
+        console.log('Found coupons:', allCoupons); // Debug log
+
+        // Separate coupons into used and available
+        const usedCoupons = allCoupons.filter(coupon => 
+            coupon.userId.includes(userId)
+        );
         
+        const availableCoupons = allCoupons.filter(coupon => 
+            !coupon.userId.includes(userId)
+        );
+
+        console.log('Separated coupons:', { 
+            available: availableCoupons.length, 
+            used: usedCoupons.length 
+        }); // Debug log
 
         res.json({
             success: true,
-            coupons: coupons
+            availableCoupons: availableCoupons.map(coupon => ({
+                name: coupon.name,
+                offerPrice: coupon.offerPrice,
+                minimumPrice: coupon.minimumPrice,
+                expireOn: coupon.expireOn
+            })),
+            usedCoupons: usedCoupons.map(coupon => ({
+                name: coupon.name,
+                offerPrice: coupon.offerPrice,
+                minimumPrice: coupon.minimumPrice,
+                expireOn: coupon.expireOn
+            }))
         });
 
     } catch (error) {
         console.error('Error fetching coupons:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to fetch available coupons'
+            message: 'Failed to fetch coupons'
         });
     }
 };
@@ -506,45 +538,49 @@ const applyCoupon = async (req, res) => {
         const { couponCode, totalAmount } = req.body;
         const userId = req.session.user._id;
 
-        if(!userId){
+        console.log('Applying coupon:', { couponCode, totalAmount, userId }); // Debug log
+
+        if (!userId) {
             return res.status(401).json({
                 success: false,
-                message: 'User not Found'
+                message: 'User not authenticated'
             });
         }
-
-        console.log('Applying coupon:', { couponCode, totalAmount, userId });
 
         const coupon = await Coupon.findOne({
             name: couponCode,
             isList: true,
             minimumPrice: { $lte: totalAmount },
-            expireOn: { $gt: new Date() },
-            
+            expireOn: { $gt: new Date() }
         });
 
-        if(coupon.userId.includes(userId)){
+        if (!coupon) {
+            return res.status(404).json({
+                success: false,
+                message: 'Invalid or expired coupon'
+            });
+        }
+
+        if (coupon.userId.includes(userId)) {
             return res.status(400).json({
                 success: false,
                 message: 'Coupon already used'
             });
         }
 
-        if (!coupon) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid or expired coupon'
-            });
-        }
-
         const discount = coupon.offerPrice;
         const newTotal = totalAmount - discount;
 
+        // Add user to the coupon's used list
         await Coupon.findByIdAndUpdate(coupon._id, {
             $addToSet: { userId: userId }
         });
 
-        console.log('Cpupen apply and updated',coupon)
+        console.log('Coupon applied successfully:', {
+            discount,
+            newTotal,
+            couponId: coupon._id
+        }); // Debug log
 
         res.json({
             success: true,

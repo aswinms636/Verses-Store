@@ -101,7 +101,7 @@ router.post("/order/place", checkSession, checkoutController.placeOrder);
 router.post("/address/add", checkSession, checkoutController.addAddress);
 router.post("/place", checkSession, checkoutController.placedOrder);
 router.get("/order/view/:orderId", checkSession, checkoutController.viewOrder);
-router.get('/coupons/available', checkSession, checkoutController.getAvailableCoupons); // Remove :id parameter
+router.get('/coupons/available/:id', checkSession, checkoutController.getAvailableCoupons); // Remove :id parameter
 router.post('/coupons/apply', checkSession, checkoutController.applyCoupon);
 router.post('/coupons/remove', checkSession, checkoutController.removeCoupon);
 

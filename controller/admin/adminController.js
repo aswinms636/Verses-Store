@@ -595,7 +595,7 @@ async function generateReportData(startDate, endDate) {
         total: acc.total + day.dailyTotal,
         orders: acc.orders + day.orderCount,
         items: acc.items + day.items,
-        averageOrder: acc.total / acc.orders
+       
     }), { total: 0, orders: 0, items: 0 });
 
     return { dailySales, periodSales };
