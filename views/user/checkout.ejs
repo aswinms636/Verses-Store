@@ -29,6 +29,20 @@
             gap: 30px;
             width: 100%;
             max-width: 1400px;
+            position: relative;
+        }
+
+        .left-section {
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
+            padding-right: 15px;
+        }
+
+        .right-section {
+            position: sticky;
+            top: 40px;
+            height: fit-content;
+            align-self: flex-start;
         }
 
         .card {
@@ -145,6 +159,17 @@
         @media (max-width: 1024px) {
             .container {
                 grid-template-columns: 1fr;
+            }
+
+            .left-section {
+                max-height: none;
+                overflow-y: visible;
+                padding-right: 0;
+            }
+
+            .right-section {
+                position: relative;
+                top: 0;
             }
         }
 
