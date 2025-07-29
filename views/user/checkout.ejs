@@ -825,8 +825,34 @@ async function placeOrder() {
                         if (result.isConfirmed) {
                             rzp.open();
                         } else if (result.isDenied) {
-                            await createPendingOrder(addressId, amounts);
-                            Swal.fire("Info", "Order created with pending payment. Please complete payment later.", "info");
+                            // Call verify-payment with paymentStatus: 'Pending'
+                            const orderData = {
+                addressId, // Make sure this is properly passed
+                paymentMethod:'Online Payment',
+                couponCode: currentCoupon ? currentCoupon.code : null,
+                subTotal: amounts.subTotal,
+                taxAmount: amounts.taxAmount,
+                gstAmount: amounts.gstAmount,
+                actualPrice: amounts.actualPrice,
+                payableAmount: amounts.finalAmount
+            };
+
+                            
+
+                            const response = await fetch("/place", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(orderData)
+                            });
+
+                            const dataRes = await response.json();
+
+                            if (dataRes.success) {
+                                Swal.fire("Info", "Order created with pending payment. Please complete payment later.", "info");
+                                window.location.href = '/orders';
+                            } else {
+                                Swal.fire("Error", dataRes.message || "Failed to create pending order", "error");
+                            }
                         } else {
                             Swal.fire('Order Cancelled', '', 'info');
                         }
