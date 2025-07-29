@@ -250,9 +250,8 @@ const changePassword = async (req, res) => {
                 success: false,
                 message: 'Current password is incorrect'
             }); 
-        }  // Added missing closing brace here
-
-        // Validate inputs
+        }  
+        
         if (!newPassword || !confirmPassword) {
             return res.json({ success: false, message: 'All fields are required' });
         }
@@ -276,7 +275,7 @@ const changePassword = async (req, res) => {
         await user.save();
 
         console.log("Password changed successfully for user:", userId);
-        req.session.user = user; // Update session with new password
+        req.session.user = user; 
 
         res.json({ success: true, message: 'Password changed successfully' });
     } catch (error) {

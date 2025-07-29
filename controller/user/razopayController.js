@@ -51,7 +51,6 @@ const createOrder = async (req, res) => {
 
         // Validate address
         const address = await Address.findOne({ userId });
-
         if (!address) {
             return res.status(400).json({
                 success: false,
@@ -61,7 +60,6 @@ const createOrder = async (req, res) => {
 
         // Find the specific address in the address array
         const selectedAddress = address.address.find(addr => addr._id.toString() === addressId);
-
         if (!selectedAddress) {
             return res.status(400).json({
                 success: false,
@@ -69,8 +67,8 @@ const createOrder = async (req, res) => {
             });
         }
 
+        // Only create Razorpay order, not DB order yet
         try {
-            // Create Razorpay order
             const razorpayOrder = await razorpay.orders.create({
                 amount: Math.round(payableAmount * 100),
                 currency: "INR",
@@ -82,58 +80,13 @@ const createOrder = async (req, res) => {
                 throw new Error("Failed to create Razorpay order");
             }
 
-            // Handle coupon if provided
-            let couponObjectId = null;
-            let couponDiscount = 0;
-            if (couponCode) {
-                const coupon = await Coupon.findOne({ code: couponCode });
-                if (coupon) {
-                    couponObjectId = coupon._id;
-                    couponDiscount = coupon.offerPrice;
-                }
-            }
-
-            // Create order in database according to orderSchema
-            const order = new Order({
-                userId,
-                orderItems: cart.items.map(item => ({
-                    product: item.productId._id,
-                    size: item.size,
-                    quantity: item.quantity,
-                    price: item.price,
-                    status: 'Pending'
-                })),
-                totalPrice: totalAmount,
-                totalAmount: payableAmount,
-                paymentMethod: "Online Payment",
-                razorpayOrderId: razorpayOrder.id,
-                paymentStatus: "Pending",
-                address: selectedAddress._id, // Just store the address _id as per schema
-                status: "Pending",
-                actualPrice: actualPrice,
-                payableAmount: payableAmount,
-                couponApplied: couponObjectId,
-                couponDiscount: couponDiscount,
-                taxAmount: taxAmount,
-                gstAmount: gstAmount,
-                subTotal: subTotal
-            });
-
-            await order.save();
-
-            // Clear cart after successful order creation
-            await Cart.findOneAndUpdate(
-                { userId },
-                { $set: { items: [] } }
-            );
-
             res.json({
                 success: true,
                 orderId: razorpayOrder.id,
-                dbOrderId: order._id,
                 amount: razorpayOrder.amount,
                 currency: razorpayOrder.currency,
-                key: process.env.RAZORPAY_KEY_ID
+                key: process.env.RAZORPAY_KEY_ID,
+                // Optionally, send back cart/order info for later use
             });
 
         } catch (razorpayError) {
@@ -158,9 +111,17 @@ const verifyPayment = async (req, res) => {
         const { 
             razorpay_order_id, 
             razorpay_payment_id, 
-            razorpay_signature, 
-            dbOrderId 
+            razorpay_signature,
+            addressId,
+            couponCode,
+            subTotal,
+            taxAmount,
+            gstAmount,
+            actualPrice,
+            payableAmount,
+            totalAmount
         } = req.body;
+        const userId = req.session.user._id;
 
         // Verify signature
         const generatedSignature = crypto
@@ -175,27 +136,84 @@ const verifyPayment = async (req, res) => {
             });
         }
 
-        // Update order status
-        const order = await Order.findById(dbOrderId);
-        if (!order) {
-            return res.status(404).json({
-                success: false,
-                message: "Order not found"
+        // Get cart items
+        const cart = await Cart.findOne({ userId }).populate('items.productId');
+        if (!cart || cart.items.length === 0) { 
+            return res.status(400).json({ 
+                success: false, 
+                message: "Cart is empty" 
             });
         }
 
-        order.razorpayPaymentId = razorpay_payment_id;
-        order.razorpaySignature = razorpay_signature;
-        order.paymentStatus = "Paid";
-        order.status = "Pending";
-        order.invoiceDate = new Date();
+        // Validate address
+        const address = await Address.findOne({ userId });
+        if (!address) {
+            return res.status(400).json({
+                success: false,
+                message: "No addresses found for user"
+            });
+        }
+        const selectedAddress = address.address.find(addr => addr._id.toString() === addressId);
+        if (!selectedAddress) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid address selected"
+            });
+        }
+
+  
+        
+        let couponObjectId = null;
+        let couponDiscount = 0;
+        if (couponCode) {
+            const coupon = await Coupon.findOne({ code: couponCode });
+            if (coupon) {
+                couponObjectId = coupon._id;
+                couponDiscount = coupon.offerPrice;
+            }
+        }
+
+        // Create order in database according to orderSchema
+        const order = new Order({
+            userId,
+            orderItems: cart.items.map(item => ({
+                product: item.productId._id,
+                size: item.size,
+                quantity: item.quantity,
+                price: item.price,
+                status: 'Pending'
+            })),
+            totalPrice: totalAmount,
+            totalAmount: payableAmount,
+            paymentMethod: "Online Payment",
+            razorpayOrderId: razorpay_order_id,
+            razorpayPaymentId: razorpay_payment_id,
+            razorpaySignature: razorpay_signature,
+            paymentStatus: "Paid",
+            address: selectedAddress._id,
+            status: "Pending",
+            actualPrice: actualPrice,
+            payableAmount: payableAmount,
+            couponApplied: couponObjectId,
+            couponDiscount: couponDiscount,
+            taxAmount: taxAmount,
+            gstAmount: gstAmount,
+            subTotal: subTotal,
+            invoiceDate: new Date()
+        });
 
         await order.save();
 
+        // Clear cart after successful order creation
+        await Cart.findOneAndUpdate(
+            { userId },
+            { $set: { items: [] } }
+        );
+
         res.json({
             success: true,
-            message: "Payment verified successfully",
-            orderId: dbOrderId
+            message: "Payment verified and order placed successfully",
+            orderId: order._id
         });
 
     } catch (error) {
@@ -206,6 +224,12 @@ const verifyPayment = async (req, res) => {
         });
     }
 };
+
+
+
+
+
+
 
 module.exports = {
     createOrder,

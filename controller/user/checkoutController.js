@@ -470,12 +470,12 @@ const viewOrder = async (req, res) => {
 const getAvailableCoupons = async (req, res) => {
     try {
 
-        console.log('Received request for available coupons'); // Debug log
+        console.log('Received request for available coupons'); 
         const totalAmount = parseFloat(req.params.id);
         const userId = req.session.user._id;
         const currentDate = new Date();
 
-        console.log('Received request for coupons:', { totalAmount, userId }); // Debug log
+        console.log('Received request for coupons:', { totalAmount, userId }); 
 
         // Validate inputs
         if (isNaN(totalAmount) || totalAmount <= 0) {
@@ -492,7 +492,7 @@ const getAvailableCoupons = async (req, res) => {
             expireOn: { $gt: currentDate }
         });
 
-        console.log('Found coupons:', allCoupons); // Debug log
+        console.log('Found coupons:', allCoupons); 
 
         // Separate coupons into used and available
         const usedCoupons = allCoupons.filter(coupon => 
