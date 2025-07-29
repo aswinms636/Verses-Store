@@ -718,7 +718,6 @@ async function placeOrder() {
         const amounts = validateOrderAmounts();
         if (!amounts) return;
 
-        // Show loading indicator while creating order
         Swal.fire({
             title: 'Processing',
             text: 'Creating your order...',
@@ -732,7 +731,7 @@ async function placeOrder() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                addressId: addressId, // Ensure addressId is properly passed
+                addressId: addressId,
                 totalAmount: amounts.subTotal,
                 actualPrice: amounts.actualPrice,
                 payableAmount: amounts.finalAmount,
@@ -744,15 +743,12 @@ async function placeOrder() {
         });
 
         const data = await response.json();
-
-        // Close loading indicator
         Swal.close();
 
         if (!data.success) {
             throw new Error(data.message || "Failed to create order");
         }
 
-        // Initialize Razorpay
         const options = {
             key: data.key,
             amount: data.amount,
@@ -762,7 +758,6 @@ async function placeOrder() {
             order_id: data.orderId,
             handler: async function(response) {
                 try {
-                    // Show processing payment message
                     Swal.fire({
                         title: 'Processing',
                         text: 'Verifying payment...',
@@ -779,7 +774,14 @@ async function placeOrder() {
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_payment_id: response.razorpay_payment_id,
                             razorpay_signature: response.razorpay_signature,
-                            dbOrderId: data.dbOrderId
+                            addressId: addressId,
+                            couponCode: currentCoupon ? currentCoupon.code : null,
+                            subTotal: amounts.subTotal,
+                            taxAmount: amounts.taxAmount,
+                            gstAmount: amounts.gstAmount,
+                            actualPrice: amounts.actualPrice,
+                            payableAmount: amounts.finalAmount,
+                            totalAmount: amounts.subTotal
                         })
                     });
 
@@ -805,17 +807,61 @@ async function placeOrder() {
             },
             theme: {
                 color: "#ff4757"
+            },
+            modal: {
+                ondismiss: async function() {
+                    try {
+                        const result = await Swal.fire({
+                            title: 'Payment Cancelled',
+                            text: 'Would you like to retry payment now or pay later?',
+                            icon: 'question',
+                            showDenyButton: true,
+                            showCancelButton: true,
+                            confirmButtonText: 'Retry Now',
+                            denyButtonText: 'Pay Later',
+                            cancelButtonText: 'Cancel Order'
+                        });
+
+                        if (result.isConfirmed) {
+                            rzp.open();
+                        } else if (result.isDenied) {
+                            await createPendingOrder(addressId, amounts);
+                            Swal.fire("Info", "Order created with pending payment. Please complete payment later.", "info");
+                        } else {
+                            Swal.fire('Order Cancelled', '', 'info');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        Swal.fire('Error', 'Something went wrong', 'error');
+                    }
+                }
             }
         };
 
         const rzp = new Razorpay(options);
-        rzp.on('payment.failed', function(response) {
-            Swal.fire("Error", "Payment failed! Please try again.", "error");
-        });
+
         rzp.open();
 
+        async function createPendingOrder(addressId, amounts) {
+            const orderData = {
+                addressId,
+                paymentMethod: "Online Payment",
+                couponCode: currentCoupon ? currentCoupon.code : null,
+                subTotal: amounts.subTotal,
+                taxAmount: amounts.taxAmount,
+                gstAmount: amounts.gstAmount,
+                actualPrice: amounts.actualPrice,
+                payableAmount: amounts.finalAmount,
+                paymentStatus: "Pending"
+            };
+            await fetch("/create-pending-order", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(orderData)
+            });
+        }
+
     } catch (error) {
-        // Close loading indicator if there's an error
         Swal.close();
         console.error("Payment error:", error);
         Swal.fire("Error", "Payment processing failed", "error");

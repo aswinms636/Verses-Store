@@ -204,7 +204,6 @@ const verifyPayment = async (req, res) => {
 
         await order.save();
 
-        // Clear cart after successful order creation
         await Cart.findOneAndUpdate(
             { userId },
             { $set: { items: [] } }
@@ -213,7 +212,7 @@ const verifyPayment = async (req, res) => {
         res.json({
             success: true,
             message: "Payment verified and order placed successfully",
-            orderId: order._id
+            orderId: order._id 
         });
 
     } catch (error) {

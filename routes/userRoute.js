@@ -125,6 +125,8 @@ router.post('/wishlist/remove',wishlistController.removeFromWishlist);
 
 router.post('/create-order',checkSession,razorpayController.createOrder);
 router.post('/verify-payment',checkSession,razorpayController.verifyPayment);
+// Add this route for pending order creation
+
 
 
 
