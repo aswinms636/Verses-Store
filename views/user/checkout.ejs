@@ -848,8 +848,13 @@ async function placeOrder() {
                             const dataRes = await response.json();
 
                             if (dataRes.success) {
-                                Swal.fire("Info", "Order created with pending payment. Please complete payment later.", "info");
+                               await Swal.fire({
+                                    title: "Pending Order Created",
+                                    text: "Your order has been created and is pending payment. You can pay later.",
+                                    icon: "info"
+                                });
                                 window.location.href = '/orders';
+                                
                             } else {
                                 Swal.fire("Error", dataRes.message || "Failed to create pending order", "error");
                             }
