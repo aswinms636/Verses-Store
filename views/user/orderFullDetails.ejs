@@ -530,7 +530,13 @@
                 <button type="button" class="action-button cancel-button" onclick="confirmCancelOrder('<%= order._id %>')">
                     <i class="fas fa-times-circle"></i> Cancel Order
                 </button>
-            <% } else if(order.status === 'Delivered') { %>
+            <% } %>
+            <% if(order.paymentMethod === 'Online Payment' && order.paymentStatus === 'Pending') { %>
+                <button type="button" class="action-button invoice-button" style="background: linear-gradient(45deg, #007bff, #0056b3);" onclick="retryPayment('<%= order._id %>', <%= order.payableAmount %>)">
+                    <i class="fas fa-redo"></i> Retry Payment
+                </button>
+            <% } %>
+            <% if(order.status === 'Delivered') { %>
                 <% const returnItem = order.orderItems[0]; %>
                 <% if(!returnItem.returnRequest) { %>
                     <button type="button"
@@ -540,12 +546,10 @@
                     </button>
                 <% } %>
             <% } %>
-
             <!-- Invoice Download Button -->
             <button type="button" class="action-button invoice-button" onclick="downloadInvoice('<%= order._id %>')">
                 <i class="fas fa-file-download"></i> Download Invoice
             </button>
-
             <% order.orderItems.forEach(item => { %>
             <% if (item.returnRequest) { %>
                 <p class="return-status <%= item.returnStatus.toLowerCase() %>">
@@ -591,6 +595,8 @@
 
     <!-- SweetAlert2 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <!-- Scripts -->
     <script>
@@ -683,20 +689,7 @@
 
         async function downloadInvoice(orderId) {
             try {
-                const response = await fetch(`/download-invoice/${orderId}`, {
-
-
-
-
-
-
-
-
-
-
-
-
-                    
+                const response = await fetch(`/download-invoice/${orderId}`, {  
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -779,6 +772,104 @@
                     });
                 }
             }
+        }
+
+        function retryPayment(orderId, amount) {
+            $.ajax({
+                url: '/retry-payment-init',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ orderId: orderId }),
+                success: function(response) {
+                    console.log('Retry Payment Response:', response);
+                    if (response.success) {
+                        var options = {
+                            "key": response.key,
+                            "amount": response.amount,
+                            "currency": response.currency,
+                            "name": "Verses Store",
+                            "description": "Retry Payment",
+                            "order_id": response.razorpayOrderId,
+                            "handler": function (payment) {
+                                verifyPayment(response.razorpayOrderId, payment, orderId);
+                            },
+                            "modal": {
+                                "ondismiss": function() {
+                                    Swal.fire({
+                                        title: "Payment Failed",
+                                        text: "You closed the payment window before completing the payment. Would you like to retry?",
+                                        icon: "error",
+                                        showCancelButton: true,
+                                        confirmButtonText: "Retry Payment",
+                                        cancelButtonText: "Go to Home",
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        retryPayment(orderId, amount);
+                                    } else {
+                                        window.location.href = '/';
+                                    }
+                                });
+                                }
+                            },
+                            "theme": { "color": "#007bff" }
+                        };
+                        var rzp1 = new Razorpay(options);
+                        rzp1.open();
+                    } else {
+                        Swal.fire({
+                            title: "Error",
+                            text: response.message || "Failed to generate payment order",
+                            icon: "error"
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        title: "Error",
+                        text: "An error occurred while processing your request",
+                        icon: "error"
+                    });
+                }
+            });
+        }
+
+        function verifyPayment(razorpayOrderId, payment, orderId) {
+            $.ajax({
+                url: '/complete-payment',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    orderId: orderId,
+                    razorpayOrderId: razorpayOrderId,
+                    razorpayPaymentId: payment.razorpay_payment_id,
+                    razorpaySignature: payment.razorpay_signature
+                }),
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            title: "Payment Successful",
+                            text: "Payment completed successfully",
+                            icon: "success",
+                            confirmButtonText: "OK"
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: "Payment Failed",
+                            text: response.message || "Payment verification failed",
+                            icon: "error"
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        title: "Payment Failed",
+                        text: "Payment verification failed",
+                        icon: "error"
+                    });
+                }
+            });
         }
 
         document.addEventListener('DOMContentLoaded', () => {

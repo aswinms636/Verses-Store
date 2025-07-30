@@ -126,9 +126,8 @@ router.post('/wishlist/remove',wishlistController.removeFromWishlist);
 router.post('/create-order',checkSession,razorpayController.createOrder);
 router.post('/verify-payment',checkSession,razorpayController.verifyPayment);
 // Add this route for pending order creation
-
-
-
+router.post('/retry-payment-init', checkSession, razorpayController.retryPaymentInit);
+router.post('/complete-payment', checkSession, razorpayController.completePayment);
 
 router.get('/wallet',checkSession, walletController.getWallet);
 router.post('/addMoneyToWallet', walletController.addMoneyToWallet);

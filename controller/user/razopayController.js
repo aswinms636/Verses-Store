@@ -225,6 +225,96 @@ const verifyPayment = async (req, res) => {
 };
 
 
+const completePayment = async (req, res, next) => {
+  try {
+    const { orderId, razorpayPaymentId, razorpayOrderId, razorpaySignature } = req.body;
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    // Verify payment signature
+    const generated_signature = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(razorpayOrderId + "|" + razorpayPaymentId)
+      .digest('hex');
+
+    if (generated_signature === razorpaySignature) {
+      // Update order status
+      order.status = 'Processing'; // or 'Confirmed'
+      order.paymentStatus = 'Paid';
+      order.razorpayPaymentId = razorpayPaymentId;
+      order.razorpayOrderId = razorpayOrderId;
+      order.razorpaySignature = razorpaySignature;
+      await order.save();
+
+      res.json({ 
+        success: true, 
+        message: 'Payment completed successfully',
+        orderId: order._id 
+      });
+    } else {
+      res.status(400).json({ 
+        success: false, 
+        message: 'Payment verification failed' 
+      });
+    }
+  } catch (error) {
+    console.error('Error completing payment:', error);
+    next(error);
+  }
+};
+
+
+const retryPaymentInit = async (req, res) => {
+    try {
+        const { orderId } = req.body;
+        console.log('hello');
+        
+        const order = await Order.findById(orderId);
+        console.log('order detected', order);
+        
+        if (!order) return res.json({ success: false, message: "Order not found" });
+        console.log('order found', order);  
+        if (order.paymentStatus === 'Paid') return res.json({ success: false, message: "Order already paid" });
+        console.log('order not paid, proceeding to create new order');
+        // Create new Razorpay order
+        let razorpayOrder;
+        try {
+            razorpayOrder = await razorpay.orders.create({
+                amount: Math.round(order.payableAmount * 100),
+                currency: "INR",
+                receipt: `retry_${orderId.toString().slice(-8)}_${Date.now()}`, // last 8 chars of orderId
+                payment_capture: 1
+            });
+        } catch (err) {
+            console.error('Razorpay order creation error:', err);
+            return res.json({ success: false, message: "Razorpay error: " + err.message });
+        }
+        if (!razorpayOrder || !razorpayOrder.id) {
+            console.error('Failed to create Razorpay order:', razorpayOrder);
+            return res.json({ success: false, message: "Failed to create Razorpay order" });
+        }
+
+        console.log('razorpay order created', razorpayOrder);
+
+        // Optionally, save new razorpayOrderId to order for tracking
+        order.razorpayOrderId = razorpayOrder.id;
+        console.log('order updated with new razorpayOrderId', order.razorpayOrderId);
+        await order.save();
+
+        res.json({
+            success: true,
+            key: process.env.RAZORPAY_KEY_ID,
+            amount: razorpayOrder.amount,
+            currency: razorpayOrder.currency,
+            razorpayOrderId: razorpayOrder.id
+        });
+    } catch (err) {
+        console.error('Retry Payment Error:', err);
+        res.json({ success: false, message: "Failed to initiate retry payment", error: err.message });
+    }
+};
 
 
 
@@ -232,5 +322,7 @@ const verifyPayment = async (req, res) => {
 
 module.exports = {
     createOrder,
-    verifyPayment
+    verifyPayment,
+    completePayment,
+    retryPaymentInit
 };
