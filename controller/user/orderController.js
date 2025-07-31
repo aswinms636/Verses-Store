@@ -323,30 +323,39 @@ const downloadInvoice = async (req, res) => {
             });
         }
 
-        // Format products for invoice
-        const products = order.orderItems.map(item => ({
-            description: item.product.productName,
-            quantity: item.quantity,
-            price: order.totalAmount,
-            size: item.size,
-            'tax-rate': item.gstAmount || 0 // Include GST rate for each product
-        }));
+        // Calculate product prices including tax and show GST details
+        let gstAmount=order.gstAmount*2
+        const products = order.orderItems.map(item => {
+          
+         
+            const baseAmount = item.price * item.quantity;
+          
+          // GST value per product
+            const priceWithTax = baseAmount + gstAmount; 
+            console.log('price with tax',priceWithTax);
+            // Final price including GST
+            return {
+                description: `${item.product.productName} (Size: ${item.size})`,
+                quantity: item.quantity,
+                price: priceWithTax, // price includes tax!
+                customFields: [
+                    { name: "GST Rate (%)", value: 'nil'},
+                    { name: "GST Amount", value: gstAmount }
+                ]
+            };
+        });
 
-
-        console.log('products', products);
-
-        
-            
-
+        // Calculate grand total (sum of all products including tax)
+        const grandTotal = products.reduce((sum, p) => sum + p.price, 0);
 
         const data = {
             currency: 'INR',
-            taxNotation: 'gst', // Changed to 'gst' for GST
+            taxNotation: 'gst',
             marginTop: 25,
             marginRight: 25,
             marginLeft: 25,
             marginBottom: 25,
-            logo: 'https://public/images/your-logo.png', // Add your logo URL here
+            logo: 'https://public/images/your-logo.png',
             sender: {
                 company: 'Verses Store',
                 address: 'Karukappilly building 3rd floor, Near St. Antony\'s Church,Kakkanad',
@@ -368,10 +377,11 @@ const downloadInvoice = async (req, res) => {
                 'due-date': moment(order.createdOn).format('YYYY-MM-DD')
             },
             products: products,
-            'bottom-notice': `Thank you for your purchase!\nGST Amount: ${order.gstAmount*2 || 0}`,
+            
+            'bottom-notice': `Thank you for your purchase!`,
             settings: {
                 currency: 'INR',
-                'tax-notation': 'gst', // Changed to 'gst' for GST
+                'tax-notation': 'gst',
                 'margin-top': 50,
                 'margin-right': 50,
                 'margin-left': 50,
@@ -383,11 +393,8 @@ const downloadInvoice = async (req, res) => {
         const result = await easyinvoice.createInvoice(data);
         const pdfBuffer = Buffer.from(result.pdf, 'base64');
 
-        // Set headers for PDF download
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename=invoice_${orderId}.pdf`);
-
-        // Send the PDF
         res.send(pdfBuffer);
 
     } catch (error) {

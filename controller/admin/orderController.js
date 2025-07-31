@@ -150,6 +150,14 @@ const acceptReturn = async (req, res) => {
         const order = await Order.findOne({ _id: orderId });
         const item = order.orderItems.id(itemId);
 
+
+        if(order.paymentMethod==='Online Payment' && order.paymentStatus==='Pending'){
+          return res.status(400).json({
+            success: false,
+            message: "Cannot accept return for orders with pending online payment"
+          });
+        }
+
         if (item) {
             item.returnStatus = 'Accepted';
             item.status = 'Returned';
