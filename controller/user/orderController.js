@@ -323,30 +323,32 @@ const downloadInvoice = async (req, res) => {
             });
         }
 
-        // Calculate product prices including tax and show GST details
-        let gstAmount=order.gstAmount*2
+        // Calculate product prices and GST details
+        let gstAmount = order.gstAmount * 2;
+
+        // Subtotal: sum of all base amounts (without GST)
+        const subtotal = order.orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+        // Total GST: sum of GST for all items
+        const totalGST = gstAmount * order.orderItems.length;
+
+        // Products array for invoice
         const products = order.orderItems.map(item => {
-          
-         
             const baseAmount = item.price * item.quantity;
-          
-          // GST value per product
-            const priceWithTax = baseAmount + gstAmount; 
-            console.log('price with tax',priceWithTax);
-            // Final price including GST
+            const priceWithTax = baseAmount + gstAmount;
             return {
                 description: `${item.product.productName} (Size: ${item.size})`,
                 quantity: item.quantity,
-                price: priceWithTax, // price includes tax!
+                price: priceWithTax,
                 customFields: [
-                    { name: "GST Rate (%)", value: 'nil'},
+                    { name: "GST Rate (%)", value: 'nil' },
                     { name: "GST Amount", value: gstAmount }
                 ]
             };
         });
 
-        // Calculate grand total (sum of all products including tax)
-        const grandTotal = products.reduce((sum, p) => sum + p.price, 0);
+        // Grand total (subtotal + total GST)
+        const grandTotal = subtotal + totalGST;
 
         const data = {
             currency: 'INR',
@@ -377,8 +379,8 @@ const downloadInvoice = async (req, res) => {
                 'due-date': moment(order.createdOn).format('YYYY-MM-DD')
             },
             products: products,
-            
-            'bottom-notice': `Thank you for your purchase!`,
+            // Show subtotal, GST, and grand total in bottom notice
+            'bottom-notice': `Subtotal: ₹${subtotal.toFixed(2)}\nGST Amount: ₹${totalGST.toFixed(2)}\nGrand Total: ₹${grandTotal.toFixed(2)}\nThank you for your purchase!`,
             settings: {
                 currency: 'INR',
                 'tax-notation': 'gst',

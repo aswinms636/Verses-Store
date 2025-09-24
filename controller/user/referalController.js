@@ -3,7 +3,10 @@ const Wallet = require('../../models/walletSchema');
 
 const loadReferEarn = async (req, res) => {
     try {
-        const user = await User.findById(req.session.user._id)
+        const user = await User.findById(req.session.user._id) 
+         
+          
+           
             .populate('redeemedUsers');
         
         const wallet = await Wallet.findOne({ user: req.session.user._id });
