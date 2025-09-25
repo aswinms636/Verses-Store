@@ -570,7 +570,7 @@ async function generateReportData(startDate, endDate) {
     const end = new Date(endDate);
     end.setDate(end.getDate() + 1);
 
-    // Your existing query logic to fetch sales data
+    // Daily sales summary (unchanged)
     const dailySales = await Order.aggregate([
         {
             $match: {
@@ -590,15 +590,56 @@ async function generateReportData(startDate, endDate) {
         { $sort: { "_id": 1 } }
     ]);
 
+    // Product sales table: Product Name, Quantity, Size, Unit Price, Total Price
+    const productSales = await Order.aggregate([
+        {
+            $match: {
+                createdOn: { $gte: start, $lt: end },
+                status: { $in: ["Delivered", "Shipped"] }
+            }
+        },
+        { $unwind: "$orderItems" },
+        {
+            $lookup: {
+                from: "products",
+                localField: "orderItems.product",
+                foreignField: "_id",
+                as: "product"
+            }
+        },
+        { $unwind: "$product" },
+        {
+            $group: {
+                _id: {
+                    productName: "$product.productName",
+                    size: "$orderItems.size",
+                    unitPrice: "$orderItems.price"
+                },
+                quantity: { $sum: "$orderItems.quantity" },
+                totalPrice: { $sum: { $multiply: ["$orderItems.quantity", "$orderItems.price"] } }
+            }
+        },
+        {
+            $project: {
+                productName: "$_id.productName",
+                size: "$_id.size",
+                unitPrice: "$_id.unitPrice",
+                quantity: 1,
+                totalPrice: 1,
+                _id: 0
+            }
+        },
+        { $sort: { productName: 1, size: 1 } }
+    ]);
+
     // Calculate period totals
     const periodSales = dailySales.reduce((acc, day) => ({
         total: acc.total + day.dailyTotal,
         orders: acc.orders + day.orderCount,
         items: acc.items + day.items,
-       
     }), { total: 0, orders: 0, items: 0 });
 
-    return { dailySales, periodSales };
+    return { dailySales, periodSales, productSales };
 }
 
 module.exports = {
