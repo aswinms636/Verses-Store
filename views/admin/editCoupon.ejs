@@ -229,10 +229,7 @@
       return false;
     }
 
-    if (sDateObj <= todayDateObj) {
-      document.getElementById("error-start-date").innerHTML ="Starting date should be greater than or equal to today's date";
-      return false;
-    }
+    
 
     let name = document.getElementsByName("couponName")[0].value;
     const nameRegex = /^[A-Za-z0-9]{1,50}$/;
