@@ -564,7 +564,7 @@
             <div class="coupon-section">
                 
                 <div id="couponDiscount" style="display: none;" class="coupon-discount">
-                    Coupon Discount: ₹<span id="discountAmount">0</span>
+                    You Saved : ₹<span id="discountAmount">0</span>
                 </div>
 
                 <div class="coupons-container">
@@ -602,6 +602,9 @@
                     <div class="breakdown-item">Tax (2%): ₹<span id="taxAmount">0.00</span></div>
                     <div class="breakdown-item">GST (2%): ₹<span id="gstAmount">0.00</span></div>
                     <div class="breakdown-item">Actual Price: ₹<span id="actualPrice"><%= totalAmount.toFixed(2) %></span></div>
+                    <div class="breakdown-item"> Coupen Discount: ₹<span id="discountCoupen" >  0.00</span></div>
+                   
+                    
                     
                     <!-- Coupon Input Section -->
                     <div id="couponInputSection" class="coupon-input-section">
@@ -615,10 +618,15 @@
                     </div>
 
                     <!-- Coupon Discount Display -->
-                    <div id="couponDiscount" style="display: none;" class="breakdown-item coupon-discount">
-                        Coupon Discount: ₹<span id="discountAmount">0.00</span>
-                        <button class="button remove-coupon" onclick="removeCoupon()">Remove</button>
-                    </div>
+                    <!-- <div id="couponDiscount" style="display: none;" class="coupon-discount">
+                        : ₹<span id="discountAmount">0</span>
+                    </div> -->
+
+
+                    
+                   
+                    
+                
                     
                     <div class="breakdown-item total">Final Amount: ₹<span id="payableAmount"><%= totalAmount.toFixed(2) %></span></div>
                 </div>
@@ -1248,13 +1256,14 @@ function calculateTotalAmount() {
     document.getElementById('gstAmount').textContent = gstAmount.toFixed(2);
     document.getElementById('actualPrice').textContent = actualPrice.toFixed(2);
     document.getElementById('payableAmount').textContent = finalAmount.toFixed(2);
-
+    document.getElementById('discountCoupen').textContent = couponDiscount.toFixed(2);
     return {
         subTotal,
         taxAmount,
         gstAmount,
         actualPrice,
-        finalAmount
+        finalAmount,
+        couponDiscount
     };
 }
 

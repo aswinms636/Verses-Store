@@ -584,6 +584,7 @@ const applyCoupon = async (req, res) => {
 
         res.json({
             success: true,
+            
             message: 'Coupon applied successfully',
             discount: discount,
             newTotal: newTotal,
@@ -623,6 +624,7 @@ const removeCoupon = async (req, res) => {
 
         res.json({
             success: true,
+           
             message: 'Coupon removed successfully'
         });
 
