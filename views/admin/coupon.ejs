@@ -277,6 +277,29 @@
               <% } %>
             </tbody>
           </table>
+
+          <!-- Pagination Controls -->
+          <% if (typeof totalPages !== 'undefined' && totalPages > 1) { %>
+          <nav aria-label="Coupon pagination" style="margin-top: 1rem;">
+            <ul style="display: flex; list-style: none; gap: 0.5rem; padding: 0;">
+              <% if (currentPage > 1) { %>
+                <li>
+                  <a href="?page=<%= currentPage - 1 %>" class="btn btn-edit">&laquo; Prev</a>
+                </li>
+              <% } %>
+              <% for (let p = 1; p <= totalPages; p++) { %>
+                <li>
+                  <a href="?page=<%= p %>" class="btn <%= currentPage === p ? 'btn-success' : 'btn-edit' %>"><%= p %></a>
+                </li>
+              <% } %>
+              <% if (currentPage < totalPages) { %>
+                <li>
+                  <a href="?page=<%= currentPage + 1 %>" class="btn btn-edit">Next &raquo;</a>
+                </li>
+              <% } %>
+            </ul>
+          </nav>
+          <% } %>
         </div>
       </div>
     </div>

@@ -595,7 +595,7 @@
                     <option value="Wallet Payment">Wallet Payment</option>
                 </select>
 
-                <button class="button" onclick="placeOrder()">Place Order</button>
+                
 
                 <div class="price-breakdown">
                     <div class="breakdown-item">Sub Total: ₹<span id="subTotal"><%= totalAmount.toFixed(2) %></span></div>
@@ -622,6 +622,7 @@
                     
                     <div class="breakdown-item total">Final Amount: ₹<span id="payableAmount"><%= totalAmount.toFixed(2) %></span></div>
                 </div>
+                <button class="button" onclick="placeOrder()">Place Order</button>
             </div>
         </div>
 
