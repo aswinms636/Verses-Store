@@ -11,6 +11,8 @@ class ReportGenerator {
         worksheet.columns = [
             { header: 'Date', key: 'date', width: 15 },
             { header: 'Sales (₹)', key: 'sales', width: 15 },
+            { header: 'GST (₹)', key: 'gst', width: 12 },
+            { header: 'Total Amount (₹)', key: 'totalAmountWithGST', width: 18 },
             { header: 'Orders', key: 'orders', width: 12 },
             { header: 'Items Sold', key: 'items', width: 12 },
             { header: 'Discounts (₹)', key: 'discounts', width: 15 }
@@ -22,20 +24,22 @@ class ReportGenerator {
                 worksheet.addRow({
                     date: day._id,
                     sales: day.dailyTotal,
+                    gst: day.gst,
+                    totalAmountWithGST: day.totalAmountWithGST,
                     orders: day.orderCount,
                     items: day.items,
                     discounts: day.discounts || 0
                 });
             });
         } else {
-            worksheet.addRow({ date: 'No data', sales: '', orders: '', items: '', discounts: '' });
+            worksheet.addRow({ date: 'No data', sales: '', gst: '', totalAmountWithGST: '', orders: '', items: '', discounts: '' });
         }
 
         worksheet.addRow([]); // Empty row for spacing
 
         // Product Sales Table
         worksheet.addRow(['Product Sales Report']);
-        worksheet.addRow(['Product Name', 'Quantity', 'Size', 'Unit Price', 'Total Price']);
+        worksheet.addRow(['Product Name', 'Quantity', 'Size', 'Unit Price', 'Total Price', 'GST (₹)', 'Total Amount (₹)']);
         if (data.productSales && data.productSales.length > 0) {
             data.productSales.forEach(row => {
                 worksheet.addRow([
@@ -43,11 +47,13 @@ class ReportGenerator {
                     row.quantity,
                     row.size || '',
                     row.unitPrice ? `₹${Number(row.unitPrice).toFixed(2)}` : '',
-                    row.totalPrice ? `₹${Number(row.totalPrice).toFixed(2)}` : ''
+                    row.totalPrice ? `₹${Number(row.totalPrice).toFixed(2)}` : '',
+                    row.gst,
+                    row.totalAmountWithGST ? `₹${Number(row.totalAmountWithGST).toFixed(2)}` : ''
                 ]);
             });
         } else {
-            worksheet.addRow(['No product sales data', '', '', '', '']);
+            worksheet.addRow(['No product sales data', '', '', '', '', '', '']);
         }
 
         worksheet.addRow([]); // Empty row for spacing
@@ -56,6 +62,8 @@ class ReportGenerator {
         worksheet.addRow(['Summary']);
         worksheet.addRow(['Period', `${period.startDate} to ${period.endDate}`]);
         worksheet.addRow(['Total Sales', `₹${data.periodSales.total}`]);
+        worksheet.addRow(['Total GST', `₹${data.periodSales.gst}`]);
+        worksheet.addRow(['Total Amount (with GST)', `₹${data.periodSales.totalAmountWithGST}`]);
         worksheet.addRow(['Total Orders', data.periodSales.orders]);
         worksheet.addRow(['Total Items Sold', data.periodSales.items]);
 
@@ -90,6 +98,8 @@ class ReportGenerator {
         doc.fontSize(14).text('Summary');
         doc.fontSize(12);
         doc.text(`Total Sales: ₹${data.periodSales.total}`);
+        doc.text(`Total GST: ₹${data.periodSales.gst}`);
+        doc.text(`Total Amount (with GST): ₹${data.periodSales.totalAmountWithGST}`);
         doc.text(`Total Orders: ${data.periodSales.orders}`);
         doc.text(`Total Items Sold: ${data.periodSales.items}`);
         doc.moveDown();
@@ -100,8 +110,8 @@ class ReportGenerator {
 
         // Table headers
         const tableTop = doc.y;
-        const tableHeaders = ['Date', 'Sales (₹)', 'Orders', 'Items'];
-        const columnWidth = 110;
+        const tableHeaders = ['Date', 'Sales (₹)', 'GST (₹)', 'Total Amount (₹)', 'Orders', 'Items'];
+        const columnWidth = 90;
 
         tableHeaders.forEach((header, i) => {
             doc.font('Helvetica-Bold').text(header, 50 + (i * columnWidth), tableTop);
@@ -112,8 +122,10 @@ class ReportGenerator {
             data.dailySales.forEach(day => {
                 doc.font('Helvetica').text(day._id, 50, rowTop);
                 doc.text(day.dailyTotal.toString(), 50 + columnWidth, rowTop);
-                doc.text(day.orderCount.toString(), 50 + (2 * columnWidth), rowTop);
-                doc.text(day.items.toString(), 50 + (3 * columnWidth), rowTop);
+                doc.text(day.gst.toString(), 50 + (2 * columnWidth), rowTop);
+                doc.text(day.totalAmountWithGST.toString(), 50 + (3 * columnWidth), rowTop);
+                doc.text(day.orderCount.toString(), 50 + (4 * columnWidth), rowTop);
+                doc.text(day.items.toString(), 50 + (5 * columnWidth), rowTop);
                 rowTop += 20;
             });
         } else {
@@ -129,8 +141,8 @@ class ReportGenerator {
 
         // Product table headers
         const prodTableTop = doc.y;
-        const prodHeaders = ['Product Name', 'Quantity', 'Size', 'Unit Price', 'Total Price'];
-        const prodColWidths = [140, 70, 70, 90, 100];
+        const prodHeaders = ['Product Name', 'Quantity', 'Size', 'Unit Price', 'Total Price', 'GST (₹)', 'Total Amount (₹)'];
+        const prodColWidths = [120, 60, 60, 80, 80, 70, 90];
 
         let x = 50;
         prodHeaders.forEach((header, i) => {
@@ -151,6 +163,10 @@ class ReportGenerator {
                 doc.text(row.unitPrice ? `₹${Number(row.unitPrice).toFixed(2)}` : '', x, prodRowTop, { width: prodColWidths[3], align: 'right' });
                 x += prodColWidths[3];
                 doc.text(row.totalPrice ? `₹${Number(row.totalPrice).toFixed(2)}` : '', x, prodRowTop, { width: prodColWidths[4], align: 'right' });
+                x += prodColWidths[4];
+                doc.text(row.gst ? `₹${Number(row.gst).toFixed(2)}` : '', x, prodRowTop, { width: prodColWidths[5], align: 'right' });
+                x += prodColWidths[5];
+                doc.text(row.totalAmountWithGST ? `₹${Number(row.totalAmountWithGST).toFixed(2)}` : '', x, prodRowTop, { width: prodColWidths[6], align: 'right' });
                 prodRowTop += 20;
             });
         } else {

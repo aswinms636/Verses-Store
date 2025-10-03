@@ -530,7 +530,7 @@ const exportSalesReport = async (req, res) => {
     try {
         const { format, startDate, endDate } = req.query;
         
-        // Fetch the report data (use your existing query logic)
+        // Fetch the report data (use your existing code logic)
         const reportData = await generateReportData(startDate, endDate);
         
         const period = {
@@ -570,8 +570,11 @@ async function generateReportData(startDate, endDate) {
     const end = new Date(endDate);
     end.setDate(end.getDate() + 1);
 
-    // Daily sales summary (unchanged)
-    const dailySales = await Order.aggregate([
+    // GST rate (example: 18%)
+    const GST_RATE = 0.04;
+
+    // Daily sales summary (add GST)
+    const dailySalesRaw = await Order.aggregate([
         {
             $match: {
                 createdOn: { $gte: start, $lt: end },
@@ -589,9 +592,18 @@ async function generateReportData(startDate, endDate) {
         },
         { $sort: { "_id": 1 } }
     ]);
+    // Add GST to each daily sales element and update total
+    const dailySales = dailySalesRaw.map(day => {
+        const gst = Math.round(day.dailyTotal * GST_RATE);
+        return {
+            ...day,
+            gst,
+            totalAmountWithGST: day.dailyTotal + gst
+        };
+    });
 
-    // Product sales table: Product Name, Quantity, Size, Unit Price, Total Price
-    const productSales = await Order.aggregate([
+    // Product sales table: Product Name, Quantity, Size, Unit Price, Total Price, GST
+    const productSalesRaw = await Order.aggregate([
         {
             $match: {
                 createdOn: { $gte: start, $lt: end },
@@ -631,13 +643,24 @@ async function generateReportData(startDate, endDate) {
         },
         { $sort: { productName: 1, size: 1 } }
     ]);
+    // Add GST to each product sales element and update total
+    const productSales = productSalesRaw.map(item => {
+        const gst = Math.round(item.totalPrice * GST_RATE);
+        return {
+            ...item,
+            gst,
+            totalAmountWithGST: item.totalPrice + gst
+        };
+    });
 
     // Calculate period totals
     const periodSales = dailySales.reduce((acc, day) => ({
         total: acc.total + day.dailyTotal,
         orders: acc.orders + day.orderCount,
         items: acc.items + day.items,
-    }), { total: 0, orders: 0, items: 0 });
+        gst: acc.gst + day.gst,
+        totalAmountWithGST: acc.totalAmountWithGST + (day.dailyTotal + day.gst)
+    }), { total: 0, orders: 0, items: 0, gst: 0, totalAmountWithGST: 0 });
 
     return { dailySales, periodSales, productSales };
 }
