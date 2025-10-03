@@ -594,11 +594,11 @@ async function generateReportData(startDate, endDate) {
     ]);
     // Add GST to each daily sales element and update total
     const dailySales = dailySalesRaw.map(day => {
-        const gst = Math.round(day.dailyTotal * GST_RATE);
+        const gst = parseFloat((day.dailyTotal * GST_RATE).toFixed(2));
         return {
             ...day,
             gst,
-            totalAmountWithGST: day.dailyTotal + gst
+            totalAmountWithGST: parseFloat((day.dailyTotal + gst).toFixed(2))
         };
     });
 
@@ -645,11 +645,11 @@ async function generateReportData(startDate, endDate) {
     ]);
     // Add GST to each product sales element and update total
     const productSales = productSalesRaw.map(item => {
-        const gst = Math.round(item.totalPrice * GST_RATE);
+        const gst = parseFloat((item.totalPrice * GST_RATE).toFixed(2));
         return {
             ...item,
             gst,
-            totalAmountWithGST: item.totalPrice + gst
+            totalAmountWithGST: parseFloat((item.totalPrice + gst).toFixed(2))
         };
     });
 

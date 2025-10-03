@@ -141,8 +141,8 @@ class ReportGenerator {
 
         // Product table headers
         const prodTableTop = doc.y;
-        const prodHeaders = ['Product Name', 'Quantity', 'Size', 'Unit Price', 'Total Price', 'GST (₹)', 'Total Amount (₹)'];
-        const prodColWidths = [120, 60, 60, 80, 80, 70, 90];
+        const prodHeaders = ['Product Name', 'Quantity', 'Size', 'Unit Price', 'GST (₹)', 'Total Amount (₹)']; // Removed 'Total Price'
+        const prodColWidths = [120, 60, 60, 80, 70, 90]; // Adjusted widths
 
         let x = 50;
         prodHeaders.forEach((header, i) => {
@@ -162,11 +162,9 @@ class ReportGenerator {
                 x += prodColWidths[2];
                 doc.text(row.unitPrice ? `₹${Number(row.unitPrice).toFixed(2)}` : '', x, prodRowTop, { width: prodColWidths[3], align: 'right' });
                 x += prodColWidths[3];
-                doc.text(row.totalPrice ? `₹${Number(row.totalPrice).toFixed(2)}` : '', x, prodRowTop, { width: prodColWidths[4], align: 'right' });
+                doc.text(row.gst ? `₹${Number(row.gst).toFixed(2)}` : '', x, prodRowTop, { width: prodColWidths[4], align: 'right' });
                 x += prodColWidths[4];
-                doc.text(row.gst ? `₹${Number(row.gst).toFixed(2)}` : '', x, prodRowTop, { width: prodColWidths[5], align: 'right' });
-                x += prodColWidths[5];
-                doc.text(row.totalAmountWithGST ? `₹${Number(row.totalAmountWithGST).toFixed(2)}` : '', x, prodRowTop, { width: prodColWidths[6], align: 'right' });
+                doc.text(row.totalAmountWithGST ? `₹${Number(row.totalAmountWithGST).toFixed(2)}` : '', x, prodRowTop, { width: prodColWidths[5], align: 'right' });
                 prodRowTop += 20;
             });
         } else {
