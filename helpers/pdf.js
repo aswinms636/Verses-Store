@@ -2,6 +2,19 @@ const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 const fs = require('fs-extra');
 
+// helper function to clean numbers
+function cleanNumber(val) {
+    if (val === undefined || val === null || val === '') return 0;
+    let str = String(val).trim();
+
+    // If it starts with '1' and rest is numeric, strip the first character
+    if (str.startsWith('1') && str.length > 1 && !isNaN(str.slice(1))) {
+        str = str.slice(1);
+    }
+
+    return Number(str);
+}
+
 class ReportGenerator {
     static async generateExcel(data, period) {
         const workbook = new ExcelJS.Workbook();
@@ -23,12 +36,12 @@ class ReportGenerator {
             data.dailySales.forEach(day => {
                 worksheet.addRow({
                     date: day._id,
-                    sales: day.dailyTotal,
-                    gst: day.gst,
-                    totalAmountWithGST: day.totalAmountWithGST,
+                    sales: cleanNumber(day.dailyTotal).toFixed(2),
+                    gst: cleanNumber(day.gst).toFixed(2),
+                    totalAmountWithGST: cleanNumber(day.totalAmountWithGST).toFixed(2),
                     orders: day.orderCount,
                     items: day.items,
-                    discounts: day.discounts || 0
+                    discounts: cleanNumber(day.discounts).toFixed(2)
                 });
             });
         } else {
@@ -46,10 +59,10 @@ class ReportGenerator {
                     row.productName,
                     row.quantity,
                     row.size || '',
-                    row.unitPrice ? `₹${Number(row.unitPrice).toFixed(2)}` : '',
-                    row.totalPrice ? `₹${Number(row.totalPrice).toFixed(2)}` : '',
-                    row.gst,
-                    row.totalAmountWithGST ? `₹${Number(row.totalAmountWithGST).toFixed(2)}` : ''
+                    `₹${cleanNumber(row.unitPrice).toFixed(2)}`,
+                    `₹${cleanNumber(row.totalPrice).toFixed(2)}`,
+                    cleanNumber(row.gst).toFixed(2),
+                    `₹${cleanNumber(row.totalAmountWithGST).toFixed(2)}`
                 ]);
             });
         } else {
@@ -61,9 +74,9 @@ class ReportGenerator {
         // Add summary section
         worksheet.addRow(['Summary']);
         worksheet.addRow(['Period', `${period.startDate} to ${period.endDate}`]);
-        worksheet.addRow(['Total Sales', `₹${data.periodSales.total}`]);
-        worksheet.addRow(['Total GST', `₹${data.periodSales.gst}`]);
-        worksheet.addRow(['Total Amount (with GST)', `₹${data.periodSales.totalAmountWithGST}`]);
+        worksheet.addRow(['Total Sales', `₹${cleanNumber(data.periodSales.total).toFixed(2)}`]);
+        worksheet.addRow(['Total GST', `₹${cleanNumber(data.periodSales.gst).toFixed(2)}`]);
+        worksheet.addRow(['Total Amount (with GST)', `₹${cleanNumber(data.periodSales.totalAmountWithGST).toFixed(2)}`]);
         worksheet.addRow(['Total Orders', data.periodSales.orders]);
         worksheet.addRow(['Total Items Sold', data.periodSales.items]);
 
@@ -98,24 +111,22 @@ class ReportGenerator {
         doc.fontSize(14).font('Helvetica-Bold').text('Summary', { underline: true });
         doc.moveDown(0.5);
         doc.fontSize(12).font('Helvetica');
-        doc.text(`Total Sales: ₹${data.periodSales.total}`);
-        doc.text(`Total GST: ₹${data.periodSales.gst}`);
-        doc.text(`Total Amount (with GST): ₹${data.periodSales.totalAmountWithGST}`);
-        doc.text(`Total Orders: ${data.periodSales.orders}`);
-        doc.text(`Total Items Sold: ${data.periodSales.items}`);
+        doc.text(`Total Sales: ₹${cleanNumber(data.periodSales?.total).toFixed(2)}`);
+        doc.text(`Total GST: ₹${cleanNumber(data.periodSales?.gst).toFixed(2)}`);
+        doc.text(`Total Amount (with GST): ₹${cleanNumber(data.periodSales?.totalAmountWithGST).toFixed(2)}`);
+        doc.text(`Total Orders: ${data.periodSales?.orders ?? '0'}`);
+        doc.text(`Total Items Sold: ${data.periodSales?.items ?? '0'}`);
         doc.moveDown(1.5);
 
         // Daily Sales Table
         doc.fontSize(14).font('Helvetica-Bold').text('Daily Sales Breakdown', { underline: true });
         doc.moveDown(0.5);
 
-        // Table headers
         const tableHeaders = ['Date', 'Sales (₹)', 'GST (₹)', 'Total Amount (₹)', 'Orders', 'Items'];
         const colWidths = [80, 70, 70, 90, 60, 60];
         let tableX = 50;
         let tableY = doc.y;
 
-        // Draw header row
         tableHeaders.forEach((header, i) => {
             doc.rect(tableX, tableY, colWidths[i], 22).fillAndStroke('#f0f0f0', '#cccccc');
             doc.fillColor('#000').font('Helvetica-Bold').fontSize(11)
@@ -126,21 +137,20 @@ class ReportGenerator {
         tableX = 50;
         tableY += 22;
 
-        // Draw data rows
         if (data.dailySales && data.dailySales.length > 0) {
             data.dailySales.forEach(day => {
                 let values = [
-                    day._id,
-                    day.dailyTotal,
-                    day.gst,
-                    day.totalAmountWithGST,
-                    day.orderCount,
-                    day.items
+                    day._id ?? '',
+                    `₹${cleanNumber(day.dailyTotal).toFixed(2)}`,
+                    `₹${cleanNumber(day.gst).toFixed(2)}`,
+                    `₹${cleanNumber(day.totalAmountWithGST).toFixed(2)}`,
+                    day.orderCount ?? '0',
+                    day.items ?? '0'
                 ];
                 values.forEach((val, i) => {
                     doc.rect(tableX, tableY, colWidths[i], 20).stroke('#cccccc');
                     doc.font('Helvetica').fontSize(10).fillColor('#222')
-                        .text(val !== undefined ? val.toString() : '', tableX + 4, tableY + 5, { width: colWidths[i] - 8, align: 'center' });
+                        .text(val, tableX + 4, tableY + 5, { width: colWidths[i] - 8, align: 'center' });
                     tableX += colWidths[i];
                 });
                 tableX = 50;
@@ -160,7 +170,6 @@ class ReportGenerator {
         doc.fontSize(14).font('Helvetica-Bold').text('Product Sales Report', { underline: true });
         doc.moveDown(0.5);
 
-        // Product table headers
         const prodHeaders = ['Product Name', 'Quantity', 'Size', 'Unit Price', 'Total Price', 'GST (₹)', 'Total Amount (₹)'];
         const prodColWidths = [120, 60, 60, 70, 70, 70, 90];
         let prodX = 50;
@@ -179,18 +188,18 @@ class ReportGenerator {
         if (data.productSales && data.productSales.length > 0) {
             data.productSales.forEach(row => {
                 let values = [
-                    row.productName,
-                    row.quantity,
-                    row.size || '',
-                    row.unitPrice ? `₹${Number(row.unitPrice).toFixed(2)}` : '',
-                    row.totalPrice ? `₹${Number(row.totalPrice).toFixed(2)}` : '',
-                    row.gst ? `₹${Number(row.gst).toFixed(2)}` : '',
-                    row.totalAmountWithGST ? `₹${Number(row.totalAmountWithGST).toFixed(2)}` : ''
+                    row.productName ?? '',
+                    row.quantity ?? '0',
+                    row.size ?? '',
+                    `₹${cleanNumber(row.unitPrice).toFixed(2)}`,
+                    `₹${cleanNumber(row.totalPrice).toFixed(2)}`,
+                    `₹${cleanNumber(row.gst).toFixed(2)}`,
+                    `₹${cleanNumber(row.totalAmountWithGST).toFixed(2)}`
                 ];
                 values.forEach((val, i) => {
                     doc.rect(prodX, prodY, prodColWidths[i], 20).stroke('#cccccc');
                     doc.font('Helvetica').fontSize(10).fillColor('#222')
-                        .text(val !== undefined ? val.toString() : '', prodX + 4, prodY + 5, { width: prodColWidths[i] - 8, align: 'center' });
+                        .text(val, prodX + 4, prodY + 5, { width: prodColWidths[i] - 8, align: 'center' });
                     prodX += prodColWidths[i];
                 });
                 prodX = 50;
