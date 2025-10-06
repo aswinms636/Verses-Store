@@ -253,7 +253,7 @@
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <button type="submit" class="update-btn">Update Status</button>
+                        <button type="submit" class="update-btn" id="updateBtn" disabled>Update Status</button>
                     </div>
                 </div>
             </form>
@@ -263,9 +263,18 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // Enable button only when status changes
+        const statusSelect = document.getElementById('status');
+        const updateBtn = document.getElementById('updateBtn');
+        const originalStatus = statusSelect.value;
+
+        statusSelect.addEventListener('change', function() {
+            updateBtn.disabled = statusSelect.value === originalStatus;
+        });
+
         document.getElementById('statusForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const status = document.getElementById('status').value;
+            const status = statusSelect.value;
 
             try {
                 const response = await fetch(`/admin/orders/<%= order.orderId %>/update-status`, {
@@ -283,7 +292,6 @@
                         text: result.message,
                         confirmButtonColor: '#b0d5de'
                     }).then(() => {
-                        
                         setTimeout(() => {
                             location.reload();
                         }, 1000);
