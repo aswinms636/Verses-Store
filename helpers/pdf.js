@@ -111,8 +111,8 @@ class ReportGenerator {
         doc.fontSize(14).font('Helvetica-Bold').text('Summary', { underline: true });
         doc.moveDown(0.5);
         doc.fontSize(12).font('Helvetica');
-        doc.text(`Total Sales: ₹${cleanNumber(data.periodSales?.total).toFixed(2)}`);
-        doc.text(`Total GST: ₹${cleanNumber(data.periodSales?.gst).toFixed(2)}`);
+        doc.text(`Total Sales: ${cleanNumber(data.periodSales?.total).toFixed(2)}`);
+        doc.text(`Total GST: ${cleanNumber(data.periodSales?.gst).toFixed(2)}`);
         doc.text(`Total Amount (with GST): ₹${cleanNumber(data.periodSales?.totalAmountWithGST).toFixed(2)}`);
         doc.text(`Total Orders: ${data.periodSales?.orders ?? '0'}`);
         doc.text(`Total Items Sold: ${data.periodSales?.items ?? '0'}`);
@@ -122,7 +122,7 @@ class ReportGenerator {
         doc.fontSize(14).font('Helvetica-Bold').text('Daily Sales Breakdown', { underline: true });
         doc.moveDown(0.5);
 
-        const tableHeaders = ['Date', 'Sales (₹)', 'GST (₹)', 'Total Amount (₹)', 'Orders', 'Items'];
+        const tableHeaders = ['Date', 'Sales ', 'GST ', 'Total Amount ', 'Orders', 'Items'];
         const colWidths = [80, 70, 70, 90, 60, 60];
         let tableX = 50;
         let tableY = doc.y;
@@ -141,9 +141,9 @@ class ReportGenerator {
             data.dailySales.forEach(day => {
                 let values = [
                     day._id ?? '',
-                    `₹${cleanNumber(day.dailyTotal).toFixed(2)}`,
-                    `₹${cleanNumber(day.gst).toFixed(2)}`,
-                    `₹${cleanNumber(day.totalAmountWithGST).toFixed(2)}`,
+                    `${cleanNumber(day.dailyTotal).toFixed(2)}`,
+                    `${cleanNumber(day.gst).toFixed(2)}`,
+                    `${cleanNumber(day.totalAmountWithGST).toFixed(2)}`,
                     day.orderCount ?? '0',
                     day.items ?? '0'
                 ];
@@ -170,7 +170,7 @@ class ReportGenerator {
         doc.fontSize(14).font('Helvetica-Bold').text('Product Sales Report', { underline: true });
         doc.moveDown(0.5);
 
-        const prodHeaders = ['Product Name', 'Quantity', 'Size', 'Unit Price', 'Total Price', 'GST (₹)', 'Total Amount (₹)'];
+        const prodHeaders = ['Product Name', 'Quantity', 'Size', 'Unit Price', 'Total Price', 'GST ', 'Total Amount '];
         const prodColWidths = [120, 60, 60, 70, 70, 70, 90];
         let prodX = 50;
         let prodY = doc.y;
@@ -191,10 +191,10 @@ class ReportGenerator {
                     row.productName ?? '',
                     row.quantity ?? '0',
                     row.size ?? '',
-                    `₹${cleanNumber(row.unitPrice).toFixed(2)}`,
-                    `₹${cleanNumber(row.totalPrice).toFixed(2)}`,
-                    `₹${cleanNumber(row.gst).toFixed(2)}`,
-                    `₹${cleanNumber(row.totalAmountWithGST).toFixed(2)}`
+                    `${cleanNumber(row.unitPrice).toFixed(2)}`,
+                    `${cleanNumber(row.totalPrice).toFixed(2)}`,
+                    `${cleanNumber(row.gst).toFixed(2)}`,
+                    `${cleanNumber(row.totalAmountWithGST).toFixed(2)}`
                 ];
                 values.forEach((val, i) => {
                     doc.rect(prodX, prodY, prodColWidths[i], 20).stroke('#cccccc');
