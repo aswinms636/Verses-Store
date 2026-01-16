@@ -74,9 +74,9 @@ class ReportGenerator {
         // Add summary section
         worksheet.addRow(['Summary']);
         worksheet.addRow(['Period', `${period.startDate} to ${period.endDate}`]);
-        worksheet.addRow(['Total Sales', `₹${cleanNumber(data.periodSales.total).toFixed(2)}`]);
-        worksheet.addRow(['Total GST', `₹${cleanNumber(data.periodSales.gst).toFixed(2)}`]);
-        worksheet.addRow(['Total Amount (with GST)', `₹${cleanNumber(data.periodSales.totalAmountWithGST).toFixed(2)}`]);
+        worksheet.addRow(['Total Sales', `${cleanNumber(data.periodSales.total).toFixed(2)}`]);
+        worksheet.addRow(['Total GST', `${cleanNumber(data.periodSales.gst).toFixed(2)}`]);
+        worksheet.addRow(['Total Amount (with GST)', `${cleanNumber(data.periodSales.totalAmountWithGST).toFixed(2)}`]);
         worksheet.addRow(['Total Orders', data.periodSales.orders]);
         worksheet.addRow(['Total Items Sold', data.periodSales.items]);
 
@@ -113,7 +113,7 @@ class ReportGenerator {
         doc.fontSize(12).font('Helvetica');
         doc.text(`Total Sales: ${cleanNumber(data.periodSales?.total).toFixed(2)}`);
         doc.text(`Total GST: ${cleanNumber(data.periodSales?.gst).toFixed(2)}`);
-        doc.text(`Total Amount (with GST): ₹${cleanNumber(data.periodSales?.totalAmountWithGST).toFixed(2)}`);
+        doc.text(`Total Amount (with GST): ${cleanNumber(data.periodSales?.totalAmountWithGST).toFixed(2)}`);
         doc.text(`Total Orders: ${data.periodSales?.orders ?? '0'}`);
         doc.text(`Total Items Sold: ${data.periodSales?.items ?? '0'}`);
         doc.moveDown(1.5);
