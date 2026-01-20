@@ -531,7 +531,7 @@
                     <i class="fas fa-times-circle"></i> Cancel Order
                 </button>
             <% } %>
-            <% if(order.paymentMethod === 'Online Payment' && order.paymentStatus === 'Pending') { %>
+            <% if(order.paymentMethod === 'Online Payment' && order.paymentStatus === 'Pending' && order.status!='Cancelled'  ) { %>
                 <button type="button" class="action-button invoice-button" style="background: linear-gradient(45deg, #007bff, #0056b3);" onclick="retryPayment('<%= order._id %>', <%= order.payableAmount %>)">
                     <i class="fas fa-redo"></i> Retry Payment
                 </button>
@@ -547,9 +547,13 @@
                 <% } %>
             <% } %>
             <!-- Invoice Download Button -->
+            <% if (order.status!=='Cancelled') { %>
             <button type="button" class="action-button invoice-button" onclick="downloadInvoice('<%= order._id %>')">
+               
                 <i class="fas fa-file-download"></i> Download Invoice
+                
             </button>
+            <% } %>
             <% order.orderItems.forEach(item => { %>
             <% if (item.returnRequest) { %>
                 <p class="return-status <%= item.returnStatus.toLowerCase() %>">

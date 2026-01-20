@@ -176,6 +176,7 @@ const order = await Order.findById(orderId);
 
         // Update order status
         order.status = 'Cancelled';
+        order.pa
         await order.save();
 
 
